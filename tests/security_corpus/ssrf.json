@@ -1,0 +1,9 @@
+[
+  {"text": "http://169.254.169.254/latest/meta-data/", "expected_action": "block"},
+  {"text": "http://localhost/admin", "expected_action": "block"},
+  {"text": "http://127.0.0.1:8080/", "expected_action": "block"},
+  {"text": "http://10.0.0.1/internal", "expected_action": "block"},
+  {"text": "http://192.168.1.1/admin", "expected_action": "block"},
+  {"text": "file:///etc/passwd", "expected_action": "block"},
+  {"text": "gopher://evil.com:70/1payload", "expected_action": "block"}
+]

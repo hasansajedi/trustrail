@@ -1,0 +1,42 @@
+name: Security
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: "0 6 * * 1"  # Weekly on Monday
+
+jobs:
+  audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pip-audit
+        run: pip install pip-audit
+      - name: Install dependencies
+        run: pip install -e ".[dev,all]"
+      - name: Run audit
+        run: pip-audit --skip-editable
+
+  security-corpus:
+    name: Security Corpus Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+      - name: Run security tests
+        run: pytest tests/security/ -v --tb=short
+      - name: Enforce adaptive prompt-injection regression gate
+        run: >-
+          python -m aiRail.testing.red_team
+          tests/security_corpus/adaptive_prompt_injection.json

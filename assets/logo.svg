@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 230" width="200" height="230" role="img" aria-label="aiRail logo">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#112244;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00c8f0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0077cc;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softglow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <clipPath id="shieldClip">
+      <path d="M 100,12 L 188,36 L 188,112 Q 188,165 100,202 Q 12,165 12,112 L 12,36 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Shield drop shadow -->
+  <path d="M 100,16 L 192,40 L 192,116 Q 192,170 100,208 Q 8,170 8,116 L 8,40 Z"
+        fill="#000000" opacity="0.25" transform="translate(4,6)"/>
+
+  <!-- Shield body -->
+  <path d="M 100,12 L 188,36 L 188,112 Q 188,165 100,202 Q 12,165 12,112 L 12,36 Z"
+        fill="url(#shieldGrad)"/>
+
+  <!-- Shield border -->
+  <path d="M 100,12 L 188,36 L 188,112 Q 188,165 100,202 Q 12,165 12,112 L 12,36 Z"
+        fill="none" stroke="url(#borderGrad)" stroke-width="3.5"/>
+
+  <!-- Inner shield highlight (top edge) -->
+  <path d="M 100,19 L 181,41 L 181,60" fill="none" stroke="#00e5ff" stroke-width="1" opacity="0.35"/>
+
+  <!-- ── Guard rails (3 horizontal bars with vertical posts) ── -->
+
+  <!-- Vertical posts -->
+  <line x1="62"  y1="69" x2="62"  y2="147" stroke="#1e5f8c" stroke-width="3" stroke-linecap="round"/>
+  <line x1="100" y1="66" x2="100" y2="150" stroke="#1e5f8c" stroke-width="3" stroke-linecap="round"/>
+  <line x1="138" y1="69" x2="138" y2="147" stroke="#1e5f8c" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Top rail -->
+  <rect x="42" y="75" width="116" height="7" rx="3.5"
+        fill="#00c8f0" filter="url(#glow)" opacity="0.95"/>
+
+  <!-- Middle rail -->
+  <rect x="36" y="101" width="128" height="7" rx="3.5"
+        fill="#00c8f0" filter="url(#glow)" opacity="0.95"/>
+
+  <!-- Bottom rail -->
+  <rect x="42" y="127" width="116" height="7" rx="3.5"
+        fill="#00c8f0" filter="url(#glow)" opacity="0.95"/>
+
+  <!-- Node circles at rail/post intersections -->
+  <!-- Top rail -->
+  <circle cx="62"  cy="78.5" r="6" fill="#0a1628" stroke="#00c8f0" stroke-width="2"/>
+  <circle cx="100" cy="78.5" r="6" fill="#00c8f0" filter="url(#glow)"/>
+  <circle cx="138" cy="78.5" r="6" fill="#0a1628" stroke="#00c8f0" stroke-width="2"/>
+
+  <!-- Middle rail — center node is the "AI eye" / primary node -->
+  <circle cx="62"  cy="104.5" r="6" fill="#00c8f0" filter="url(#glow)"/>
+  <circle cx="100" cy="104.5" r="9" fill="#00e5ff" filter="url(#softglow)"/>
+  <circle cx="100" cy="104.5" r="5" fill="#ffffff"/>
+  <circle cx="138" cy="104.5" r="6" fill="#00c8f0" filter="url(#glow)"/>
+
+  <!-- Bottom rail -->
+  <circle cx="62"  cy="130.5" r="6" fill="#0a1628" stroke="#00c8f0" stroke-width="2"/>
+  <circle cx="100" cy="130.5" r="6" fill="#00c8f0" filter="url(#glow)"/>
+  <circle cx="138" cy="130.5" r="6" fill="#0a1628" stroke="#00c8f0" stroke-width="2"/>
+
+  <!-- Small AI spark lines from center node -->
+  <line x1="110" y1="97" x2="122" y2="89" stroke="#00e5ff" stroke-width="1.2" opacity="0.6"/>
+  <line x1="110" y1="112" x2="122" y2="120" stroke="#00e5ff" stroke-width="1.2" opacity="0.6"/>
+  <line x1="90"  y1="97" x2="78"  y2="89" stroke="#00e5ff" stroke-width="1.2" opacity="0.6"/>
+  <line x1="90"  y1="112" x2="78" y2="120" stroke="#00e5ff" stroke-width="1.2" opacity="0.6"/>
+
+  <!-- Label inside shield -->
+  <text x="100" y="170"
+        font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+        font-size="13" font-weight="700"
+        fill="#ffffff" text-anchor="middle" letter-spacing="3"
+        opacity="0.9">aiRail</text>
+
+  <!-- Version tag strip below shield -->
+  <rect x="60" y="212" width="80" height="14" rx="7" fill="#00c8f0" opacity="0.15"/>
+  <text x="100" y="222.5"
+        font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+        font-size="8.5" font-weight="600"
+        fill="#00c8f0" text-anchor="middle" letter-spacing="1.5"
+        opacity="0.85">v0.1.0</text>
+</svg>

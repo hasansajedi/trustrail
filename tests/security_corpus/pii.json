@@ -1,0 +1,8 @@
+[
+  {"text": "My email is user@example.com", "expected_action": "redact"},
+  {"text": "Contact: john.doe@company.org", "expected_action": "redact"},
+  {"text": "Call me at (555) 867-5309", "expected_action": "redact"},
+  {"text": "Phone: 555-123-4567", "expected_action": "redact"},
+  {"text": "My credit card: 4532015112830366", "expected_action": "block"},
+  {"text": "Card number: 5425233430109903", "expected_action": "block"}
+]

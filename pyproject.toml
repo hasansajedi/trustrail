@@ -1,0 +1,134 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aiRail"
+dynamic = ["version"]
+description = "Production-grade open-source Python library for GenAI/LLM guardrails"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    { name = "aiRail Contributors" },
+]
+keywords = ["llm", "guardrails", "security", "genai", "safety", "ai"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = ["pydantic>=2.0"]
+
+[project.optional-dependencies]
+redis = ["redis>=5.0"]
+openai = ["openai>=1.0"]
+fastapi = ["fastapi>=0.100", "starlette>=0.27"]
+langchain = ["langchain-core>=0.1"]
+llamaindex = ["llama-index-core>=0.10"]
+presidio = ["presidio-analyzer>=2.2", "presidio-anonymizer>=2.2", "cryptography>=49.0.0"]
+otel = ["opentelemetry-api>=1.20", "opentelemetry-sdk>=1.20"]
+sql = ["sqlglot>=20.0"]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "hypothesis>=6.100",
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "pre-commit>=3.0",
+    "pip-audit>=2.7",
+    "cryptography>=49.0.0",
+]
+all = ["aiRail[redis,openai,fastapi,langchain,llamaindex,presidio,otel,sql]"]
+
+[project.scripts]
+aiRail = "aiRail.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/hasansajedi/aiRail"
+Documentation = "https://aiRail.readthedocs.io"
+Repository = "https://github.com/hasansajedi/aiRail"
+"Bug Tracker" = "https://github.com/hasansajedi/aiRail/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aiRail"]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
+
+[tool.ruff]
+src = ["src"]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "S",   # bandit security
+    "N",   # pep8-naming
+    "ANN", # flake8-annotations
+    "RUF", # ruff-specific
+]
+ignore = [
+    "ANN401",  # typing.Any in **kwargs — unavoidable for generic exception/callback APIs
+    "S101",    # assert statements (ok in tests)
+    "RUF003",  # ambiguous character in comment — false positives on unicode examples
+]
+
+[tool.ruff.lint.per-file-ignores]
+"src/aiRail/**" = ["N999"]
+"tests/**" = ["S101", "ANN", "S106", "S105", "S110", "S112", "SIM105"]
+"examples/**" = ["ANN", "S105", "T20"]
+"benchmarks/**" = ["ANN", "T20"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+exclude = ["tests/"]
+
+[[tool.mypy.overrides]]
+module = [
+    "opentelemetry.*",
+    "starlette.*",
+    "fastapi.*",
+    "langchain_core.*",
+    "llama_index.*",
+    "presidio_analyzer.*",
+    "presidio_anonymizer.*",
+    "redis.*",
+    "yaml",
+    "sqlglot.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--cov=aiRail --cov-report=term-missing --cov-report=xml"
+
+[tool.coverage.run]
+source = ["src/aiRail"]
+omit = ["*/tests/*"]
+
+[dependency-groups]
+dev = [
+    "cryptography>=49.0.0",
+]

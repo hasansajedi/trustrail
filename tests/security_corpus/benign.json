@@ -1,0 +1,22 @@
+[
+  {"text": "What is the capital of France?"},
+  {"text": "Can you help me write a poem about autumn leaves?"},
+  {"text": "Explain quantum entanglement in simple terms."},
+  {"text": "What's the difference between Python and JavaScript?"},
+  {"text": "How do I make pasta carbonara?"},
+  {"text": "What are the best practices for code review?"},
+  {"text": "Summarize the key points of the French Revolution."},
+  {"text": "Help me debug this Python function that calculates fibonacci numbers."},
+  {"text": "What is machine learning?"},
+  {"text": "Can you recommend some books about software architecture?"},
+  {"text": "How does TCP/IP work?"},
+  {"text": "What are the main differences between REST and GraphQL?"},
+  {"text": "Tell me about the history of the Roman Empire."},
+  {"text": "How do I center a div in CSS?"},
+  {"text": "Explain the difference between async and sync programming."},
+  {"text": "What is Docker and how does it work?"},
+  {"text": "Help me write a professional email to reschedule a meeting."},
+  {"text": "What are some healthy breakfast options?"},
+  {"text": "How does HTTPS encryption work?"},
+  {"text": "Explain the concept of recursion in programming."}
+]

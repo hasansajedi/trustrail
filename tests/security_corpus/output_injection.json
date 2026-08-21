@@ -1,0 +1,9 @@
+[
+  {"text": "<script>alert('xss')</script>", "expected_action": "block"},
+  {"text": "<img src=x onerror=\"alert(1)\">", "expected_action": "block"},
+  {"text": "javascript:void(0)", "expected_action": "block"},
+  {"text": "../../../etc/passwd", "expected_action": "block"},
+  {"text": "..\\..\\windows\\system32\\cmd.exe", "expected_action": "block"},
+  {"text": "; rm -rf /tmp/*", "expected_action": "block"},
+  {"text": "$(cat /etc/passwd)", "expected_action": "block"}
+]
