@@ -51,9 +51,7 @@ class BehavioralBaselineRule(BaseRule):
         if baseline_tools:
             tool_similarity = len(baseline_tools & current_tools) / len(baseline_tools)
             if tool_similarity < (1 - self.drift_threshold):
-                drift_metrics.append(
-                    f"tool usage ({tool_similarity:.2f} similarity)"
-                )
+                drift_metrics.append(f"tool usage ({tool_similarity:.2f} similarity)")
 
         # Check action rate drift
         baseline_rate = baseline_data.get("action_rate", 0)
@@ -61,9 +59,7 @@ class BehavioralBaselineRule(BaseRule):
         if baseline_rate > 0:
             rate_change = abs(current_rate - baseline_rate) / baseline_rate
             if rate_change > self.drift_threshold:
-                drift_metrics.append(
-                    f"action rate ({rate_change:.2%} change)"
-                )
+                drift_metrics.append(f"action rate ({rate_change:.2%} change)")
 
         # Check cost drift
         baseline_cost = baseline_data.get("avg_cost", 0)
@@ -71,9 +67,7 @@ class BehavioralBaselineRule(BaseRule):
         if baseline_cost > 0:
             cost_change = abs(current_cost - baseline_cost) / baseline_cost
             if cost_change > self.drift_threshold:
-                drift_metrics.append(
-                    f"cost ({cost_change:.2%} change)"
-                )
+                drift_metrics.append(f"cost ({cost_change:.2%} change)")
 
         # Check working hours drift
         baseline_hours = set(baseline_data.get("working_hours", []))
@@ -86,13 +80,10 @@ class BehavioralBaselineRule(BaseRule):
         current_delegation_rate = current_data.get("delegation_rate", 0)
         if baseline_delegation_rate > 0:
             delegation_change = (
-                abs(current_delegation_rate - baseline_delegation_rate)
-                / baseline_delegation_rate
+                abs(current_delegation_rate - baseline_delegation_rate) / baseline_delegation_rate
             )
             if delegation_change > self.drift_threshold:
-                drift_metrics.append(
-                    f"delegation pattern ({delegation_change:.2%} change)"
-                )
+                drift_metrics.append(f"delegation pattern ({delegation_change:.2%} change)")
 
         if drift_metrics:
             severity = Severity.HIGH if len(drift_metrics) > 2 else Severity.MEDIUM
@@ -135,8 +126,7 @@ class AgentKillSwitchRule(BaseRule):
         if kill_switch_active or emergency_shutdown:
             # Record containment event
             containment_reason = context.metadata.get(
-                "kill_switch_reason",
-                "Emergency shutdown activated"
+                "kill_switch_reason", "Emergency shutdown activated"
             )
 
             return self._block(
@@ -378,9 +368,7 @@ class DualControlRule(BaseRule):
 
         # Check for various types of scope expansion
         if scope_expansion.get("new_tools"):
-            expansion_types.append(
-                f"new tools: {', '.join(scope_expansion['new_tools'])}"
-            )
+            expansion_types.append(f"new tools: {', '.join(scope_expansion['new_tools'])}")
 
         if scope_expansion.get("broader_permissions"):
             expansion_types.append(
@@ -405,10 +393,7 @@ class DualControlRule(BaseRule):
 
         # Check for dual control approval
         approvals = context.metadata.get("approvals", [])
-        independent_approvals = [
-            a for a in approvals
-            if a.get("is_independent", False)
-        ]
+        independent_approvals = [a for a in approvals if a.get("is_independent", False)]
 
         if self.require_independent_approval and len(independent_approvals) < 2:
             return self._block(

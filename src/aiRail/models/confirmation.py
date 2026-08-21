@@ -22,15 +22,9 @@ class ConfirmationPrompt(BaseModel):
     data_exposure: list[str] = Field(
         default_factory=list, description="Data that may be exposed or accessed"
     )
-    is_reversible: bool = Field(
-        default=True, description="Whether this action can be undone"
-    )
-    approval_rationale: str = Field(
-        description="Why approval is needed for this action"
-    )
-    risk_level: str = Field(
-        default="medium", description="Risk level: low, medium, high, critical"
-    )
+    is_reversible: bool = Field(default=True, description="Whether this action can be undone")
+    approval_rationale: str = Field(description="Why approval is needed for this action")
+    risk_level: str = Field(default="medium", description="Risk level: low, medium, high, critical")
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     def to_prompt_text(self) -> str:
@@ -68,9 +62,7 @@ class EvidenceRequirement(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     recommendation: str = Field(description="The recommendation being made")
-    sources: list[str] = Field(
-        default_factory=list, description="Source URLs or references"
-    )
+    sources: list[str] = Field(default_factory=list, description="Source URLs or references")
     provenance: list[str] = Field(
         default_factory=list,
         description="Chain of reasoning or data provenance",
@@ -95,13 +87,10 @@ class ContentOriginMarker(BaseModel):
 
     content_type: str = Field(
         description=(
-            "Type: model_generated, retrieved_evidence, tool_result, "
-            "external_claim, verified_fact"
+            "Type: model_generated, retrieved_evidence, tool_result, external_claim, verified_fact"
         )
     )
     source: str | None = Field(default=None, description="Source of the content")
-    is_verified: bool = Field(
-        default=False, description="Whether content has been verified"
-    )
+    is_verified: bool = Field(default=False, description="Whether content has been verified")
     timestamp: str | None = Field(default=None, description="When content was generated/retrieved")
     metadata: dict[str, Any] = Field(default_factory=dict)

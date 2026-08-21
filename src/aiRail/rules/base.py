@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import ClassVar
 
 from aiRail.models.core import GuardContext, GuardDecision, GuardFinding
@@ -20,7 +21,7 @@ class BaseRule(ABC):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = ""
-    owasp: ClassVar[list[str]] = []
+    owasp: ClassVar[Sequence[str]] = ()
 
     def __init__(self, enabled: bool = True) -> None:
         self.enabled = enabled

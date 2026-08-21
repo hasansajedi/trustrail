@@ -22,9 +22,7 @@ def setup_otel(service_name: str = "aiRail") -> None:
         provider = TracerProvider(resource=resource)
         trace.set_tracer_provider(provider)
     except ImportError as exc:
-        raise ImportError(
-            "OpenTelemetry is not installed. Run: pip install aiRail[otel]"
-        ) from exc
+        raise ImportError("OpenTelemetry is not installed. Run: pip install aiRail[otel]") from exc
 
 
 class OtelAuditSink:

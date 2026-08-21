@@ -55,9 +55,7 @@ class ConfirmationPromptRule(BaseRule):
         value_lower = value.lower()
 
         # Check if this is a high-risk action
-        detected_actions = [
-            action for action in self.high_risk_actions if action in value_lower
-        ]
+        detected_actions = [action for action in self.high_risk_actions if action in value_lower]
 
         if not detected_actions:
             return self._allow()
@@ -171,10 +169,7 @@ class ContentOriginMarkingRule(BaseRule):
     phase = RulePhase.VALIDATE
     default_severity = Severity.MEDIUM
     default_action = GuardAction.WARN
-    description = (
-        "Preserves content origin and distinguishes model-generated vs. "
-        "external content."
-    )
+    description = "Preserves content origin and distinguishes model-generated vs. external content."
     owasp = ("ASI09",)
 
     CONTENT_TYPES: ClassVar[set[str]] = {
@@ -200,8 +195,7 @@ class ContentOriginMarkingRule(BaseRule):
                 action=GuardAction.WARN,
                 severity=Severity.MEDIUM,
                 suggestion=(
-                    "Add content_origin to metadata with type, source, "
-                    "and verification status"
+                    "Add content_origin to metadata with type, source, and verification status"
                 ),
             )
 
@@ -338,10 +332,7 @@ class DecisionEscalationRule(BaseRule):
     phase = RulePhase.VALIDATE
     default_severity = Severity.HIGH
     default_action = GuardAction.BLOCK
-    description = (
-        "Blocks autonomous completion of uncertain or conflicting "
-        "high-impact decisions."
-    )
+    description = "Blocks autonomous completion of uncertain or conflicting high-impact decisions."
     owasp = ("ASI09",)
 
     def __init__(

@@ -117,9 +117,7 @@ class TestContentOriginMarkingRule:
 
     def test_validates_content_type(self) -> None:
         rule = ContentOriginMarkingRule()
-        ctx = GuardContext(
-            metadata={"content_origin": {"content_type": "invalid_type"}}
-        )
+        ctx = GuardContext(metadata={"content_origin": {"content_type": "invalid_type"}})
         result = rule.evaluate("content", ctx)
         if result.finding:
             assert "invalid content type" in result.finding.message.lower()
