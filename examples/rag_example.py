@@ -1,6 +1,6 @@
 """RAG pipeline security example."""
 
-from aiRail import Document, Guard, TrustLevel
+from trustrail import Document, Guard, TrustLevel
 
 guard = Guard.balanced()
 

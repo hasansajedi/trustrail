@@ -1,25 +1,25 @@
 <p align="center">
-  <img src="https://github.com/hasansajedi/aiRail/blob/main/assets/banner.svg" alt="aiRail — Production-grade guardrails for LLM & AI applications" width="720"/>
+  <img src="https://github.com/hasansajedi/trustrail/blob/main/assets/banner.svg" alt="trustrail — Production-grade guardrails for LLM & AI applications" width="720"/>
 </p>
 
 <p align="center">
-  <img src="https://github.com/hasansajedi/aiRail/blob/main/assets/logo.svg" alt="aiRail shield logo" width="130"/>
+  <img src="https://github.com/hasansajedi/trustrail/blob/main/assets/logo.svg" alt="trustrail shield logo" width="130"/>
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/aiRail"><img src="https://img.shields.io/pypi/v/aiRail?color=00c8f0&style=flat-square" alt="PyPI"/></a>
-  <a href="https://pypi.org/project/aiRail"><img src="https://img.shields.io/pypi/pyversions/aiRail?color=00c8f0&style=flat-square" alt="Python versions"/></a>
+  <a href="https://pypi.org/project/trustrail"><img src="https://img.shields.io/pypi/v/trustrail?color=00c8f0&style=flat-square" alt="PyPI"/></a>
+  <a href="https://pypi.org/project/trustrail"><img src="https://img.shields.io/pypi/pyversions/trustrail?color=00c8f0&style=flat-square" alt="Python versions"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-00c8f0?style=flat-square" alt="License"/></a>
   <img src="https://img.shields.io/badge/OWASP%20LLM%20Top%2010-mapped-00c8f0?style=flat-square" alt="OWASP mapped"/>
 </p>
 
 ---
 
-# aiRail
+# trustrail
 
 **Production-grade open-source Python library for GenAI/LLM guardrails**
 
-aiRail provides comprehensive security guardrails for Large Language Model (LLM) applications. It protects against prompt injection, sensitive data leakage, unsafe outputs, excessive agency, and resource abuse — at every stage of the LLM pipeline.
+trustrail provides comprehensive security guardrails for Large Language Model (LLM) applications. It protects against prompt injection, sensitive data leakage, unsafe outputs, excessive agency, and resource abuse — at every stage of the LLM pipeline.
 
 ## Features
 
@@ -37,24 +37,24 @@ aiRail provides comprehensive security guardrails for Large Language Model (LLM)
 ## Installation
 
 ```bash
-pip install aiRail
+pip install trustrail
 ```
 
 With optional extras:
 
 ```bash
-pip install aiRail[openai]      # OpenAI integration
-pip install aiRail[fastapi]     # FastAPI middleware
-pip install aiRail[redis]       # Redis state backend
-pip install aiRail[presidio]    # Microsoft Presidio NER
-pip install aiRail[otel]        # OpenTelemetry tracing
-pip install aiRail[all]         # All extras
+pip install trustrail[openai]      # OpenAI integration
+pip install trustrail[fastapi]     # FastAPI middleware
+pip install trustrail[redis]       # Redis state backend
+pip install trustrail[presidio]    # Microsoft Presidio NER
+pip install trustrail[otel]        # OpenTelemetry tracing
+pip install trustrail[all]         # All extras
 ```
 
 ## Quick Start
 
 ```python
-from aiRail import Guard, GuardStage
+from trustrail import Guard, GuardStage
 
 # Create a guard with balanced defaults
 guard = Guard.balanced()
@@ -107,15 +107,15 @@ async def call_tool(name: str, args: dict) -> dict: ...
 ## CLI
 
 ```bash
-aiRail check --stage user_input --text "Hello, world!"
-aiRail check --stage rag_document --file document.txt
-aiRail validate-config guardrails.yaml
-aiRail explain PI-001
+trustrail check --stage user_input --text "Hello, world!"
+trustrail check --stage rag_document --file document.txt
+trustrail validate-config guardrails.yaml
+trustrail explain PI-001
 ```
 
 ## Security
 
-aiRail is designed with security-first principles:
+trustrail is designed with security-first principles:
 
 - Fail-closed by default (FailMode.CLOSED)
 - No eval/exec/pickle

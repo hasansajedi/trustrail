@@ -1,6 +1,6 @@
 """URL and SSRF protection rules."""
 
-from aiRail.rules.url.ssrf import (
+from trustrail.rules.url.ssrf import (
     EmbeddedCredentialRule,
     MetadataServiceRule,
     PrivateIpRule,

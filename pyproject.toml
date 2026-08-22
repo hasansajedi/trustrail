@@ -3,7 +3,7 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "aiRail"
+name = "trustrail"
 dynamic = ["version"]
 description = "Production-grade open-source Python library for GenAI/LLM guardrails"
 readme = "README.md"
@@ -11,7 +11,7 @@ requires-python = ">=3.11"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [
-    { name = "aiRail Contributors" },
+    { name = "trustrail Contributors" },
 ]
 keywords = ["llm", "guardrails", "security", "genai", "safety", "ai"]
 classifiers = [
@@ -47,19 +47,19 @@ dev = [
     "pip-audit>=2.7",
     "cryptography>=49.0.0",
 ]
-all = ["aiRail[redis,openai,fastapi,langchain,llamaindex,presidio,otel,sql]"]
+all = ["trustrail[redis,openai,fastapi,langchain,llamaindex,presidio,otel,sql]"]
 
 [project.scripts]
-aiRail = "aiRail.cli:main"
+trustrail = "trustrail.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/hasansajedi/aiRail"
-Documentation = "https://aiRail.readthedocs.io"
-Repository = "https://github.com/hasansajedi/aiRail"
-"Bug Tracker" = "https://github.com/hasansajedi/aiRail/issues"
+Homepage = "https://github.com/hasansajedi/trustrail"
+Documentation = "https://trustrail.readthedocs.io"
+Repository = "https://github.com/hasansajedi/trustrail"
+"Bug Tracker" = "https://github.com/hasansajedi/trustrail/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/aiRail"]
+packages = ["src/trustrail"]
 
 [tool.hatch.version]
 source = "vcs"
@@ -94,7 +94,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"src/aiRail/**" = ["N999"]
+"src/trustrail/**" = ["N999"]
 "tests/**" = ["S101", "ANN", "S106", "S105", "S110", "S112", "SIM105"]
 "examples/**" = ["ANN", "S105", "T20"]
 "benchmarks/**" = ["ANN", "T20"]
@@ -122,10 +122,10 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=aiRail --cov-report=term-missing --cov-report=xml"
+addopts = "--cov=trustrail --cov-report=term-missing --cov-report=xml"
 
 [tool.coverage.run]
-source = ["src/aiRail"]
+source = ["src/trustrail"]
 omit = ["*/tests/*"]
 
 [dependency-groups]

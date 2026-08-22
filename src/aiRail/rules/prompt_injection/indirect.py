@@ -7,10 +7,10 @@ import binascii as _bx
 import re
 from typing import ClassVar
 
-from aiRail.models.core import GuardContext, GuardDecision
-from aiRail.models.enums import GuardAction, GuardStage, RuleCategory, RulePhase, Severity
-from aiRail.normalization.normalizer import TextNormalizer
-from aiRail.rules.base import BaseRule, registry
+from trustrail.models.core import GuardContext, GuardDecision
+from trustrail.models.enums import GuardAction, GuardStage, RuleCategory, RulePhase, Severity
+from trustrail.normalization.normalizer import TextNormalizer
+from trustrail.rules.base import BaseRule, registry
 
 _normalizer = TextNormalizer()
 

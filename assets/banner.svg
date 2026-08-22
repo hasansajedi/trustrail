@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" width="720" height="180" role="img" aria-label="aiRail banner">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" width="720" height="180" role="img" aria-label="trustrail banner">
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#07111f;stop-opacity:1" />
@@ -96,7 +96,7 @@
         font-size="52" font-weight="800"
         fill="url(#textGrad)" text-anchor="middle"
         letter-spacing="-1"
-        filter="url(#textShadow)">aiRail</text>
+        filter="url(#textShadow)">trustrail</text>
 
   <!-- Accent underline -->
   <rect x="175" y="96" width="270" height="3" rx="1.5" fill="url(#railGrad)" opacity="0.7"/>

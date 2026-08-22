@@ -1,14 +1,14 @@
 # LangChain integration
 
 ```bash
-python -m pip install "aiRail[langchain]"
+python -m pip install "trustrail[langchain]"
 ```
 
 Attach `AegisRailCallbackHandler` through LangChain's callback configuration:
 
 ```python
-from aiRail import Guard
-from aiRail.integrations.langchain import AegisRailCallbackHandler
+from trustrail import Guard
+from trustrail.integrations.langchain import AegisRailCallbackHandler
 
 guard = Guard.balanced()
 handler = AegisRailCallbackHandler(guard, raise_on_block=True)
@@ -28,7 +28,7 @@ event loop is already running, so it should not be the only enforcement point
 before a high-impact action.
 
 ```python
-from aiRail import GuardStage
+from trustrail import GuardStage
 
 safe_input = await guard.aprotect(user_input, GuardStage.USER_INPUT)
 result = await chain.ainvoke({"input": safe_input}, config={"callbacks": [handler]})

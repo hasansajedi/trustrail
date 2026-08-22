@@ -1,4 +1,4 @@
-"""aiRail core domain models."""
+"""trustrail core domain models."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from aiRail.models.enums import (
+from trustrail.models.enums import (
     GuardAction,
     GuardStage,
     MemoryWriteClassification,

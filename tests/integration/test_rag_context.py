@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from aiRail import (
+from trustrail import (
     Document,
     Guard,
     GuardConfig,
@@ -12,7 +12,7 @@ from aiRail import (
     RAGContextEnvelope,
     TrustLevel,
 )
-from aiRail.exceptions import GuardrailBlockedError
+from trustrail.exceptions import GuardrailBlockedError
 
 
 def _safe_document(**overrides) -> Document:

@@ -1,8 +1,8 @@
 """Tests for OWASP LLM08 excessive agency rules."""
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.tools.agency_rules import (
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.tools.agency_rules import (
     AgentStepLimitRule,
     RecursionDepthRule,
     ToolCallFrequencyRule,
@@ -93,7 +93,7 @@ class TestRecursionDepthRule:
 
 class TestPrivilegeEscalationRule:
     def setup_method(self):
-        from aiRail.rules.tools.agency_rules import PrivilegeEscalationRule
+        from trustrail.rules.tools.agency_rules import PrivilegeEscalationRule
 
         self.rule = PrivilegeEscalationRule()
 

@@ -1,6 +1,6 @@
-"""FastAPI middleware for aiRail.
+"""FastAPI middleware for trustrail.
 
-Requires: pip install aiRail[fastapi]
+Requires: pip install trustrail[fastapi]
 """
 
 from __future__ import annotations
@@ -10,18 +10,18 @@ import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
-from aiRail.models.enums import GuardStage
+from trustrail.models.enums import GuardStage
 
 if TYPE_CHECKING:
-    from aiRail.guard import Guard
+    from trustrail.guard import Guard
 
-logger = logging.getLogger("aiRail.fastapi")
+logger = logging.getLogger("trustrail.fastapi")
 
 
 class AegisRailMiddleware:
     """Starlette/FastAPI middleware that guards request/response bodies.
 
-    Requires: pip install aiRail[fastapi]
+    Requires: pip install trustrail[fastapi]
     """
 
     def __init__(
@@ -38,7 +38,7 @@ class AegisRailMiddleware:
             import starlette.middleware.base  # noqa: F401
         except ImportError as exc:
             raise ImportError(
-                "FastAPI/Starlette is not installed. Run: pip install aiRail[fastapi]"
+                "FastAPI/Starlette is not installed. Run: pip install trustrail[fastapi]"
             ) from exc
 
         self.app = app
@@ -99,6 +99,6 @@ class AegisRailMiddleware:
         await send(
             {
                 "type": "http.response.body",
-                "body": b'{"error":"Request blocked by aiRail guardrail"}',
+                "body": b'{"error":"Request blocked by trustrail guardrail"}',
             }
         )

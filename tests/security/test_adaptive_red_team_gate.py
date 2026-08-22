@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from aiRail.models.core import GuardResult
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.testing.red_team import (
+from trustrail.models.core import GuardResult
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.testing.red_team import (
     PromptInjectionRegressionGate,
     RedTeamCase,
     RedTeamCorpus,

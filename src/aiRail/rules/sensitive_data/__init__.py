@@ -1,13 +1,13 @@
 """Sensitive data detection and redaction rules."""
 
-from aiRail.rules.sensitive_data.pii import EmailRule, IpAddressRule, PhoneRule
-from aiRail.rules.sensitive_data.pii_extended import (
+from trustrail.rules.sensitive_data.pii import EmailRule, IpAddressRule, PhoneRule
+from trustrail.rules.sensitive_data.pii_extended import (
     DriversLicenseRule,
     IbanRule,
     PassportNumberRule,
     SsnRule,
 )
-from aiRail.rules.sensitive_data.secrets import (
+from trustrail.rules.sensitive_data.secrets import (
     AwsKeyRule,
     BearerTokenRule,
     DatabaseUrlRule,

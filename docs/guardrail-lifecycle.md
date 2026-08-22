@@ -5,7 +5,7 @@ A production guardrail is a maintained control, not a one-time configuration.
 ## 1. Model the boundary
 
 List every source of untrusted text and every consequential sink. Map each to a
-`GuardStage`, then document controls outside aiRail such as authorization,
+`GuardStage`, then document controls outside trustrail such as authorization,
 schema validation, escaping, and network isolation.
 
 ## 2. Establish a baseline

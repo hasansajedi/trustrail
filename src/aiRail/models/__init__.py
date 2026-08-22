@@ -1,7 +1,7 @@
-"""aiRail domain models."""
+"""trustrail domain models."""
 
-from aiRail.models.config import GuardConfig, GuardPolicy, RuleConfig
-from aiRail.models.core import (
+from trustrail.models.config import GuardConfig, GuardPolicy, RuleConfig
+from trustrail.models.core import (
     AuditEvent,
     Document,
     GuardContext,
@@ -13,7 +13,7 @@ from aiRail.models.core import (
     ToolCall,
     ToolResult,
 )
-from aiRail.models.enums import (
+from trustrail.models.enums import (
     FailMode,
     GuardAction,
     GuardStage,
@@ -24,7 +24,7 @@ from aiRail.models.enums import (
     Severity,
     TrustLevel,
 )
-from aiRail.models.rag import ProvenanceLabel, RAGContextEnvelope, RAGContextSegment
+from trustrail.models.rag import ProvenanceLabel, RAGContextEnvelope, RAGContextSegment
 
 __all__ = [
     "AuditEvent",

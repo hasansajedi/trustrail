@@ -9,10 +9,10 @@ import re
 from collections.abc import Iterator, Mapping
 from typing import ClassVar
 
-from aiRail.models.core import GuardContext, GuardDecision
-from aiRail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
-from aiRail.rules.base import BaseRule, registry
-from aiRail.rules.prompt_injection.direct import (
+from trustrail.models.core import GuardContext, GuardDecision
+from trustrail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
+from trustrail.rules.base import BaseRule, registry
+from trustrail.rules.prompt_injection.direct import (
     DirectInjectionRule,
     JailbreakRule,
     SystemOverrideRule,

@@ -10,9 +10,9 @@ from typing import Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from aiRail.guard import Guard
-from aiRail.models.core import GuardResult
-from aiRail.models.enums import GuardAction, GuardStage
+from trustrail.guard import Guard
+from trustrail.models.core import GuardResult
+from trustrail.models.enums import GuardAction, GuardStage
 
 MutationName = Literal[
     "identity",

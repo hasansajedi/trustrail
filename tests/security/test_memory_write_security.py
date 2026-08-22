@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from aiRail import Guard, GuardAction
+from trustrail import Guard, GuardAction
 
 CORPUS_PATH = Path(__file__).parent.parent / "security_corpus" / "memory_writes.json"
 

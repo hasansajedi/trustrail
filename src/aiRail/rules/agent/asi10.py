@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import re
 
-from aiRail.models.core import GuardContext, GuardDecision
-from aiRail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
-from aiRail.rules.base import BaseRule, registry
+from trustrail.models.core import GuardContext, GuardDecision
+from trustrail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
+from trustrail.rules.base import BaseRule, registry
 
 
 @registry.register

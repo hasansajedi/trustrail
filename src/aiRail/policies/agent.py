@@ -2,24 +2,24 @@
 
 from __future__ import annotations
 
-from aiRail.models.core import GuardContext, GuardDecision
-from aiRail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
-from aiRail.policies.base import BasePolicy
-from aiRail.rules.agent.asi09 import (
+from trustrail.models.core import GuardContext, GuardDecision
+from trustrail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
+from trustrail.policies.base import BasePolicy
+from trustrail.rules.agent.asi09 import (
     ConfirmationPromptRule,
     ContentOriginMarkingRule,
     DecisionEscalationRule,
     EvidenceRequirementRule,
     ManipulativeLanguageRule,
 )
-from aiRail.rules.agent.asi10 import (
+from trustrail.rules.agent.asi10 import (
     AgentKillSwitchRule,
     BehavioralBaselineRule,
     DualControlRule,
     PersistenceDetectionRule,
     SafetyPolicyProtectionRule,
 )
-from aiRail.rules.base import BaseRule, registry
+from trustrail.rules.base import BaseRule, registry
 
 
 @registry.register

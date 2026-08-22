@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from aiRail.models.enums import TrustLevel
-from aiRail.policies.base import BasePolicy
-from aiRail.rules.base import BaseRule
-from aiRail.rules.rag import (
+from trustrail.models.enums import TrustLevel
+from trustrail.policies.base import BasePolicy
+from trustrail.rules.base import BaseRule
+from trustrail.rules.rag import (
     MissingProvenanceRule,
     RAGContextLabelRule,
     RagContextTamperingRule,

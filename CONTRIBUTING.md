@@ -1,12 +1,12 @@
-# Contributing to aiRail
+# Contributing to trustrail
 
-Thank you for your interest in contributing to aiRail!
+Thank you for your interest in contributing to trustrail!
 
 ## Development Setup
 
 ```bash
-git clone https://github.com/hasansajedi/aiRail.git
-cd aiRail
+git clone https://github.com/hasansajedi/trustrail.git
+cd trustrail
 python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev,all]"

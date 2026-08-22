@@ -1,11 +1,11 @@
-"""aiRail Protocol interfaces."""
+"""trustrail Protocol interfaces."""
 
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from typing import Any, Protocol, runtime_checkable
 
-from aiRail.models.core import (
+from trustrail.models.core import (
     AuditEvent,
     Document,
     GuardContext,

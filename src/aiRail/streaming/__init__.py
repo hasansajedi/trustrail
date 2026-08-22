@@ -1,5 +1,5 @@
-"""aiRail streaming support."""
+"""trustrail streaming support."""
 
-from aiRail.streaming.scanner import StreamResult, StreamScanner
+from trustrail.streaming.scanner import StreamResult, StreamScanner
 
 __all__ = ["StreamResult", "StreamScanner"]

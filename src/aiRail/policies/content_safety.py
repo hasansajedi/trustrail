@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from aiRail.policies.base import BasePolicy
-from aiRail.rules.base import BaseRule
-from aiRail.rules.output.content_safety import ProfanityRule, ToxicityRule
+from trustrail.policies.base import BasePolicy
+from trustrail.rules.base import BaseRule
+from trustrail.rules.output.content_safety import ProfanityRule, ToxicityRule
 
 
 class ContentSafetyPolicy(BasePolicy):

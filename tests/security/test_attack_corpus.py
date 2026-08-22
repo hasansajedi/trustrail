@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from aiRail.guard import Guard
-from aiRail.models.enums import GuardAction, GuardStage
+from trustrail.guard import Guard
+from trustrail.models.enums import GuardAction, GuardStage
 
 CORPUS_DIR = Path(__file__).parent.parent / "security_corpus"
 

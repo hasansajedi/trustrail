@@ -1,5 +1,5 @@
-"""aiRail observability — optional OpenTelemetry integration."""
+"""trustrail observability — optional OpenTelemetry integration."""
 
-from aiRail.observability.otel import OtelAuditSink, setup_otel
+from trustrail.observability.otel import OtelAuditSink, setup_otel
 
 __all__ = ["OtelAuditSink", "setup_otel"]

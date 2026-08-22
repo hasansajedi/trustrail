@@ -1,8 +1,8 @@
 """Unit tests for output safety rules."""
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.output.safety import (
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.output.safety import (
     HtmlInjectionRule,
     MarkdownExternalImageRule,
     PathTraversalRule,
@@ -164,7 +164,7 @@ class TestXmlXpathInjectionRule:
 
 class TestFilePathInjectionRule:
     def setup_method(self):
-        from aiRail.rules.output.safety import FilePathInjectionRule
+        from trustrail.rules.output.safety import FilePathInjectionRule
 
         self.rule = FilePathInjectionRule()
 

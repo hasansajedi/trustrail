@@ -5,7 +5,7 @@ write through `authorize_memory_write`; do not let a model write directly to the
 memory backend.
 
 ```python
-from aiRail import Guard, GuardContext, GuardStage
+from trustrail import Guard, GuardContext, GuardStage
 
 
 class ReviewQueue:

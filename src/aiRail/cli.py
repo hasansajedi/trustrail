@@ -1,4 +1,4 @@
-"""aiRail CLI — command-line interface for guardrail checks."""
+"""trustrail CLI — command-line interface for guardrail checks."""
 
 from __future__ import annotations
 
@@ -7,13 +7,13 @@ import json
 import sys
 from pathlib import Path
 
-from aiRail import __version__
+from trustrail import __version__
 
 
 def _cmd_check(args: argparse.Namespace) -> int:
     """Run a guard check on text or file content."""
-    from aiRail.guard import Guard
-    from aiRail.models.enums import GuardStage
+    from trustrail.guard import Guard
+    from trustrail.models.enums import GuardStage
 
     # Resolve stage
     try:
@@ -101,7 +101,7 @@ def _cmd_validate_config(args: argparse.Namespace) -> int:
             return 1
 
     try:
-        from aiRail.models.config import GuardConfig
+        from trustrail.models.config import GuardConfig
 
         config = GuardConfig.model_validate(data)
         print(f"Config valid: {path}")
@@ -116,7 +116,7 @@ def _cmd_validate_config(args: argparse.Namespace) -> int:
 
 def _cmd_explain(args: argparse.Namespace) -> int:
     """Explain a rule by ID."""
-    from aiRail.rules.base import registry
+    from trustrail.rules.base import registry
 
     rule_class = registry.get(args.rule_id)
     if rule_class is None:
@@ -136,7 +136,7 @@ def _cmd_explain(args: argparse.Namespace) -> int:
 
 def _cmd_list_rules(args: argparse.Namespace) -> int:
     """List all known rules."""
-    from aiRail.rules.base import registry
+    from trustrail.rules.base import registry
 
     rules = sorted(registry.all_rules(), key=lambda r: r.rule_id)
     for rule in rules:
@@ -149,8 +149,8 @@ def _cmd_list_rules(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="aiRail",
-        description="aiRail — GenAI/LLM Guardrails CLI",
+        prog="trustrail",
+        description="trustrail — GenAI/LLM Guardrails CLI",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 

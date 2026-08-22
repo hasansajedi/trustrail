@@ -7,8 +7,8 @@ from typing import ClassVar
 
 from pydantic import ValidationError
 
-from aiRail.models.core import GuardContext, GuardDecision
-from aiRail.models.enums import (
+from trustrail.models.core import GuardContext, GuardDecision
+from trustrail.models.enums import (
     GuardAction,
     GuardStage,
     RuleCategory,
@@ -16,8 +16,8 @@ from aiRail.models.enums import (
     Severity,
     TrustLevel,
 )
-from aiRail.models.rag import RAGContextEnvelope
-from aiRail.rules.base import BaseRule, registry
+from trustrail.models.rag import RAGContextEnvelope
+from trustrail.rules.base import BaseRule, registry
 
 # Commands in retrieved documents
 _INSTRUCTION_IN_DOC_RE = re.compile(

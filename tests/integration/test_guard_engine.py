@@ -2,11 +2,11 @@
 
 import pytest
 
-from aiRail.audit.sinks import MemoryAuditSink
-from aiRail.exceptions import GuardrailBlockedError
-from aiRail.guard import Guard
-from aiRail.models.core import Document, Message
-from aiRail.models.enums import (
+from trustrail.audit.sinks import MemoryAuditSink
+from trustrail.exceptions import GuardrailBlockedError
+from trustrail.guard import Guard
+from trustrail.models.core import Document, Message
+from trustrail.models.enums import (
     GuardStage,
     Severity,
     TrustLevel,
@@ -94,7 +94,7 @@ class TestGuardProfiles:
         assert guard is not None
 
     def test_from_profile_invalid(self):
-        from aiRail.exceptions import ConfigurationError
+        from trustrail.exceptions import ConfigurationError
 
         with pytest.raises(ConfigurationError):
             Guard.from_profile("nonexistent_profile")

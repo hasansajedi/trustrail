@@ -1,11 +1,11 @@
-"""FastAPI dependency injection for aiRail."""
+"""FastAPI dependency injection for trustrail."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from aiRail.guard import Guard
+    from trustrail.guard import Guard
 
 
 _default_guard: Guard | None = None
@@ -20,7 +20,7 @@ def configure_guard(guard: Guard) -> None:
 def get_guard() -> Guard:
     """FastAPI dependency that returns the configured Guard instance."""
     if _default_guard is None:
-        from aiRail.guard import Guard
+        from trustrail.guard import Guard
 
         return Guard.default()
     return _default_guard

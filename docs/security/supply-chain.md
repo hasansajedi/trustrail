@@ -1,7 +1,7 @@
 # Supply-chain security
 
 An LLM application depends on packages, models, prompts, plugins, tools, vector
-indexes, and external content. aiRail can inspect content crossing these
+indexes, and external content. trustrail can inspect content crossing these
 boundaries, but it cannot establish the integrity of the components themselves.
 
 ## API response integrity (SC-001)
@@ -14,8 +14,8 @@ LLM context, the embedded instructions execute as if typed by the user.
 instruction-hijacking patterns before they are passed to the model:
 
 ```python
-from aiRail.rules.rag import ApiResponseIntegrityRule
-from aiRail import GuardContext, GuardStage
+from trustrail.rules.rag import ApiResponseIntegrityRule
+from trustrail import GuardContext, GuardStage
 
 rule = ApiResponseIntegrityRule()
 context = GuardContext(stage=GuardStage.TOOL_RESPONSE)
@@ -51,7 +51,7 @@ numeric IDs, constructing admin paths, or inserting path-traversal sequences.
 - Path-traversal sequences (`../../../`)
 
 ```python
-from aiRail.rules.tools import IdorDetectionRule
+from trustrail.rules.tools import IdorDetectionRule
 
 rule = IdorDetectionRule()
 context = GuardContext(
@@ -74,7 +74,7 @@ leading cause of privilege escalation in agentic systems (OWASP LLM07).
 per-plugin allowlist of permitted operations:
 
 ```python
-from aiRail.rules.tools import PluginPermissionScopeRule
+from trustrail.rules.tools import PluginPermissionScopeRule
 
 rule = PluginPermissionScopeRule(
     plugin_scopes={
@@ -116,7 +116,7 @@ severity.
 - Rebuild indexes after a compromised source or pipeline is remediated.
 - Apply SC-001 at every `TOOL_RESPONSE` boundary, not just on first use.
 
-For aiRail itself, install from PyPI with an exact version in production and
+For trustrail itself, install from PyPI with an exact version in production and
 test upgrades against your attack and benign corpora. Trusted Publishing proves
 which workflow uploaded an artifact; it does not prove the artifact is free of
 vulnerabilities.

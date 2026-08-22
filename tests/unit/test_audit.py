@@ -2,9 +2,9 @@
 
 import pytest
 
-from aiRail.audit.sinks import LoggingAuditSink, MemoryAuditSink, NullAuditSink
-from aiRail.models.core import AuditEvent
-from aiRail.models.enums import GuardAction, GuardStage
+from trustrail.audit.sinks import LoggingAuditSink, MemoryAuditSink, NullAuditSink
+from trustrail.models.core import AuditEvent
+from trustrail.models.enums import GuardAction, GuardStage
 
 
 def make_event():

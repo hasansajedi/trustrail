@@ -3,15 +3,15 @@
 All result and configuration objects are typed Pydantic models. They can be
 serialized with `model_dump()` or `model_dump_json()`.
 
-::: aiRail.models.core
+::: trustrail.models.core
     options:
       members: true
 
-::: aiRail.models.config
+::: trustrail.models.config
     options:
       members: true
 
-::: aiRail.models.enums
+::: trustrail.models.enums
     options:
       members: true
 
@@ -21,6 +21,6 @@ serialized with `model_dump()` or `model_dump_json()`.
 prompt assembly. Use `Guard.build_rag_context()` when documents also need to be
 scanned before assembly.
 
-::: aiRail.models.rag
+::: trustrail.models.rag
     options:
       members: true

@@ -1,1 +1,1 @@
-"""aiRail integrations with popular LLM frameworks."""
+"""trustrail integrations with popular LLM frameworks."""

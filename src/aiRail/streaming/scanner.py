@@ -7,9 +7,9 @@ from collections import deque
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 
-from aiRail.models.core import GuardContext, GuardFinding, GuardResult, RiskScore
-from aiRail.models.enums import GuardAction, RulePhase
-from aiRail.rules.base import BaseRule
+from trustrail.models.core import GuardContext, GuardFinding, GuardResult, RiskScore
+from trustrail.models.enums import GuardAction, RulePhase
+from trustrail.rules.base import BaseRule
 
 
 @dataclass(init=False)

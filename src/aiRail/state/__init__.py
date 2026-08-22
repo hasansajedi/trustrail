@@ -1,5 +1,5 @@
-"""aiRail state backends."""
+"""trustrail state backends."""
 
-from aiRail.state.backends import MemoryStateBackend
+from trustrail.state.backends import MemoryStateBackend
 
 __all__ = ["MemoryStateBackend"]

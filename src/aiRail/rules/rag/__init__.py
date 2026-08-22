@@ -1,13 +1,13 @@
 """RAG security rules."""
 
-from aiRail.rules.rag.rag_rules import (
+from trustrail.rules.rag.rag_rules import (
     MissingProvenanceRule,
     RAGContextLabelRule,
     RagContextTamperingRule,
     SourceTrustRule,
     UntrustedInstructionRule,
 )
-from aiRail.rules.rag.supply_chain import ApiResponseIntegrityRule
+from trustrail.rules.rag.supply_chain import ApiResponseIntegrityRule
 
 __all__ = [
     "ApiResponseIntegrityRule",

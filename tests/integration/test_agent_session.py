@@ -2,10 +2,10 @@
 
 import pytest
 
-from aiRail.exceptions import GuardrailBlockedError
-from aiRail.guard import Guard
-from aiRail.models.core import GuardContext, ToolCall
-from aiRail.models.enums import GuardStage
+from trustrail.exceptions import GuardrailBlockedError
+from trustrail.guard import Guard
+from trustrail.models.core import GuardContext, ToolCall
+from trustrail.models.enums import GuardStage
 
 
 class TestAgentSession:

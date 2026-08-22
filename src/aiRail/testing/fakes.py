@@ -1,4 +1,4 @@
-"""Fake providers for testing aiRail integrations.
+"""Fake providers for testing trustrail integrations.
 
 These never call external APIs and do not require paid services.
 """
@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from aiRail.models.core import Document, GuardContext, GuardFinding
-from aiRail.models.enums import RuleCategory, Severity
+from trustrail.models.core import Document, GuardContext, GuardFinding
+from trustrail.models.enums import RuleCategory, Severity
 
 
 class FakePromptInjectionProvider:

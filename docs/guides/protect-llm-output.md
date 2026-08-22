@@ -5,7 +5,7 @@ system. Output rules detect sensitive data, unsafe markup, shell metacharacters,
 path traversal, and suspicious URLs.
 
 ```python
-from aiRail import Guard, GuardStage
+from trustrail import Guard, GuardStage
 
 guard = Guard.balanced()
 raw_response = await model.generate(prompt)
@@ -34,4 +34,4 @@ async def answer(prompt: str) -> str:
 
 Guardrails do not replace context-specific escaping. HTML-escape text rendered
 into HTML, parameterize SQL, avoid shell execution, and validate URLs at the
-network layer even after the output passes aiRail.
+network layer even after the output passes trustrail.

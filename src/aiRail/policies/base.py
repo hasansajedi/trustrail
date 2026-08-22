@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from aiRail.models.core import GuardContext, GuardDecision
-from aiRail.rules.base import BaseRule
+from trustrail.models.core import GuardContext, GuardDecision
+from trustrail.rules.base import BaseRule
 
 
 class BasePolicy(ABC):

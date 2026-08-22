@@ -1,4 +1,4 @@
-"""aiRail configuration models."""
+"""trustrail configuration models."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from aiRail.models.enums import FailMode, GuardAction, RuleCategory, Severity
+from trustrail.models.enums import FailMode, GuardAction, RuleCategory, Severity
 
 
 class RuleConfig(BaseModel):

@@ -1,5 +1,5 @@
-"""LangChain integration for aiRail."""
+"""LangChain integration for trustrail."""
 
-from aiRail.integrations.langchain.handler import AegisRailCallbackHandler
+from trustrail.integrations.langchain.handler import AegisRailCallbackHandler
 
 __all__ = ["AegisRailCallbackHandler"]

@@ -6,12 +6,12 @@ import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from aiRail.exceptions import GuardrailBlockedError
-from aiRail.models.core import GuardContext, GuardResult, ToolCall
-from aiRail.models.enums import GuardStage
+from trustrail.exceptions import GuardrailBlockedError
+from trustrail.models.core import GuardContext, GuardResult, ToolCall
+from trustrail.models.enums import GuardStage
 
 if TYPE_CHECKING:
-    from aiRail.guard import Guard
+    from trustrail.guard import Guard
 
 
 @dataclass

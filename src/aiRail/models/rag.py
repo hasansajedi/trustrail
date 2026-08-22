@@ -9,10 +9,10 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from aiRail.models.core import Document, GuardContext
-from aiRail.models.enums import GuardStage, TrustLevel
+from trustrail.models.core import Document, GuardContext
+from trustrail.models.enums import GuardStage, TrustLevel
 
-RAG_CONTEXT_KIND: Literal["aiRail.rag_context.v1"] = "aiRail.rag_context.v1"
+RAG_CONTEXT_KIND: Literal["trustrail.rag_context.v1"] = "trustrail.rag_context.v1"
 RAG_CONTEXT_CHANNEL: Literal["retrieved_data"] = "retrieved_data"
 
 
@@ -90,7 +90,7 @@ class RAGContextEnvelope(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    kind: Literal["aiRail.rag_context.v1"] = RAG_CONTEXT_KIND
+    kind: Literal["trustrail.rag_context.v1"] = RAG_CONTEXT_KIND
     channel: Literal["retrieved_data"] = RAG_CONTEXT_CHANNEL
     segments: tuple[RAGContextSegment, ...] = Field(min_length=1)
 

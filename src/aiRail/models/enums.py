@@ -1,4 +1,4 @@
-"""aiRail enumeration types."""
+"""trustrail enumeration types."""
 
 from enum import StrEnum
 

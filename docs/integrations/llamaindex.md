@@ -1,15 +1,15 @@
 # LlamaIndex integration
 
 ```bash
-python -m pip install "aiRail[llamaindex]"
+python -m pip install "trustrail[llamaindex]"
 ```
 
 `AegisRailObserver` exposes explicit hooks for the query, retrieved nodes, and
 final model response:
 
 ```python
-from aiRail import Guard
-from aiRail.integrations.llamaindex import AegisRailObserver
+from trustrail import Guard
+from trustrail.integrations.llamaindex import AegisRailObserver
 
 observer = AegisRailObserver(Guard.balanced(), raise_on_block=True)
 

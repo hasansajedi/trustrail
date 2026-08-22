@@ -1,6 +1,6 @@
-"""aiRail testing utilities — fake providers for unit tests."""
+"""trustrail testing utilities — fake providers for unit tests."""
 
-from aiRail.testing.fakes import (
+from trustrail.testing.fakes import (
     FakeApprovalProvider,
     FakeGroundingVerifier,
     FakeModerationProvider,

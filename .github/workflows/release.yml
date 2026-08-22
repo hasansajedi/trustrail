@@ -35,7 +35,7 @@ jobs:
           wheels = list(pathlib.Path("dist").glob("*.whl"))
           if len(wheels) != 1:
               raise SystemExit(f"Expected one wheel, found: {wheels}")
-          actual = wheels[0].name.removeprefix("aiRail-").split("-", 1)[0]
+          actual = wheels[0].name.removeprefix("trustrail-").split("-", 1)[0]
           if actual != expected:
               raise SystemExit(
                   f"Release tag {expected!r} does not match built version {actual!r}"

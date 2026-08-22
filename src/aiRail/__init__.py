@@ -1,8 +1,8 @@
-"""aiRail — Production-grade Python library for GenAI/LLM guardrails.
+"""trustrail — Production-grade Python library for GenAI/LLM guardrails.
 
 Quick start:
 
-    from aiRail import Guard, GuardStage
+    from trustrail import Guard, GuardStage
 
     guard = Guard.balanced()
     result = guard.check("Hello, world!", GuardStage.USER_INPUT)
@@ -11,8 +11,8 @@ Quick start:
 
 from importlib.metadata import PackageNotFoundError, version
 
-from aiRail.audit import LoggingAuditSink, MemoryAuditSink, NullAuditSink
-from aiRail.exceptions import (
+from trustrail.audit import LoggingAuditSink, MemoryAuditSink, NullAuditSink
+from trustrail.exceptions import (
     AegisRailError,
     ApprovalRequiredError,
     ConfigurationError,
@@ -21,9 +21,9 @@ from aiRail.exceptions import (
     RateLimitError,
     ResourceLimitError,
 )
-from aiRail.guard import Guard
-from aiRail.models.config import GuardConfig, GuardPolicy, RuleConfig
-from aiRail.models.core import (
+from trustrail.guard import Guard
+from trustrail.models.config import GuardConfig, GuardPolicy, RuleConfig
+from trustrail.models.core import (
     AuditEvent,
     Document,
     GuardContext,
@@ -35,7 +35,7 @@ from aiRail.models.core import (
     ToolCall,
     ToolResult,
 )
-from aiRail.models.enums import (
+from trustrail.models.enums import (
     FailMode,
     GuardAction,
     GuardStage,
@@ -46,8 +46,8 @@ from aiRail.models.enums import (
     Severity,
     TrustLevel,
 )
-from aiRail.models.rag import ProvenanceLabel, RAGContextEnvelope, RAGContextSegment
-from aiRail.protocols import (
+from trustrail.models.rag import ProvenanceLabel, RAGContextEnvelope, RAGContextSegment
+from trustrail.protocols import (
     ApprovalProvider,
     AsyncGuardRule,
     AuditSink,
@@ -61,7 +61,7 @@ from aiRail.protocols import (
 )
 
 try:
-    __version__ = version("aiRail")
+    __version__ = version("trustrail")
 except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 __all__ = [

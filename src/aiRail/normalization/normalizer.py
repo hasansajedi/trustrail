@@ -1,4 +1,4 @@
-"""Text normalization for aiRail.
+"""Text normalization for trustrail.
 
 Normalizes text to expose obfuscation tricks before pattern matching.
 """

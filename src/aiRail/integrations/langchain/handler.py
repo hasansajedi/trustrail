@@ -1,6 +1,6 @@
-"""LangChain callback handler for aiRail.
+"""LangChain callback handler for trustrail.
 
-Requires: pip install aiRail[langchain]
+Requires: pip install trustrail[langchain]
 """
 
 from __future__ import annotations
@@ -9,20 +9,20 @@ import logging
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from aiRail.exceptions import GuardrailBlockedError
-from aiRail.models.enums import GuardStage
+from trustrail.exceptions import GuardrailBlockedError
+from trustrail.models.enums import GuardStage
 
 if TYPE_CHECKING:
-    from aiRail.guard import Guard
+    from trustrail.guard import Guard
 
-logger = logging.getLogger("aiRail.langchain")
+logger = logging.getLogger("trustrail.langchain")
 
 
 class AegisRailCallbackHandler:
-    """LangChain callback handler that integrates aiRail guardrails.
+    """LangChain callback handler that integrates trustrail guardrails.
 
     Checks LLM inputs and outputs at each chain step.
-    Requires: pip install aiRail[langchain]
+    Requires: pip install trustrail[langchain]
     """
 
     def __init__(self, guard: Guard, raise_on_block: bool = True) -> None:
@@ -58,7 +58,7 @@ class AegisRailCallbackHandler:
             except GuardrailBlockedError:
                 raise
             except Exception as exc:
-                logger.warning(f"aiRail check error in LangChain handler: {exc}")
+                logger.warning(f"trustrail check error in LangChain handler: {exc}")
 
     def on_llm_end(self, response: Any, *, run_id: UUID, **kwargs: Any) -> None:
         """Guard LLM output."""
@@ -79,7 +79,7 @@ class AegisRailCallbackHandler:
         except GuardrailBlockedError:
             raise
         except Exception as exc:
-            logger.warning(f"aiRail check error in LangChain handler: {exc}")
+            logger.warning(f"trustrail check error in LangChain handler: {exc}")
 
     def on_tool_start(
         self,
@@ -92,7 +92,7 @@ class AegisRailCallbackHandler:
         """Guard tool inputs."""
         tool_name = serialized.get("name", "unknown")
         try:
-            from aiRail.models.core import GuardContext
+            from trustrail.models.core import GuardContext
 
             ctx = GuardContext(
                 stage=GuardStage.TOOL_REQUEST,
@@ -108,4 +108,4 @@ class AegisRailCallbackHandler:
         except GuardrailBlockedError:
             raise
         except Exception as exc:
-            logger.warning(f"aiRail tool check error: {exc}")
+            logger.warning(f"trustrail tool check error: {exc}")

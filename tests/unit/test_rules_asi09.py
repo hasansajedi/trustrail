@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction
-from aiRail.rules.agent.asi09 import (
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction
+from trustrail.rules.agent.asi09 import (
     ConfirmationPromptRule,
     ContentOriginMarkingRule,
     DecisionEscalationRule,

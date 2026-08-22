@@ -1,23 +1,23 @@
 # Installation
 
-aiRail requires Python 3.11 or newer.
+trustrail requires Python 3.11 or newer.
 
 === "pip"
 
     ```bash
-    python -m pip install aiRail
+    python -m pip install trustrail
     ```
 
 === "uv"
 
     ```bash
-    uv add aiRail
+    uv add trustrail
     ```
 
 === "Poetry"
 
     ```bash
-    poetry add aiRail
+    poetry add trustrail
     ```
 
 ## Optional integrations
@@ -25,18 +25,18 @@ aiRail requires Python 3.11 or newer.
 Install only the adapters your application needs:
 
 ```bash
-python -m pip install "aiRail[openai]"
-python -m pip install "aiRail[fastapi]"
-python -m pip install "aiRail[langchain]"
-python -m pip install "aiRail[llamaindex]"
-python -m pip install "aiRail[redis,otel]"
+python -m pip install "trustrail[openai]"
+python -m pip install "trustrail[fastapi]"
+python -m pip install "trustrail[langchain]"
+python -m pip install "trustrail[llamaindex]"
+python -m pip install "trustrail[redis,otel]"
 ```
 
 For local development, clone the repository and install the development group:
 
 ```bash
-git clone https://github.com/hasansajedi/aiRail.git
-cd aiRail
+git clone https://github.com/hasansajedi/trustrail.git
+cd trustrail
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
@@ -46,13 +46,13 @@ pytest
 ## Verify the installation
 
 ```bash
-python -c "import aiRail; print(aiRail.__version__)"
-aiRail --version
+python -c "import trustrail; print(trustrail.__version__)"
+trustrail --version
 ```
 
 Both commands should print the same installed version. Continue with the
 [quick start](quickstart.md).
 
 !!! note
-    aiRail is an application-layer control. Keep provider moderation,
+    trustrail is an application-layer control. Keep provider moderation,
     authorization, sandboxing, rate limits, and output encoding enabled.

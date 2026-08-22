@@ -1,14 +1,14 @@
-"""aiRail exception hierarchy."""
+"""trustrail exception hierarchy."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from aiRail.models.enums import GuardStage, Severity
+from trustrail.models.enums import GuardStage, Severity
 
 
 class AegisRailError(Exception):
-    """Base class for all aiRail exceptions."""
+    """Base class for all trustrail exceptions."""
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         super().__init__(message)

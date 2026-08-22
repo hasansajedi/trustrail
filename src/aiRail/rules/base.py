@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from typing import ClassVar
 
-from aiRail.models.core import GuardContext, GuardDecision, GuardFinding
-from aiRail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
+from trustrail.models.core import GuardContext, GuardDecision, GuardFinding
+from trustrail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
 
 
 class BaseRule(ABC):

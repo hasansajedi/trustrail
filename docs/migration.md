@@ -1,6 +1,6 @@
 # Migration and upgrades
 
-aiRail follows semantic versioning, but guard decisions can change when rules
+trustrail follows semantic versioning, but guard decisions can change when rules
 improve even if the public API remains compatible.
 
 ## Upgrade procedure
@@ -14,7 +14,7 @@ improve even if the public API remains compatible.
 7. Deploy gradually and monitor decision-rate changes.
 
 ```bash
-python -m pip install --upgrade "aiRail==<target-version>"
+python -m pip install --upgrade "trustrail==<target-version>"
 python -m pip check
 pytest
 ```

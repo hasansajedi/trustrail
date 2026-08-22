@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from aiRail.policies.base import BasePolicy
-from aiRail.rules.base import BaseRule
-from aiRail.rules.sensitive_data import (
+from trustrail.policies.base import BasePolicy
+from trustrail.rules.base import BaseRule
+from trustrail.rules.sensitive_data import (
     AwsKeyRule,
     BearerTokenRule,
     DatabaseUrlRule,

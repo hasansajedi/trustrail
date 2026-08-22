@@ -1,18 +1,18 @@
-"""OpenAI message/response adapter for aiRail.
+"""OpenAI message/response adapter for trustrail.
 
-Converts between OpenAI message format and aiRail's Message model.
+Converts between OpenAI message format and trustrail's Message model.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from aiRail.models.core import GuardResult, Message
-from aiRail.models.enums import GuardStage
+from trustrail.models.core import GuardResult, Message
+from trustrail.models.enums import GuardStage
 
 
 def to_guard_messages(openai_messages: list[dict[str, Any]]) -> list[Message]:
-    """Convert OpenAI message dicts to aiRail Message objects."""
+    """Convert OpenAI message dicts to trustrail Message objects."""
     result = []
     for msg in openai_messages:
         content = msg.get("content", "")
@@ -36,7 +36,7 @@ def to_guard_messages(openai_messages: list[dict[str, Any]]) -> list[Message]:
 
 
 def from_guard_messages(messages: list[Message]) -> list[dict[str, Any]]:
-    """Convert aiRail Message objects back to OpenAI message dicts."""
+    """Convert trustrail Message objects back to OpenAI message dicts."""
     result = []
     for msg in messages:
         d: dict[str, Any] = {"role": msg.role, "content": msg.content}

@@ -1,5 +1,5 @@
-"""LlamaIndex integration for aiRail."""
+"""LlamaIndex integration for trustrail."""
 
-from aiRail.integrations.llamaindex.observer import AegisRailObserver
+from trustrail.integrations.llamaindex.observer import AegisRailObserver
 
 __all__ = ["AegisRailObserver"]

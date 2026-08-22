@@ -2,7 +2,7 @@
 
 ## Guard Stages
 
-aiRail evaluates content at discrete stages in the LLM pipeline.
+trustrail evaluates content at discrete stages in the LLM pipeline.
 
 ## Risk Scoring
 

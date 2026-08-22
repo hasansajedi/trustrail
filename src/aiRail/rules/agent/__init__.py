@@ -1,13 +1,13 @@
 """Agent safety rules for ASI09 and ASI10."""
 
-from aiRail.rules.agent.asi09 import (
+from trustrail.rules.agent.asi09 import (
     ConfirmationPromptRule,
     ContentOriginMarkingRule,
     DecisionEscalationRule,
     EvidenceRequirementRule,
     ManipulativeLanguageRule,
 )
-from aiRail.rules.agent.asi10 import (
+from trustrail.rules.agent.asi10 import (
     AgentKillSwitchRule,
     BehavioralBaselineRule,
     DualControlRule,

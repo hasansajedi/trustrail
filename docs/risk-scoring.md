@@ -15,7 +15,7 @@ rule that explicitly returns `BLOCK` also blocks even when the aggregate score
 is below `block_at`.
 
 ```python
-from aiRail import GuardConfig
+from trustrail import GuardConfig
 
 config = GuardConfig(block_at=60, warn_at=30)
 ```

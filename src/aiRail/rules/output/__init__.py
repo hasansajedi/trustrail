@@ -1,14 +1,14 @@
 """Output safety validation rules."""
 
-from aiRail.rules.output.content_safety import ProfanityRule, ToxicityRule
-from aiRail.rules.output.grounding_rules import (
+from trustrail.rules.output.content_safety import ProfanityRule, ToxicityRule
+from trustrail.rules.output.grounding_rules import (
     AbsoluteClaimRule,
     HallucinationIndicatorRule,
     HighRiskDomainAdviceRule,
     InventedCitationRule,
     SycophancyRule,
 )
-from aiRail.rules.output.safety import (
+from trustrail.rules.output.safety import (
     DangerousCodeConstructRule,
     FilePathInjectionRule,
     HtmlInjectionRule,

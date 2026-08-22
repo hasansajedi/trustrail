@@ -1,4 +1,4 @@
-"""aiRail Guard Engine.
+"""trustrail Guard Engine.
 
 The central entry point for all guardrail evaluation.
 """
@@ -13,12 +13,12 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any, Literal, TypeVar
 
 if TYPE_CHECKING:
-    from aiRail.agents.session import AgentSession
+    from trustrail.agents.session import AgentSession
 
-from aiRail.audit import AuditEvent, LoggingAuditSink, NullAuditSink
-from aiRail.exceptions import ApprovalRequiredError, GuardrailBlockedError
-from aiRail.models.config import GuardConfig
-from aiRail.models.core import (
+from trustrail.audit import AuditEvent, LoggingAuditSink, NullAuditSink
+from trustrail.exceptions import ApprovalRequiredError, GuardrailBlockedError
+from trustrail.models.config import GuardConfig
+from trustrail.models.core import (
     Document,
     GuardContext,
     GuardFinding,
@@ -26,27 +26,27 @@ from aiRail.models.core import (
     Message,
     RiskScore,
 )
-from aiRail.models.enums import (
+from trustrail.models.enums import (
     FailMode,
     GuardAction,
     GuardStage,
     Severity,
     TrustLevel,
 )
-from aiRail.models.rag import RAGContextEnvelope
-from aiRail.policies.agent import AgentPolicy
-from aiRail.policies.content_safety import ContentSafetyPolicy
-from aiRail.policies.memory import MemoryPolicy
-from aiRail.policies.output import OutputSafetyPolicy
-from aiRail.policies.prompt_injection import PromptInjectionPolicy
-from aiRail.policies.rag import RAGPolicy
-from aiRail.policies.resource import ResourcePolicy
-from aiRail.policies.sensitive_data import SensitiveDataPolicy
-from aiRail.policies.tools import ToolPolicy
-from aiRail.protocols import ApprovalProvider, AuditSink
-from aiRail.rules.base import BaseRule
-from aiRail.rules.prompt_injection import InvisibleUnicodeRule
-from aiRail.streaming import StreamScanner
+from trustrail.models.rag import RAGContextEnvelope
+from trustrail.policies.agent import AgentPolicy
+from trustrail.policies.content_safety import ContentSafetyPolicy
+from trustrail.policies.memory import MemoryPolicy
+from trustrail.policies.output import OutputSafetyPolicy
+from trustrail.policies.prompt_injection import PromptInjectionPolicy
+from trustrail.policies.rag import RAGPolicy
+from trustrail.policies.resource import ResourcePolicy
+from trustrail.policies.sensitive_data import SensitiveDataPolicy
+from trustrail.policies.tools import ToolPolicy
+from trustrail.protocols import ApprovalProvider, AuditSink
+from trustrail.rules.base import BaseRule
+from trustrail.rules.prompt_injection import InvisibleUnicodeRule
+from trustrail.streaming import StreamScanner
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -146,7 +146,7 @@ class Guard:
         }
         config = profiles.get(name)
         if config is None:
-            from aiRail.exceptions import ConfigurationError
+            from trustrail.exceptions import ConfigurationError
 
             raise ConfigurationError(f"Unknown profile: '{name}'. Valid profiles: {list(profiles)}")
         return cls(config=config)
@@ -196,7 +196,7 @@ class Guard:
             rules.extend(self._policies["prompt_injection"].get_rules())
             rules.extend(self._policies["sensitive_data"].get_rules())
             # Also check URLs in user input for SSRF
-            from aiRail.rules.url import (
+            from trustrail.rules.url import (
                 EmbeddedCredentialRule,
                 MetadataServiceRule,
                 PrivateIpRule,
@@ -677,7 +677,7 @@ class Guard:
         max_duration_seconds: float = 300.0,
     ) -> AsyncIterator[AgentSession]:
         """Async context manager for an agent session."""
-        from aiRail.agents.session import AgentSession as _AgentSession
+        from trustrail.agents.session import AgentSession as _AgentSession
 
         sess = _AgentSession(
             guard=self,

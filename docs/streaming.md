@@ -4,9 +4,9 @@
 look-behind window so patterns split across chunks can still be detected.
 
 ```python
-from aiRail import GuardContext
-from aiRail.rules.output import HtmlInjectionRule, ShellMetacharRule
-from aiRail.streaming import StreamScanner
+from trustrail import GuardContext
+from trustrail.rules.output import HtmlInjectionRule, ShellMetacharRule
+from trustrail.streaming import StreamScanner
 
 scanner = StreamScanner(
     rules=[HtmlInjectionRule(), ShellMetacharRule()],

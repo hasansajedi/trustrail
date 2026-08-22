@@ -2,9 +2,9 @@
 
 import pytest
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.prompt_injection.direct import MetadataPoisoningRule
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.prompt_injection.direct import MetadataPoisoningRule
 
 
 def _ctx(metadata: dict | None = None) -> GuardContext:

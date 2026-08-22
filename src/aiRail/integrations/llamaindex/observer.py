@@ -1,6 +1,6 @@
-"""LlamaIndex observer for aiRail.
+"""LlamaIndex observer for trustrail.
 
-Requires: pip install aiRail[llamaindex]
+Requires: pip install trustrail[llamaindex]
 """
 
 from __future__ import annotations
@@ -8,17 +8,17 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from aiRail.exceptions import GuardrailBlockedError
-from aiRail.models.enums import GuardStage
+from trustrail.exceptions import GuardrailBlockedError
+from trustrail.models.enums import GuardStage
 
 if TYPE_CHECKING:
-    from aiRail.guard import Guard
+    from trustrail.guard import Guard
 
-logger = logging.getLogger("aiRail.llamaindex")
+logger = logging.getLogger("trustrail.llamaindex")
 
 
 class AegisRailObserver:
-    """LlamaIndex event observer that integrates aiRail guardrails.
+    """LlamaIndex event observer that integrates trustrail guardrails.
 
     Usage:
         from llama_index.core import Settings
@@ -26,7 +26,7 @@ class AegisRailObserver:
         observer = AegisRailObserver(guard=guard)
         # Attach to LlamaIndex events via dispatcher
 
-    Requires: pip install aiRail[llamaindex]
+    Requires: pip install trustrail[llamaindex]
     """
 
     def __init__(self, guard: Guard, raise_on_block: bool = True) -> None:
@@ -47,7 +47,7 @@ class AegisRailObserver:
         except GuardrailBlockedError:
             raise
         except Exception as exc:
-            logger.warning(f"aiRail query check error: {exc}")
+            logger.warning(f"trustrail query check error: {exc}")
             return query
 
     def on_retrieve(self, nodes: list[Any], **kwargs: Any) -> list[Any]:
@@ -66,7 +66,7 @@ class AegisRailObserver:
                     msg = result.findings[0].message if result.findings else "unknown"
                     logger.warning(f"RAG document blocked: {msg}")
             except Exception as exc:
-                logger.warning(f"aiRail retrieve check error: {exc}")
+                logger.warning(f"trustrail retrieve check error: {exc}")
                 safe_nodes.append(node)
         return safe_nodes
 
@@ -84,5 +84,5 @@ class AegisRailObserver:
         except GuardrailBlockedError:
             raise
         except Exception as exc:
-            logger.warning(f"aiRail response check error: {exc}")
+            logger.warning(f"trustrail response check error: {exc}")
             return response

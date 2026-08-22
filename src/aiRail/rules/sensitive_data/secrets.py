@@ -5,10 +5,10 @@ from __future__ import annotations
 import re
 from typing import ClassVar
 
-from aiRail.models.core import GuardContext, GuardDecision
-from aiRail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
-from aiRail.normalization.normalizer import _shannon_entropy
-from aiRail.rules.base import BaseRule, registry
+from trustrail.models.core import GuardContext, GuardDecision
+from trustrail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
+from trustrail.normalization.normalizer import _shannon_entropy
+from trustrail.rules.base import BaseRule, registry
 
 # ── Credit Card (with Luhn) ──────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
-"""aiRail text normalization utilities."""
+"""trustrail text normalization utilities."""
 
-from aiRail.normalization.normalizer import (
+from trustrail.normalization.normalizer import (
     NormalizationResult,
     TextNormalizer,
     normalize,

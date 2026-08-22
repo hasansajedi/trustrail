@@ -5,10 +5,10 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from aiRail import Document, RAGContextEnvelope, TrustLevel
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.rag import RAGContextLabelRule
+from trustrail import Document, RAGContextEnvelope, TrustLevel
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.rag import RAGContextLabelRule
 
 
 def _document(**overrides) -> Document:
@@ -41,7 +41,7 @@ class TestRAGContextEnvelope:
         rendered = json.loads(envelope.render())
 
         assert rendered["channel"] == "retrieved_data"
-        assert rendered["kind"] == "aiRail.rag_context.v1"
+        assert rendered["kind"] == "trustrail.rag_context.v1"
         assert len(rendered["segments"]) == 1
         assert rendered["segments"][0]["content"] == content
 

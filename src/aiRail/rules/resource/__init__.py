@@ -1,6 +1,6 @@
 """Resource limit rules."""
 
-from aiRail.rules.resource.limits import (
+from trustrail.rules.resource.limits import (
     CumulativeTokenBudgetRule,
     InputLengthRule,
     MessageCountRule,

@@ -7,9 +7,9 @@ import logging
 from collections import deque
 from typing import Any
 
-from aiRail.models.core import AuditEvent
+from trustrail.models.core import AuditEvent
 
-logger = logging.getLogger("aiRail.audit")
+logger = logging.getLogger("trustrail.audit")
 
 
 class NullAuditSink:
@@ -27,7 +27,7 @@ class LoggingAuditSink:
 
     def __init__(
         self,
-        logger_name: str = "aiRail.audit",
+        logger_name: str = "trustrail.audit",
         level: int = logging.INFO,
     ) -> None:
         self._logger = logging.getLogger(logger_name)

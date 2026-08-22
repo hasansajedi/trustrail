@@ -7,7 +7,7 @@ or links to internal services.
 Use `check_document` before indexing and after retrieval:
 
 ```python
-from aiRail import Document, Guard, TrustLevel
+from trustrail import Document, Guard, TrustLevel
 
 document = Document(
     content=content,

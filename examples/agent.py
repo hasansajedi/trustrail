@@ -2,7 +2,7 @@
 
 import asyncio
 
-from aiRail import Guard, GuardContext, GuardStage, ToolCall
+from trustrail import Guard, GuardContext, GuardStage, ToolCall
 
 
 async def main() -> None:

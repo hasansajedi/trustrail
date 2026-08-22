@@ -2,7 +2,7 @@
 
 ## Our Pledge
 
-We pledge to make participation in aiRail a harassment-free experience for everyone.
+We pledge to make participation in trustrail a harassment-free experience for everyone.
 
 ## Our Standards
 
@@ -19,7 +19,7 @@ We pledge to make participation in aiRail a harassment-free experience for every
 
 ## Enforcement
 
-Violations may be reported to conduct@aiRail.io.
+Violations may be reported to conduct@trustrail.io.
 Maintainers will review and take appropriate action.
 
 ## Attribution

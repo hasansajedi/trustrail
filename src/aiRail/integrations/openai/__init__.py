@@ -1,6 +1,6 @@
-"""OpenAI integration for aiRail."""
+"""OpenAI integration for trustrail."""
 
-from aiRail.integrations.openai.adapter import (
+from trustrail.integrations.openai.adapter import (
     check_openai_messages,
     protect_openai_messages,
     protect_openai_response,

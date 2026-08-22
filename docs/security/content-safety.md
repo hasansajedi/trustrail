@@ -25,8 +25,8 @@ The rule uses exact-match patterns to minimise false positives on educational
 or journalistic text discussing these topics.
 
 ```python
-from aiRail.rules.output import ToxicityRule
-from aiRail.models.enums import GuardStage
+from trustrail.rules.output import ToxicityRule
+from trustrail.models.enums import GuardStage
 
 rule = ToxicityRule()
 result = rule.evaluate(llm_output, context)
@@ -45,7 +45,7 @@ Enforces acceptable-use policies by detecting:
 Both checks are enabled by default and can be toggled independently:
 
 ```python
-from aiRail.rules.output import ProfanityRule
+from trustrail.rules.output import ProfanityRule
 
 # Detect only explicit sexual content, allow profanity
 rule = ProfanityRule(check_profanity=False, check_explicit=True)

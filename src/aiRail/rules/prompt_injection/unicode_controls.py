@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from aiRail.models.core import GuardContext, GuardDecision
-from aiRail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
-from aiRail.normalization import strip_invisible_unicode
-from aiRail.rules.base import BaseRule, registry
+from trustrail.models.core import GuardContext, GuardDecision
+from trustrail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
+from trustrail.normalization import strip_invisible_unicode
+from trustrail.rules.base import BaseRule, registry
 
 
 @registry.register

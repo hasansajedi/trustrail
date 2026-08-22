@@ -1,6 +1,6 @@
 """Basic input checking example."""
 
-from aiRail import Guard, GuardStage
+from trustrail import Guard, GuardStage
 
 # Create a guard with balanced settings
 guard = Guard.balanced()

@@ -8,10 +8,10 @@ from __future__ import annotations
 import hypothesis.strategies as st
 from hypothesis import given, settings
 
-from aiRail.guard import Guard
-from aiRail.models.core import GuardFinding, RiskScore
-from aiRail.models.enums import GuardAction, GuardStage, RuleCategory, Severity
-from aiRail.normalization.normalizer import TextNormalizer, _shannon_entropy
+from trustrail.guard import Guard
+from trustrail.models.core import GuardFinding, RiskScore
+from trustrail.models.enums import GuardAction, GuardStage, RuleCategory, Severity
+from trustrail.normalization.normalizer import TextNormalizer, _shannon_entropy
 
 guard = Guard.silent()
 normalizer = TextNormalizer()

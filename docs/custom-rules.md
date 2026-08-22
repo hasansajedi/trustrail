@@ -5,9 +5,9 @@ policies cannot express. A rule receives text plus a `GuardContext` and returns 
 typed `GuardDecision`.
 
 ```python
-from aiRail import Guard, GuardContext, GuardStage
-from aiRail.models import GuardDecision, RuleCategory, Severity
-from aiRail.rules.base import BaseRule
+from trustrail import Guard, GuardContext, GuardStage
+from trustrail.models import GuardDecision, RuleCategory, Severity
+from trustrail.rules.base import BaseRule
 
 
 class InternalProjectNameRule(BaseRule):
@@ -40,7 +40,7 @@ assert result.is_blocked
 ## Testing a rule
 
 ```python
-from aiRail import GuardContext
+from trustrail import GuardContext
 
 
 def test_blocks_internal_name() -> None:

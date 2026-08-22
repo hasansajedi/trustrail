@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from aiRail.policies.base import BasePolicy
-from aiRail.rules.base import BaseRule
-from aiRail.rules.output import (
+from trustrail.policies.base import BasePolicy
+from trustrail.rules.base import BaseRule
+from trustrail.rules.output import (
     DangerousCodeConstructRule,
     FilePathInjectionRule,
     HtmlInjectionRule,
@@ -19,7 +19,7 @@ from aiRail.rules.output import (
     UnsafeProtocolRule,
     XmlXpathInjectionRule,
 )
-from aiRail.rules.url import (
+from trustrail.rules.url import (
     EmbeddedCredentialRule,
     MetadataServiceRule,
     PrivateIpRule,

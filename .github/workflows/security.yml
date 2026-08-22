@@ -38,5 +38,5 @@ jobs:
         run: pytest tests/security/ -v --tb=short
       - name: Enforce adaptive prompt-injection regression gate
         run: >-
-          python -m aiRail.testing.red_team
+          python -m trustrail.testing.red_team
           tests/security_corpus/adaptive_prompt_injection.json

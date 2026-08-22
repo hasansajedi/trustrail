@@ -2,9 +2,9 @@
 
 import pytest
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.output.content_safety import ProfanityRule, ToxicityRule
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.output.content_safety import ProfanityRule, ToxicityRule
 
 
 def _ctx() -> GuardContext:

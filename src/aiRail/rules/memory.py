@@ -6,8 +6,8 @@ import re
 from dataclasses import dataclass
 from typing import ClassVar
 
-from aiRail.models.core import GuardContext, GuardDecision
-from aiRail.models.enums import (
+from trustrail.models.core import GuardContext, GuardDecision
+from trustrail.models.enums import (
     GuardAction,
     GuardStage,
     MemoryWriteClassification,
@@ -15,7 +15,7 @@ from aiRail.models.enums import (
     RulePhase,
     Severity,
 )
-from aiRail.rules.base import BaseRule, registry
+from trustrail.rules.base import BaseRule, registry
 
 
 @dataclass(frozen=True)

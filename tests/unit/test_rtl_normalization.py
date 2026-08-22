@@ -1,6 +1,6 @@
 """Tests for RTL/bidi Unicode control character normalization."""
 
-from aiRail.normalization.normalizer import TextNormalizer
+from trustrail.normalization.normalizer import TextNormalizer
 
 # U+202E RIGHT-TO-LEFT OVERRIDE
 RLO = "\u202e"

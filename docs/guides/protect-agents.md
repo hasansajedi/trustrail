@@ -4,7 +4,7 @@ Agents need both content checks and hard execution budgets. `agent_session`
 tracks steps, tool calls, recursion depth, and wall-clock duration.
 
 ```python
-from aiRail import Guard, GuardContext, GuardStage, ToolCall
+from trustrail import Guard, GuardContext, GuardStage, ToolCall
 
 guard = Guard.strict()
 context = GuardContext(

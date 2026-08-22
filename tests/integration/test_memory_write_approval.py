@@ -2,10 +2,10 @@
 
 import pytest
 
-from aiRail import Guard, GuardAction, GuardConfig, GuardContext, GuardStage
-from aiRail.audit import MemoryAuditSink, NullAuditSink
-from aiRail.exceptions import ApprovalRequiredError, GuardrailBlockedError
-from aiRail.testing import FakeApprovalProvider
+from trustrail import Guard, GuardAction, GuardConfig, GuardContext, GuardStage
+from trustrail.audit import MemoryAuditSink, NullAuditSink
+from trustrail.exceptions import ApprovalRequiredError, GuardrailBlockedError
+from trustrail.testing import FakeApprovalProvider
 
 
 class FailingApprovalProvider:
