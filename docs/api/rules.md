@@ -3,11 +3,11 @@
 Use `BaseRule` to implement an in-process rule. Use the protocols when adapting
 external moderation, approval, state, or audit providers.
 
-::: aiRail.rules.base.BaseRule
+::: trustrail.rules.base.BaseRule
 
-::: aiRail.rules.base.RuleRegistry
+::: trustrail.rules.base.RuleRegistry
 
-::: aiRail.protocols
+::: trustrail.protocols
     options:
       members: true
 
@@ -24,4 +24,4 @@ source, URL, document ID, or trust level after the integrity label was created.
 through normalization, injection, and sensitive-data scanning without an approval
 request.
 
-::: aiRail.rules.memory.PersistentMemoryWriteRule
+::: trustrail.rules.memory.PersistentMemoryWriteRule

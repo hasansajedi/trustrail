@@ -1,8 +1,8 @@
 """Tests for OWASP LLM04 enhanced resource / DoS rules."""
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.resource.limits import CumulativeTokenBudgetRule, RepetitivePatternRule
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.resource.limits import CumulativeTokenBudgetRule, RepetitivePatternRule
 
 
 def _ctx(session_id: str | None = None) -> GuardContext:
@@ -88,13 +88,13 @@ class TestCumulativeTokenBudgetRule:
 
 class TestRecursivePromptExpansionRule:
     def setup_method(self):
-        from aiRail.rules.resource.limits import RecursivePromptExpansionRule
+        from trustrail.rules.resource.limits import RecursivePromptExpansionRule
 
         self.rule = RecursivePromptExpansionRule()
 
     def _ctx(self):
-        from aiRail.models.core import GuardContext
-        from aiRail.models.enums import GuardStage
+        from trustrail.models.core import GuardContext
+        from trustrail.models.enums import GuardStage
 
         return GuardContext(stage=GuardStage.USER_INPUT)
 
@@ -124,13 +124,13 @@ class TestRecursivePromptExpansionRule:
 
 class TestSessionRequestRateLimitRule:
     def setup_method(self):
-        from aiRail.rules.resource.limits import SessionRequestRateLimitRule
+        from trustrail.rules.resource.limits import SessionRequestRateLimitRule
 
         self.rule = SessionRequestRateLimitRule(max_requests=5, window_seconds=60.0)
 
     def _ctx(self, session_id="test-session"):
-        from aiRail.models.core import GuardContext
-        from aiRail.models.enums import GuardStage
+        from trustrail.models.core import GuardContext
+        from trustrail.models.enums import GuardStage
 
         return GuardContext(stage=GuardStage.USER_INPUT, session_id=session_id)
 

@@ -1,6 +1,6 @@
 # Insecure output handling
 
-Model output is untrusted data. aiRail detects common HTML injection, path
+Model output is untrusted data. trustrail detects common HTML injection, path
 traversal, shell metacharacters, unsafe protocols, suspicious URLs, and external
 Markdown image patterns at output stages. It also flags output that carries
 overconfidence signals or hallucination-prone language.
@@ -35,7 +35,7 @@ Default action: `WARN`. Switch to `BLOCK` when generated code is automatically
 executed (e.g., agentic code-execution pipelines).
 
 ```python
-from aiRail.rules.output import DangerousCodeConstructRule
+from trustrail.rules.output import DangerousCodeConstructRule
 
 rule = DangerousCodeConstructRule()
 result = rule.evaluate(llm_generated_code, context)
@@ -111,7 +111,7 @@ as `"not medical advice"`, `"consult a doctor"`, or `"I am not your attorney"`.
 Default action: `WARN`, severity `HIGH`.
 
 ```python
-from aiRail.rules.output import (
+from trustrail.rules.output import (
     AbsoluteClaimRule,
     HallucinationIndicatorRule,
     HighRiskDomainAdviceRule,
@@ -141,7 +141,7 @@ known false premise. Detected patterns include:
   denial, moon-landing hoax
 
 ```python
-from aiRail.rules.output import SycophancyRule
+from trustrail.rules.output import SycophancyRule
 
 rule = SycophancyRule()
 result = rule.evaluate(llm_output, context)

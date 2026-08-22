@@ -3,15 +3,15 @@
 Install the optional dependency:
 
 ```bash
-python -m pip install "aiRail[openai]"
+python -m pip install "trustrail[openai]"
 ```
 
 The adapter converts OpenAI-style message dictionaries and checks each role at
 the correct guard stage.
 
 ```python
-from aiRail import Guard
-from aiRail.integrations.openai import (
+from trustrail import Guard
+from trustrail.integrations.openai import (
     protect_openai_messages,
     protect_openai_response,
 )

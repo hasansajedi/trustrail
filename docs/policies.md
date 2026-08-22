@@ -27,7 +27,7 @@ call is `TOOL_REQUEST`, and text about to be displayed to a user is
 `FINAL_OUTPUT`.
 
 ```python
-from aiRail import Guard, GuardContext, GuardStage, TrustLevel
+from trustrail import Guard, GuardContext, GuardStage, TrustLevel
 
 guard = Guard.balanced()
 context = GuardContext(

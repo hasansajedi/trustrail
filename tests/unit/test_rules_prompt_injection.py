@@ -1,13 +1,13 @@
 """Unit tests for prompt injection rules."""
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.prompt_injection.direct import (
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.prompt_injection.direct import (
     DirectInjectionRule,
     JailbreakRule,
     SystemOverrideRule,
 )
-from aiRail.rules.prompt_injection.indirect import (
+from trustrail.rules.prompt_injection.indirect import (
     DataExfiltrationRule,
     IndirectInjectionRule,
 )
@@ -179,13 +179,13 @@ class TestDataExfiltrationRule:
 
 class TestEncodingObfuscationRule:
     def setup_method(self):
-        from aiRail.rules.prompt_injection.indirect import EncodingObfuscationRule
+        from trustrail.rules.prompt_injection.indirect import EncodingObfuscationRule
 
         self.rule = EncodingObfuscationRule()
 
     def _ctx(self):
-        from aiRail.models.core import GuardContext
-        from aiRail.models.enums import GuardStage
+        from trustrail.models.core import GuardContext
+        from trustrail.models.enums import GuardStage
 
         return GuardContext(stage=GuardStage.USER_INPUT)
 
@@ -220,7 +220,7 @@ class TestEncodingObfuscationRule:
 
 class TestTokenSmugglingRule:
     def setup_method(self):
-        from aiRail.rules.prompt_injection.direct import TokenSmugglingRule
+        from trustrail.rules.prompt_injection.direct import TokenSmugglingRule
 
         self.rule = TokenSmugglingRule()
 

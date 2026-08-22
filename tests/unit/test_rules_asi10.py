@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, Severity
-from aiRail.rules.agent.asi10 import (
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, Severity
+from trustrail.rules.agent.asi10 import (
     AgentKillSwitchRule,
     BehavioralBaselineRule,
     DualControlRule,

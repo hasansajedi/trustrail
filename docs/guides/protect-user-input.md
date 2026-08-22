@@ -4,7 +4,7 @@ Check user-controlled text before adding it to a prompt, retrieval query, memory
 or tool argument.
 
 ```python
-from aiRail import Guard, GuardContext, GuardStage
+from trustrail import Guard, GuardContext, GuardStage
 
 guard = Guard.balanced()
 context = GuardContext(user_id="user-42", request_id="req-123")
@@ -20,7 +20,7 @@ safe_text = result.output_value
 Use `protect` when exceptions fit the control flow:
 
 ```python
-from aiRail import GuardrailBlockedError
+from trustrail import GuardrailBlockedError
 
 try:
     safe_text = guard.protect(user_text, GuardStage.USER_INPUT)

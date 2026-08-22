@@ -4,7 +4,7 @@ Validate the proposed tool name and arguments before execution, then validate th
 tool response before returning it to the model.
 
 ```python
-from aiRail import Guard, GuardContext, GuardStage, ToolCall
+from trustrail import Guard, GuardContext, GuardStage, ToolCall
 
 guard = Guard.strict()
 call = ToolCall(name="fetch_url", arguments={"url": requested_url})

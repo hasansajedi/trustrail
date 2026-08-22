@@ -2,8 +2,8 @@
 
 import pytest
 
-from aiRail.guard import Guard
-from aiRail.models.enums import GuardAction, GuardStage
+from trustrail.guard import Guard
+from trustrail.models.enums import GuardAction, GuardStage
 
 
 @pytest.mark.parametrize(

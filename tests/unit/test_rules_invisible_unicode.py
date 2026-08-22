@@ -2,12 +2,12 @@
 
 import pytest
 
-from aiRail.audit import NullAuditSink
-from aiRail.guard import Guard
-from aiRail.models.config import GuardConfig
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.prompt_injection import InvisibleUnicodeRule
+from trustrail.audit import NullAuditSink
+from trustrail.guard import Guard
+from trustrail.models.config import GuardConfig
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.prompt_injection import InvisibleUnicodeRule
 
 
 def test_rule_strips_all_invisible_channel_classes() -> None:

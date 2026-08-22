@@ -2,9 +2,9 @@
 
 import pytest
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.output.grounding_rules import HighRiskDomainAdviceRule
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.output.grounding_rules import HighRiskDomainAdviceRule
 
 
 def _ctx() -> GuardContext:

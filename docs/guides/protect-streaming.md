@@ -4,7 +4,7 @@ Create one scanner per response. It retains a bounded overlap so a dangerous
 pattern split across chunks can still be detected.
 
 ```python
-from aiRail import Guard, GuardStage
+from trustrail import Guard, GuardStage
 
 guard = Guard.balanced()
 scanner = guard.stream(GuardStage.STREAM)

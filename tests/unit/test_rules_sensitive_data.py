@@ -1,9 +1,9 @@
 """Unit tests for sensitive data detection rules."""
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.sensitive_data.pii import EmailRule, IpAddressRule, PhoneRule
-from aiRail.rules.sensitive_data.secrets import (
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.sensitive_data.pii import EmailRule, IpAddressRule, PhoneRule
+from trustrail.rules.sensitive_data.secrets import (
     AwsKeyRule,
     DatabaseUrlRule,
     HighEntropySecretRule,

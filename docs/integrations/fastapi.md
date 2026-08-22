@@ -1,7 +1,7 @@
 # FastAPI integration
 
 ```bash
-python -m pip install "aiRail[fastapi]"
+python -m pip install "trustrail[fastapi]"
 ```
 
 ## Middleware
@@ -12,8 +12,8 @@ bodies before the endpoint runs.
 ```python
 from fastapi import FastAPI
 
-from aiRail import Guard
-from aiRail.integrations.fastapi import AegisRailMiddleware
+from trustrail import Guard
+from trustrail.integrations.fastapi import AegisRailMiddleware
 
 app = FastAPI()
 app.add_middleware(
@@ -24,7 +24,7 @@ app.add_middleware(
 )
 ```
 
-Blocked requests receive `{"error": "Request blocked by aiRail guardrail"}`.
+Blocked requests receive `{"error": "Request blocked by trustrail guardrail"}`.
 The current middleware checks request bodies; guard endpoint responses explicitly
 with `aprotect` when response enforcement is required.
 
@@ -32,9 +32,9 @@ with `aprotect` when response enforcement is required.
 
 ```python
 from fastapi import Depends
-from aiRail import Guard, GuardStage
-from aiRail.integrations.fastapi import get_guard
-from aiRail.integrations.fastapi.depends import configure_guard
+from trustrail import Guard, GuardStage
+from trustrail.integrations.fastapi import get_guard
+from trustrail.integrations.fastapi.depends import configure_guard
 
 configure_guard(Guard.strict())
 

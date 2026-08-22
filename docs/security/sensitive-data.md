@@ -1,11 +1,11 @@
 # Sensitive data
 
-aiRail detects common personal and secret-bearing values, including email
+trustrail detects common personal and secret-bearing values, including email
 addresses, phone numbers, payment cards, JWTs, bearer tokens, AWS access keys,
 private keys, database URLs, and high-entropy strings.
 
 ```python
-from aiRail import Guard, GuardStage
+from trustrail import Guard, GuardStage
 
 guard = Guard.balanced()
 result = guard.check(model_output, GuardStage.FINAL_OUTPUT)

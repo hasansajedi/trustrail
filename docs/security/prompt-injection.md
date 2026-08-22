@@ -5,14 +5,14 @@ change model behavior, reveal protected context, or redirect tool use. It can be
 directly supplied by a user or indirectly embedded in retrieved content.
 
 ```python
-from aiRail import Guard, GuardStage
+from trustrail import Guard, GuardStage
 
 guard = Guard.strict()
 user_result = guard.check(user_input, GuardStage.USER_INPUT)
 document_result = guard.check(web_page, GuardStage.EXTERNAL_CONTENT)
 ```
 
-aiRail includes rules for direct instruction override, jailbreak language,
+trustrail includes rules for direct instruction override, jailbreak language,
 system-message impersonation, indirect instructions, tool manipulation, data
 exfiltration patterns, and model theft attempts. Findings include a stable rule
 ID and severity.
@@ -34,15 +34,15 @@ ID and severity.
 
 ## Multimodal input scanning (PI-015)
 
-aiRail does not decode image, audio, or video bytes. Extract text with the
+trustrail does not decode image, audio, or video bytes. Extract text with the
 media provider or a trusted OCR/transcription pipeline, then pass that text in
 `GuardContext.metadata`. PI-015 scans the extracted content with prompt
 injection, jailbreak, and system-override detectors before the media is used by
 an LLM.
 
 ```python
-from aiRail import Guard, GuardStage
-from aiRail.models.core import GuardContext
+from trustrail import Guard, GuardStage
+from trustrail.models.core import GuardContext
 
 context = GuardContext(
     stage=GuardStage.USER_INPUT,
@@ -77,7 +77,7 @@ context = GuardContext(
 Standalone users can configure the scan limit or vendor-specific metadata keys:
 
 ```python
-from aiRail.rules.prompt_injection import MultimodalInjectionRule
+from trustrail.rules.prompt_injection import MultimodalInjectionRule
 
 rule = MultimodalInjectionRule(
     max_extracted_chars=20_000,
@@ -110,7 +110,7 @@ copy input content. The secure default can be disabled globally when an
 application has a documented language or glyph-presentation requirement:
 
 ```python
-from aiRail import Guard, GuardConfig
+from trustrail import Guard, GuardConfig
 
 guard = Guard(config=GuardConfig(strip_invisible_unicode=False))
 ```
@@ -128,7 +128,7 @@ proprietary system instructions. These rules apply primarily at `USER_INPUT` and
 `LLM_REQUEST` stages.
 
 ```python
-from aiRail.rules.prompt_injection import (
+from trustrail.rules.prompt_injection import (
     ModelExtractionProbeRule,
     SystemPromptExtractionRule,
 )

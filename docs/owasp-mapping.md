@@ -1,9 +1,9 @@
 # OWASP LLM mapping
 
-This table summarizes aiRail coverage against common OWASP risks. It is an
+This table summarizes trustrail coverage against common OWASP risks. It is an
 engineering aid, not evidence of compliance or complete mitigation.
 
-| OWASP LLM risk | aiRail rules | Additional controls required |
+| OWASP LLM risk | trustrail rules | Additional controls required |
 | --- | --- | --- |
 | **LLM01** Prompt injection | PI-001 direct override, PI-002 jailbreak, PI-003 system override, PI-004 indirect injection, PI-005 tool manipulation, PI-006 data exfiltration, PI-015 extracted multimodal content, PI-016 invisible Unicode channel stripping, RAG-004 provenance-labeled data envelope, MEM-001 persistent memory classification/approval, adaptive red-team regression gate, MT-002 system prompt extraction | Least privilege, application-assigned trust, manual semantic red teaming, trusted OCR/transcription and approval boundaries |
 | **LLM02** Insecure output handling | OS-001 HTML injection, OS-002 path traversal, OS-003 shell metachar, OS-004 suspicious URL, OS-005 unsafe protocol, OS-006 markdown image | Contextual escaping, CSP, parameterised queries |

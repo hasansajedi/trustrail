@@ -1,8 +1,8 @@
 """Unit tests for URL/SSRF rules."""
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.url.ssrf import (
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.url.ssrf import (
     EmbeddedCredentialRule,
     MetadataServiceRule,
     PrivateIpRule,

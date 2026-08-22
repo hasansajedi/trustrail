@@ -3,7 +3,7 @@
 Run the repository gate locally with the same command used by GitHub Actions:
 
 ```bash
-python -m aiRail.testing.red_team \
+python -m trustrail.testing.red_team \
   tests/security_corpus/adaptive_prompt_injection.json
 ```
 
@@ -22,7 +22,7 @@ blocking.
 ## Use a gate in application CI
 
 ```python
-from aiRail.testing.red_team import PromptInjectionRegressionGate, RedTeamCorpus
+from trustrail.testing.red_team import PromptInjectionRegressionGate, RedTeamCorpus
 
 corpus = RedTeamCorpus.from_path("security/adaptive-injection.json")
 report = PromptInjectionRegressionGate().run(corpus)
@@ -30,6 +30,6 @@ report.assert_passed()
 ```
 
 The default evaluator is `Guard.silent()`. Pass an object implementing
-`check(value, stage)` to evaluate a custom aiRail configuration or an integration
+`check(value, stage)` to evaluate a custom trustrail configuration or an integration
 adapter. Keep production-derived text in a restricted corpus; CI logs expose only
 case identifiers, but repository access still exposes the JSON seeds.

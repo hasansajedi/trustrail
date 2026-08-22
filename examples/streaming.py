@@ -2,7 +2,7 @@
 
 import asyncio
 
-from aiRail import Guard, GuardStage
+from trustrail import Guard, GuardStage
 
 
 async def simulate_stream():

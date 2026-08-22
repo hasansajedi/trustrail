@@ -13,7 +13,7 @@ Guard.from_profile("permissive")  # block_at=95, warn_at=70, fail_mode=OPEN
 ## GuardConfig
 
 ```python
-from aiRail import GuardConfig, FailMode
+from trustrail import GuardConfig, FailMode
 
 config = GuardConfig(
     fail_mode=FailMode.CLOSED,
@@ -64,5 +64,5 @@ human approval gate.
 
 Validate with CLI:
 ```bash
-aiRail validate-config guardrails.yaml
+trustrail validate-config guardrails.yaml
 ```

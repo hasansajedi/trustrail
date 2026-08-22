@@ -2,24 +2,24 @@
 
 ## Streaming
 
-::: aiRail.streaming.scanner.StreamScanner
+::: trustrail.streaming.scanner.StreamScanner
 
-::: aiRail.streaming.scanner.StreamResult
+::: trustrail.streaming.scanner.StreamResult
 
 ## Agent sessions
 
-::: aiRail.agents.session.AgentSession
+::: trustrail.agents.session.AgentSession
 
-::: aiRail.agents.session.AgentSessionState
+::: trustrail.agents.session.AgentSessionState
 
 ## Adaptive red-team regression
 
-::: aiRail.testing.red_team
+::: trustrail.testing.red_team
     options:
       members: true
 
 ## Audit sinks
 
-::: aiRail.audit.sinks
+::: trustrail.audit.sinks
     options:
       members: true

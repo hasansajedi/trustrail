@@ -1,11 +1,11 @@
 # Resource consumption
 
 LLM applications can be exhausted through large inputs, repeated requests,
-recursive agents, expensive retrieval, or unbounded output. aiRail applies
+recursive agents, expensive retrieval, or unbounded output. trustrail applies
 resource rules at every guard stage and provides agent execution budgets.
 
 ```python
-from aiRail import Guard, GuardConfig
+from trustrail import Guard, GuardConfig
 
 guard = Guard(
     GuardConfig(
@@ -38,7 +38,7 @@ significantly. `RepetitivePatternRule` measures the fraction of 4-gram sequences
 that repeat and blocks inputs above a threshold.
 
 ```python
-from aiRail.rules.resource import RepetitivePatternRule
+from trustrail.rules.resource import RepetitivePatternRule
 
 rule = RepetitivePatternRule(
     ngram_size=4,
@@ -55,7 +55,7 @@ estimated token usage per `session_id` and blocks further requests once the
 session total exceeds a configured budget.
 
 ```python
-from aiRail.rules.resource import CumulativeTokenBudgetRule
+from trustrail.rules.resource import CumulativeTokenBudgetRule
 
 rule = CumulativeTokenBudgetRule(session_budget_tokens=100_000)
 # Pass a consistent session_id in GuardContext for accurate tracking
@@ -74,7 +74,7 @@ measures the maximum bracket (`{[`) and XML tag depth using a lightweight
 heuristic — no full parse is required.
 
 ```python
-from aiRail.rules.resource import NestingDepthRule
+from trustrail.rules.resource import NestingDepthRule
 
 rule = NestingDepthRule(
     max_json_depth=100,   # max allowed JSON/array nesting

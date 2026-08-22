@@ -3,13 +3,13 @@
 ## Installation
 
 ```bash
-pip install aiRail
+pip install trustrail
 ```
 
 ## Basic Usage
 
 ```python
-from aiRail import Guard, GuardStage
+from trustrail import Guard, GuardStage
 
 # Create a guard
 guard = Guard.balanced()
@@ -33,7 +33,7 @@ print(result.findings)  # [GuardFinding(rule_id="PI-001", ...)]
 `protect()` raises `GuardrailBlockedError` if content is blocked:
 
 ```python
-from aiRail import Guard, GuardStage, GuardrailBlockedError
+from trustrail import Guard, GuardStage, GuardrailBlockedError
 
 guard = Guard.default()
 

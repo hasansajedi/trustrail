@@ -2,14 +2,14 @@
 
 import pytest
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import (
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import (
     GuardAction,
     GuardStage,
     MemoryWriteClassification,
     Severity,
 )
-from aiRail.rules.memory import PersistentMemoryWriteRule
+from trustrail.rules.memory import PersistentMemoryWriteRule
 
 
 def _context(*, persistent=True, stage=GuardStage.MEMORY_WRITE) -> GuardContext:

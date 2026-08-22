@@ -32,7 +32,7 @@ test-property:
 	pytest tests/property/ -v
 
 test-cov:
-	pytest tests/ --cov=aiRail --cov-report=html
+	pytest tests/ --cov=trustrail --cov-report=html
 
 ci: format-check lint typecheck test
 

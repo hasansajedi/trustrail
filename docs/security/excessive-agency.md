@@ -3,7 +3,7 @@
 Excessive agency occurs when an agent can take more actions, use more privileges,
 or run longer than required. Content filtering alone cannot prevent it.
 
-aiRail provides two complementary layers of enforcement: **session-level budgets**
+trustrail provides two complementary layers of enforcement: **session-level budgets**
 through `AgentSession`, and **standalone rules** that can be applied at any
 `AGENT_ACTION` or `TOOL_REQUEST` guard stage.
 
@@ -33,7 +33,7 @@ Blocks execution when `agent_step` in `context.metadata` reaches or exceeds
 take, regardless of how the orchestration framework tracks them.
 
 ```python
-from aiRail.rules.tools import AgentStepLimitRule
+from trustrail.rules.tools import AgentStepLimitRule
 
 rule = AgentStepLimitRule(max_steps=25)
 context = GuardContext(
@@ -50,7 +50,7 @@ call timestamps in-process; pass a consistent `session_id` on `GuardContext`
 for accurate per-session enforcement.
 
 ```python
-from aiRail.rules.tools import ToolCallFrequencyRule
+from trustrail.rules.tools import ToolCallFrequencyRule
 
 rule = ToolCallFrequencyRule(max_calls=50, window_seconds=60.0)
 # Call rule.evaluate() before every tool invocation
@@ -64,7 +64,7 @@ exceeds `max_depth`. Prevents runaway recursive loops in multi-agent or
 self-calling tool patterns.
 
 ```python
-from aiRail.rules.tools import RecursionDepthRule
+from trustrail.rules.tools import RecursionDepthRule
 
 rule = RecursionDepthRule(max_depth=10)
 context = GuardContext(

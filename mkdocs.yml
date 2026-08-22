@@ -1,10 +1,10 @@
-site_name: aiRail
+site_name: trustrail
 site_description: Production-grade Python guardrails for GenAI and LLM applications
-site_url: https://aiRail.readthedocs.io/
-repo_url: https://github.com/hasansajedi/aiRail
-repo_name: hasansajedi/aiRail
+site_url: https://trustrail.readthedocs.io/
+repo_url: https://github.com/hasansajedi/trustrail
+repo_name: hasansajedi/trustrail
 edit_uri: edit/main/docs/
-copyright: Copyright &copy; aiRail Contributors
+copyright: Copyright &copy; trustrail Contributors
 
 theme:
   name: material
@@ -112,4 +112,4 @@ nav:
       - Performance: performance.md
       - Migration: migration.md
       - FAQ: faq.md
-  - Changelog: https://github.com/hasansajedi/aiRail/blob/main/CHANGELOG.md
+  - Changelog: https://github.com/hasansajedi/trustrail/blob/main/CHANGELOG.md

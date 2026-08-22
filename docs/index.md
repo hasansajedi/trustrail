@@ -1,10 +1,10 @@
-# aiRail Documentation
+# trustrail Documentation
 
 **Production-grade open-source Python library for GenAI/LLM guardrails**
 
 ## Overview
 
-aiRail provides comprehensive security guardrails for LLM applications. It protects against:
+trustrail provides comprehensive security guardrails for LLM applications. It protects against:
 
 - Prompt injection (direct, indirect, jailbreak)
 - Sensitive data leakage (PII, secrets, payment cards)

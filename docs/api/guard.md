@@ -1,11 +1,11 @@
 # Guard engine
 
-::: aiRail.guard.Guard
+::: trustrail.guard.Guard
 
-::: aiRail.guard.GuardSession
+::: trustrail.guard.GuardSession
 
 ## Exceptions
 
-::: aiRail.exceptions
+::: trustrail.exceptions
     options:
       members: true

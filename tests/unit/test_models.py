@@ -3,8 +3,8 @@
 import pytest
 from pydantic import ValidationError
 
-from aiRail.models.config import GuardConfig
-from aiRail.models.core import (
+from trustrail.models.config import GuardConfig
+from trustrail.models.core import (
     AuditEvent,
     Document,
     GuardContext,
@@ -13,7 +13,7 @@ from aiRail.models.core import (
     Message,
     RiskScore,
 )
-from aiRail.models.enums import (
+from trustrail.models.enums import (
     FailMode,
     GuardAction,
     GuardStage,

@@ -2,9 +2,9 @@
 
 import pytest
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.tools.tool_rules import IdorDetectionRule
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.tools.tool_rules import IdorDetectionRule
 
 
 def _ctx(tool_args: dict) -> GuardContext:

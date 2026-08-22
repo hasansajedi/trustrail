@@ -2,7 +2,7 @@
 
 Static examples are necessary but insufficient: small changes in casing,
 whitespace, punctuation, or invisible characters can reopen a previously fixed
-prompt-injection path. aiRail's adaptive regression gate expands reviewed seed
+prompt-injection path. trustrail's adaptive regression gate expands reviewed seed
 cases with deterministic mutations and blocks a merge when configured metrics
 regress.
 

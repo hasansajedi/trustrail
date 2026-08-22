@@ -2,7 +2,7 @@
 
 ## Pipeline Stages
 
-aiRail operates at discrete stages of the LLM pipeline:
+trustrail operates at discrete stages of the LLM pipeline:
 
 ```
 User Input → System Prompt → LLM Request

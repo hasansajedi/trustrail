@@ -10,7 +10,7 @@
 
 **Please do NOT report security vulnerabilities through public GitHub issues.**
 
-To report a security vulnerability, please email: security@aiRail.io
+To report a security vulnerability, please email: security@trustrail.io
 
 Include:
 - A description of the vulnerability
@@ -25,7 +25,7 @@ You can expect:
 
 ## Security Design Principles
 
-aiRail follows these principles:
+trustrail follows these principles:
 
 1. **Fail-closed by default** — When in doubt, block
 2. **Defense in depth** — Multiple detection layers

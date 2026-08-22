@@ -1,13 +1,13 @@
 """Tests verifying all rules are wired into their policies and the guard engine."""
 
-from aiRail.guard import Guard
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.policies.content_safety import ContentSafetyPolicy
-from aiRail.policies.output import OutputSafetyPolicy
-from aiRail.policies.prompt_injection import PromptInjectionPolicy
-from aiRail.policies.sensitive_data import SensitiveDataPolicy
-from aiRail.policies.tools import ToolPolicy
+from trustrail.guard import Guard
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.policies.content_safety import ContentSafetyPolicy
+from trustrail.policies.output import OutputSafetyPolicy
+from trustrail.policies.prompt_injection import PromptInjectionPolicy
+from trustrail.policies.sensitive_data import SensitiveDataPolicy
+from trustrail.policies.tools import ToolPolicy
 
 # ── SensitiveDataPolicy ───────────────────────────────────────────────────────
 

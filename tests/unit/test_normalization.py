@@ -1,6 +1,6 @@
 """Unit tests for normalization module."""
 
-from aiRail.normalization.normalizer import (
+from trustrail.normalization.normalizer import (
     TextNormalizer,
     _shannon_entropy,
     normalize,

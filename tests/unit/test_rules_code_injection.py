@@ -2,9 +2,9 @@
 
 import pytest
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.output.safety import DangerousCodeConstructRule
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.output.safety import DangerousCodeConstructRule
 
 
 def _ctx() -> GuardContext:

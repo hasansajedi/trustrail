@@ -4,9 +4,9 @@ import json
 
 import pytest
 
-from aiRail.models.core import GuardContext
-from aiRail.models.enums import GuardAction, GuardStage
-from aiRail.rules.resource.limits import NestingDepthRule
+from trustrail.models.core import GuardContext
+from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.rules.resource.limits import NestingDepthRule
 
 
 def _ctx() -> GuardContext:

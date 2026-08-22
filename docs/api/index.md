@@ -1,9 +1,9 @@
 # API reference
 
-The primary public imports are available directly from `aiRail`:
+The primary public imports are available directly from `trustrail`:
 
 ```python
-from aiRail import Guard, GuardAction, GuardContext, GuardStage
+from trustrail import Guard, GuardAction, GuardContext, GuardStage
 ```
 
 Start with [`Guard`](guard.md), then use the model and enum reference when you
@@ -13,7 +13,7 @@ adapters.
 
 ## Public package
 
-::: aiRail
+::: trustrail
     options:
       members: true
       show_root_heading: false

@@ -4,7 +4,7 @@ Retrieved content is untrusted input even when the original user query is safe.
 Scan each document before it enters model context.
 
 ```python
-from aiRail import Document, Guard, TrustLevel
+from trustrail import Document, Guard, TrustLevel
 
 guard = Guard.balanced()
 safe_documents = []
@@ -25,7 +25,7 @@ Then build a provenance-labeled data envelope, check it, and validate the final
 response:
 
 ```python
-from aiRail import GuardStage
+from trustrail import GuardStage
 
 context_envelope = guard.build_rag_context(safe_documents)
 safe_context = guard.protect_rag_context(context_envelope)

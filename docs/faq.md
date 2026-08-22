@@ -14,7 +14,7 @@ transformed value and raises `GuardrailBlockedError` when the decision is
 `BLOCK`. Use `check` when your application needs custom handling and `protect`
 for a concise enforcement boundary.
 
-## Does aiRail replace provider moderation?
+## Does trustrail replace provider moderation?
 
 No. It provides deterministic application-layer controls and provider adapter
 protocols. Use it alongside model-provider safety systems, authorization,
