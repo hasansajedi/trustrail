@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from trustrail.models.poisoning import DataPoisoningResult
     from trustrail.models.supply_chain import ArtifactVerificationResult
 
 from trustrail.models.enums import GuardStage, Severity
@@ -49,6 +50,14 @@ class ArtifactVerificationError(AegisRailError):
 
     def __init__(self, result: ArtifactVerificationResult) -> None:
         super().__init__("AI artifact verification failed")
+        self.result = result
+
+
+class DataPoisoningError(AegisRailError):
+    """Raised when an ingested data or model asset must be quarantined."""
+
+    def __init__(self, result: DataPoisoningResult) -> None:
+        super().__init__("Data asset failed poisoning controls and was quarantined")
         self.result = result
 
 

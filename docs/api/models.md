@@ -38,3 +38,17 @@ adapters, plugins, packages, external services, and retrieved artifacts.
 ::: trustrail.supply_chain.ArtifactVerifier
     options:
       members: true
+
+## Data and model poisoning
+
+`DataIngestionRecord` binds content to application-assigned provenance,
+authorization, integrity, lineage, and anomaly evidence. `DataPoisoningVerifier`
+checks that evidence against trusted source policy and emits content-free results.
+
+::: trustrail.models.poisoning
+    options:
+      members: true
+
+::: trustrail.poisoning.DataPoisoningVerifier
+    options:
+      members: true

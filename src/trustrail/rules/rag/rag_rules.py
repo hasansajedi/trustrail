@@ -64,6 +64,7 @@ class MissingProvenanceRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.LOW
     default_action: ClassVar[GuardAction] = GuardAction.WARN
     description: ClassVar[str] = "Warns when RAG documents lack source provenance."
+    owasp: ClassVar[list[str]] = ["LLM04:2025", "LLM08:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         # Check if we're processing a RAG document
@@ -93,6 +94,7 @@ class UntrustedInstructionRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.CRITICAL
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects AI-directed instructions embedded in retrieved documents."
+    owasp: ClassVar[list[str]] = ["LLM01:2025", "LLM04:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         text = value[:10_000]
@@ -118,6 +120,7 @@ class SourceTrustRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.MEDIUM
     default_action: ClassVar[GuardAction] = GuardAction.WARN
     description: ClassVar[str] = "Validates the trust level of document sources."
+    owasp: ClassVar[list[str]] = ["LLM04:2025", "LLM08:2025"]
 
     def __init__(
         self,
@@ -175,7 +178,7 @@ class RAGContextLabelRule(BaseRule):
     description: ClassVar[str] = (
         "Rejects RAG context that is not structurally separated and provenance-labeled."
     )
-    owasp: ClassVar[list[str]] = ["LLM01:2026"]
+    owasp: ClassVar[list[str]] = ["LLM01:2025", "LLM04:2025", "LLM08:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         if context.stage != GuardStage.RAG_CONTEXT:
@@ -212,7 +215,7 @@ class RagContextTamperingRule(BaseRule):
     description: ClassVar[str] = (
         "Detects tampered or poisoned content injected into RAG augmentation data."
     )
-    owasp: ClassVar[list[str]] = ["LLM04"]
+    owasp: ClassVar[list[str]] = ["LLM04:2025"]
 
     _TAMPER_PATTERNS: ClassVar[list[re.Pattern[str]]] = [
         re.compile(

@@ -92,4 +92,4 @@ class TestPersistentMemoryWriteClassification:
             "reason_codes": ["personal_profile_attribute"],
             "requires_approval": True,
         }
-        assert decision.finding.owasp == ["LLM01:2026"]
+        assert decision.finding.owasp == ["LLM01:2025", "LLM04:2025"]

@@ -32,6 +32,11 @@ result = Guard.strict().check_document(document)
 Trust metadata supports policy decisions but must not disable scanning. Re-check
 documents when rules change, a source loses trust, or the index is rebuilt.
 
+At the pre-index boundary, use `DataPoisoningVerifier` to bind content to trusted
+source, writer, tenant, purpose, version, digest, transformation, and anomaly
+policy. `Guard.check_document()` remains the runtime text scan; neither control
+replaces the other. See [Data and model poisoning](data-model-poisoning.md).
+
 ## Structured context boundary
 
 Do not join retrieved strings directly. `build_rag_context` scans every document,

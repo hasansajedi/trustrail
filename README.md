@@ -29,6 +29,7 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 - **URL/SSRF Prevention** — Block requests to private IPs, metadata services, and dangerous schemes
 - **RAG Security** — Validate document provenance and detect instructions in retrieved content
 - **AI Supply-Chain Verification** — Pin provenance, revisions, and cryptographic artifact digests
+- **Data Poisoning Controls** — Quarantine unauthorized, changed, or anomalous AI data and models
 - **Tool Call Validation** — Enforce allowlists/blocklists and validate tool arguments
 - **Resource Limits** — Cap input length, token counts, and message depth
 - **Agent Session Tracking** — Monitor step counts, tool usage, and recursion depth

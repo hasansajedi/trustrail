@@ -97,6 +97,7 @@ nav:
       - Output handling: security/output-handling.md
       - RAG security: security/rag-security.md
       - Persistent memory: security/memory-security.md
+      - Data and model poisoning: security/data-model-poisoning.md
       - Excessive agency: security/excessive-agency.md
       - Resource consumption: security/resource-consumption.md
       - Supply chain: security/supply-chain.md

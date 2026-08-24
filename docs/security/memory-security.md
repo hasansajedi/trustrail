@@ -26,6 +26,12 @@ belongs to the current user. Authorization and ownership checks must use trusted
 application state. Never accept an approval token, trust label, or persistence flag
 from model-generated content.
 
+When memory can also arrive from imports, tools, agents, or another service, run a
+typed `DataIngestionRecord` through `DataPoisoningVerifier.require()` first. This
+binds the write to allowed source, writer, tenant, purpose, version, integrity,
+lineage, and anomaly policy. Human approval is still required afterward. See
+[Data and model poisoning](data-model-poisoning.md).
+
 Audit events contain the stage, action, input length, and finding identifiers, not
 the proposed memory. The initial event records `required`; a second event records
 `approved`, `denied`, `missing_provider`, or `provider_error`, together with the
