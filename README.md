@@ -25,7 +25,7 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 
 - **Prompt Injection Protection** — Detect and block direct injection, indirect RAG injection, and jailbreak attempts
 - **Sensitive Data Detection** — Find and redact PII, secrets, API keys, credit cards, and more
-- **Output Safety** — Validate LLM outputs for XSS, path traversal, shell injection, and unsafe URLs
+- **Context-Aware Output Safety** — Encode display output and fail closed at SQL, shell, template, path, structured-data, and tool boundaries
 - **URL/SSRF Prevention** — Block requests to private IPs, metadata services, and dangerous schemes
 - **RAG Security** — Validate document provenance and detect instructions in retrieved content
 - **AI Supply-Chain Verification** — Pin provenance, revisions, and cryptographic artifact digests

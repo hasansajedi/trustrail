@@ -11,6 +11,17 @@ external moderation, approval, state, or audit providers.
     options:
       members: true
 
+## Model output safety
+
+`OS-001` through `OS-013` cover HTML, paths, shell syntax, URLs, Markdown
+images, dangerous code, SQL, templates, logs, LDAP, XML/XPath, and file-wrapper
+injection. They scan the complete guard-bounded value, emit content-free
+findings, and map to OWASP `LLM05:2025`.
+
+Detection rules are an early warning layer. Use `SafeOutputHandler` to enforce
+the actual browser, database, process, filesystem, structured-data, or tool
+boundary.
+
 ## RAG context validation
 
 `RAG-004` requires `GuardStage.RAG_CONTEXT` values to use a valid

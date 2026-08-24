@@ -15,6 +15,24 @@ serialized with `model_dump()` or `model_dump_json()`.
     options:
       members: true
 
+## Context-aware output handling
+
+`OutputHandlingPolicy` defines fail-closed destination constraints.
+`OutputHandlingResult` contains only a downstream-safe transformed value; blocked
+results and findings do not retain the model output.
+
+::: trustrail.models.output_handling
+    options:
+      members: true
+
+::: trustrail.output_handling.SafeOutputHandler
+    options:
+      members: true
+
+::: trustrail.output_handling.ValidatedToolCall
+    options:
+      members: true
+
 ## Structured RAG context
 
 `RAGContextEnvelope.from_documents()` preserves source and trust labels through

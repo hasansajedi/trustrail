@@ -1,0 +1,106 @@
+[
+  {
+    "name": "plain-text",
+    "context": "text",
+    "value": "A normal model response.",
+    "expected_action": "allow"
+  },
+  {
+    "name": "html-event-handler",
+    "context": "html",
+    "value": "<img src=x onerror=alert(1)>",
+    "expected_action": "transform",
+    "forbid_in_safe_value": "<img"
+  },
+  {
+    "name": "javascript-script-breakout",
+    "context": "javascript",
+    "value": "</script><script>dangerousCall()</script>",
+    "expected_action": "transform",
+    "forbid_in_safe_value": "<"
+  },
+  {
+    "name": "markdown-remote-image",
+    "context": "markdown",
+    "value": "![status](https://docs.example.test/pixel)",
+    "expected_action": "block"
+  },
+  {
+    "name": "markdown-reference-image",
+    "context": "markdown",
+    "value": "![status][pixel]\n\n[pixel]: https://docs.example.test/pixel",
+    "expected_action": "block"
+  },
+  {
+    "name": "markdown-raw-html",
+    "context": "markdown",
+    "value": "<details open ontoggle=dangerousCall()>content</details>",
+    "expected_action": "block"
+  },
+  {
+    "name": "markdown-encoded-scheme",
+    "context": "markdown",
+    "value": "[open](java&#x73;cript:dangerousCall())",
+    "expected_action": "block"
+  },
+  {
+    "name": "url-exact-allowlist",
+    "context": "url",
+    "value": "https://docs.example.test/guide",
+    "expected_action": "allow"
+  },
+  {
+    "name": "url-host-suffix-lookalike",
+    "context": "url",
+    "value": "https://docs.example.test.attacker.invalid/",
+    "expected_action": "block"
+  },
+  {
+    "name": "url-userinfo-confusion",
+    "context": "url",
+    "value": "https://docs.example.test@attacker.invalid/",
+    "expected_action": "block"
+  },
+  {
+    "name": "path-traversal",
+    "context": "path",
+    "value": "reports/../../private-output-marker.txt",
+    "expected_action": "block"
+  },
+  {
+    "name": "raw-structured-data",
+    "context": "json",
+    "value": "{\"operation\":\"delete\"}",
+    "expected_action": "block"
+  },
+  {
+    "name": "raw-sql",
+    "context": "sql",
+    "value": "SELECT * FROM users WHERE name = 'model-value'",
+    "expected_action": "block"
+  },
+  {
+    "name": "raw-shell",
+    "context": "shell",
+    "value": "printf private-output-marker | sh",
+    "expected_action": "block"
+  },
+  {
+    "name": "raw-template",
+    "context": "template",
+    "value": "{{ application.config }}",
+    "expected_action": "block"
+  },
+  {
+    "name": "raw-tool-intent",
+    "context": "tool",
+    "value": "{\"name\":\"privileged_operation\",\"arguments\":{}}",
+    "expected_action": "block"
+  },
+  {
+    "name": "raw-generated-code",
+    "context": "code",
+    "value": "dangerousCall(model_value)",
+    "expected_action": "block"
+  }
+]

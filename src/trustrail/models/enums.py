@@ -115,10 +115,13 @@ class OutputContext(StrEnum):
 
     TEXT = "text"
     HTML = "html"
+    JAVASCRIPT = "javascript"
     MARKDOWN = "markdown"
     JSON = "json"
     URL = "url"
     PATH = "path"
     SQL = "sql"
     SHELL = "shell"
+    TEMPLATE = "template"
+    TOOL = "tool"
     CODE = "code"

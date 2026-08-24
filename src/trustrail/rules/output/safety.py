@@ -41,9 +41,10 @@ class HtmlInjectionRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects HTML injection and XSS in output."
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for pattern in _XSS_PATTERNS:
             m = pattern.search(text)
             if m:
@@ -84,9 +85,10 @@ class PathTraversalRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects path traversal patterns in output."
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _PATH_TRAVERSAL_RE.search(text)
         if m:
             return self._block(
@@ -126,9 +128,10 @@ class ShellMetacharRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects shell metacharacters in output."
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _SHELL_META_RE.search(text)
         if m:
             return self._block(
@@ -166,9 +169,10 @@ class SuspiciousUrlRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.MEDIUM
     default_action: ClassVar[GuardAction] = GuardAction.WARN
     description: ClassVar[str] = "Detects suspicious URLs in output."
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _SUSPICIOUS_URL_RE.search(text)
         if m:
             return self._block(
@@ -200,13 +204,14 @@ class UnsafeProtocolRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects dangerous URL protocols in output."
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _UNSAFE_PROTO_RE.search(text)
         if m:
             return self._block(
-                f"Unsafe URL protocol detected: {m.group(0).strip()}",
+                "Unsafe URL protocol detected in output",
                 offset_start=m.start(),
                 offset_end=m.end(),
             )
@@ -232,9 +237,10 @@ class MarkdownExternalImageRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.LOW
     default_action: ClassVar[GuardAction] = GuardAction.WARN
     description: ClassVar[str] = "Detects external images in Markdown (tracking pixel risk)."
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _MD_EXT_IMG_RE.search(text)
         if m:
             return self._block(
@@ -312,19 +318,18 @@ class SqlInjectionRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.CRITICAL
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects SQL injection patterns in LLM output."
-    owasp: ClassVar[list[str]] = ["LLM05"]
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for pattern in _SQL_INJECTION_PATTERNS:
             m = pattern.search(text)
             if m:
                 return self._block(
-                    f"SQL injection pattern detected: '{m.group(0)[:60]}'",
+                    "SQL injection pattern detected in output",
                     severity=Severity.CRITICAL,
                     offset_start=m.start(),
                     offset_end=m.end(),
-                    matched_pattern=m.group(0)[:60],
                 )
         return self._allow()
 
@@ -361,19 +366,18 @@ class SstiDetectionRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.CRITICAL
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects SSTI expression syntax in LLM output."
-    owasp: ClassVar[list[str]] = ["LLM05"]
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for pattern in _SSTI_PATTERNS:
             m = pattern.search(text)
             if m:
                 return self._block(
-                    f"SSTI pattern detected: '{m.group(0)[:60]}'",
+                    "Server-side template expression detected in output",
                     severity=Severity.CRITICAL,
                     offset_start=m.start(),
                     offset_end=m.end(),
-                    matched_pattern=m.group(0)[:60],
                 )
         return self._allow()
 
@@ -410,15 +414,15 @@ class LogInjectionRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.MEDIUM
     default_action: ClassVar[GuardAction] = GuardAction.WARN
     description: ClassVar[str] = "Detects CRLF and forged log-level sequences in LLM output."
-    owasp: ClassVar[list[str]] = ["LLM05"]
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for pattern in _LOG_INJECT_PATTERNS:
             m = pattern.search(text)
             if m:
                 return self._block(
-                    f"Log injection pattern detected: '{repr(m.group(0))[:60]}'",
+                    "Log injection pattern detected in output",
                     severity=Severity.MEDIUM,
                     action=GuardAction.WARN,
                     offset_start=m.start(),
@@ -459,15 +463,15 @@ class LdapInjectionRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects LDAP injection patterns in LLM output."
-    owasp: ClassVar[list[str]] = ["LLM05"]
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for pattern in _LDAP_INJECTION_PATTERNS:
             m = pattern.search(text)
             if m:
                 return self._block(
-                    f"LDAP injection pattern detected: '{repr(m.group(0))[:60]}'",
+                    "LDAP injection pattern detected in output",
                     severity=Severity.HIGH,
                     offset_start=m.start(),
                     offset_end=m.end(),
@@ -498,7 +502,7 @@ class XmlXpathInjectionRule(BaseRule):
     Covers XPath boolean-based injection (``' or 'a'='a``), XXE attacks using
     ``DOCTYPE``/``ENTITY`` declarations, and XPath axis traversal. Complements
     input-side checks for XML payloads passed through to downstream parsers.
-    Addresses OWASP LLM02 (Insecure Output Handling) and LLM05.
+    Maps to OWASP LLM05:2025 (Improper Output Handling).
     """
 
     rule_id: ClassVar[str] = "OS-012"
@@ -508,19 +512,18 @@ class XmlXpathInjectionRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects XML/XPath injection and XXE patterns in LLM output."
-    owasp: ClassVar[list[str]] = ["LLM02", "LLM05"]
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for pattern in _XPATH_INJECTION_PATTERNS:
             m = pattern.search(text)
             if m:
                 return self._block(
-                    f"XML/XPath injection pattern detected: '{m.group(0)[:60]}'",
+                    "XML/XPath injection pattern detected in output",
                     severity=Severity.HIGH,
                     offset_start=m.start(),
                     offset_end=m.end(),
-                    matched_pattern=m.group(0)[:60],
                 )
         return self._allow()
 
@@ -544,20 +547,19 @@ class DangerousCodeConstructRule(BaseRule):
     description: ClassVar[str] = (
         "Detects dangerous code constructs (eval, exec, subprocess) in generated code."
     )
-    owasp: ClassVar[list[str]] = ["LLM02", "LLM08"]
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for pattern in _CODE_INJECTION_PATTERNS:
             m = pattern.search(text)
             if m:
                 return self._block(
-                    f"Dangerous code construct detected: '{m.group(0)[:60]}'",
+                    "Dangerous code construct detected in output",
                     action=GuardAction.WARN,
                     severity=Severity.HIGH,
                     offset_start=m.start(),
                     offset_end=m.end(),
-                    matched_construct=m.group(0)[:60],
                 )
         return self._allow()
 
@@ -582,7 +584,7 @@ class FilePathInjectionRule(BaseRule):
     OS paths to sensitive system files (``/proc/self/environ``,
     ``/etc/shadow``), Windows drive paths, and UNC paths. Complements the
     input-side ``PathTraversalRule`` by covering output-context leakage.
-    Addresses OWASP LLM02 (Insecure Output Handling) and LLM05.
+    Maps to OWASP LLM05:2025 (Improper Output Handling).
     """
 
     rule_id: ClassVar[str] = "OS-013"
@@ -594,18 +596,17 @@ class FilePathInjectionRule(BaseRule):
     description: ClassVar[str] = (
         "Detects insecure file path references and wrapper URI schemes in LLM output."
     )
-    owasp: ClassVar[list[str]] = ["LLM02", "LLM05"]
+    owasp: ClassVar[list[str]] = ["LLM05:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for pattern in _FILE_PATH_INJECTION_PATTERNS:
             m = pattern.search(text)
             if m:
                 return self._block(
-                    f"Insecure file path pattern detected: '{m.group(0)[:60]}'",
+                    "Insecure file path pattern detected in output",
                     severity=Severity.HIGH,
                     offset_start=m.start(),
                     offset_end=m.end(),
-                    matched_pattern=m.group(0)[:60],
                 )
         return self._allow()

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from trustrail.models.output_handling import OutputHandlingResult
     from trustrail.models.poisoning import DataPoisoningResult
     from trustrail.models.supply_chain import ArtifactVerificationResult
 
@@ -58,6 +59,14 @@ class DataPoisoningError(AegisRailError):
 
     def __init__(self, result: DataPoisoningResult) -> None:
         super().__init__("Data asset failed poisoning controls and was quarantined")
+        self.result = result
+
+
+class OutputHandlingError(AegisRailError):
+    """Raised when model output is unsafe for its destination."""
+
+    def __init__(self, result: OutputHandlingResult) -> None:
+        super().__init__("Model output is unsafe for the requested destination")
         self.result = result
 
 

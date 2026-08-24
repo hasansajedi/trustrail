@@ -29,10 +29,13 @@
 - Upstream or application-specific anomaly signals and unavailable detectors
 - Persistent-memory injection before human approval
 
-### Insecure Output Handling (OWASP LLM05)
-- XSS in rendered output
-- Path traversal
-- Shell injection
+### Improper Output Handling (OWASP LLM05:2025)
+- HTML/JavaScript and Markdown rendering injection
+- Unsafe URL schemes, host confusion, credentials, and external resources
+- SQL, shell, server-side template, LDAP, XML/XPath, and log injection
+- Absolute paths, traversal, file wrappers, and symlink-race residual risk
+- Ambiguous or oversized structured data, duplicate keys, and type coercion
+- Model-selected tools, arguments, generated code, or privileged effects reaching executors
 
 ### Excessive Agency (OWASP LLM06)
 - Unlimited tool calls

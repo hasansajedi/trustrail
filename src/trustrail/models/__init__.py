@@ -25,6 +25,12 @@ from trustrail.models.enums import (
     Severity,
     TrustLevel,
 )
+from trustrail.models.output_handling import (
+    OutputHandlingCode,
+    OutputHandlingFinding,
+    OutputHandlingPolicy,
+    OutputHandlingResult,
+)
 from trustrail.models.poisoning import (
     DataAssetKind,
     DataIngestionRecord,
@@ -93,6 +99,10 @@ __all__ = [
     "MemoryWriteClassification",
     "Message",
     "OutputContext",
+    "OutputHandlingCode",
+    "OutputHandlingFinding",
+    "OutputHandlingPolicy",
+    "OutputHandlingResult",
     "PoisoningCode",
     "PoisoningFinding",
     "PromptScanResult",

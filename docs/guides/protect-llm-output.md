@@ -1,8 +1,8 @@
 # Protect LLM output
 
 Validate model output before rendering it, storing it, or passing it to another
-system. Output rules detect sensitive data, unsafe markup, shell metacharacters,
-path traversal, and suspicious URLs.
+system. Then apply a destination contract before the value reaches a browser,
+interpreter, database, filesystem, or tool.
 
 ```python
 from trustrail import Guard, GuardStage
@@ -32,6 +32,33 @@ async def answer(prompt: str) -> str:
     return await model.generate(prompt)
 ```
 
-Guardrails do not replace context-specific escaping. HTML-escape text rendered
-into HTML, parameterize SQL, avoid shell execution, and validate URLs at the
-network layer even after the output passes trustrail.
+## Apply the destination contract
+
+```python
+from trustrail import OutputContext, OutputHandlingPolicy, SafeOutputHandler
+
+handler = SafeOutputHandler(
+    OutputHandlingPolicy(
+        allowed_url_hosts=frozenset({"docs.example.com"}),
+    )
+)
+
+safe_html_text = handler.require(response, OutputContext.HTML)
+safe_url = handler.require(model_url, OutputContext.URL)
+```
+
+`SafeOutputHandler` encodes HTML and JavaScript text, checks Markdown and URLs,
+confines paths, validates strict structured output, and rejects raw SQL, shell,
+template, code, and tool sinks. For example, bind a SQL value as data:
+
+```python
+database.execute(
+    "SELECT id FROM documents WHERE title = ?",
+    (handler.as_sql_parameter(model_title),),
+)
+```
+
+For tools, `parse_tool_call()` validates a fixed application-selected name and a
+strict Pydantic argument schema. It returns a non-executing plan that still needs
+deterministic authorization and approval. See [safe model output handling](../security/output-handling.md)
+for every context, examples, assumptions, and residual risk.
