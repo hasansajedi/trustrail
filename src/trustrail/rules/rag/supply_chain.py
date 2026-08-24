@@ -1,4 +1,4 @@
-"""Supply chain integrity rules — OWASP LLM05."""
+"""Supply-chain boundary rules — OWASP LLM03:2025."""
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ _INJECTED_INSTRUCTION_RE = re.compile(
 class ApiResponseIntegrityRule(BaseRule):
     """Detects injected LLM instructions embedded inside external API or tool responses.
 
-    Supply chain attacks (OWASP LLM05) plant prompt-injection payloads inside
+    Supply chain attacks (OWASP LLM03:2025) plant prompt-injection payloads inside
     data that flows from third-party APIs into the LLM context. This rule scans
     tool/API responses for instruction-hijacking patterns before they are used.
 
@@ -66,7 +66,7 @@ class ApiResponseIntegrityRule(BaseRule):
     description: ClassVar[str] = (
         "Detects prompt-injection payloads embedded in external API or tool responses."
     )
-    owasp: ClassVar[list[str]] = ["LLM05", "LLM01"]
+    owasp: ClassVar[list[str]] = ["LLM03:2025", "LLM01:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         match = _INJECTED_INSTRUCTION_RE.search(value)

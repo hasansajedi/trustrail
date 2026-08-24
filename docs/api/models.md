@@ -24,3 +24,17 @@ scanned before assembly.
 ::: trustrail.models.rag
     options:
       members: true
+
+## AI supply-chain artifacts
+
+`ArtifactManifest` is a typed inventory of approved models, datasets, prompts,
+adapters, plugins, packages, external services, and retrieved artifacts.
+`ArtifactVerifier` checks runtime evidence before a component is loaded.
+
+::: trustrail.models.supply_chain
+    options:
+      members: true
+
+::: trustrail.supply_chain.ArtifactVerifier
+    options:
+      members: true

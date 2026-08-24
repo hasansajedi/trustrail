@@ -52,6 +52,7 @@ from trustrail.policies.prompt_injection import PromptInjectionPolicy
 from trustrail.policies.rag import RAGPolicy
 from trustrail.policies.resource import ResourcePolicy
 from trustrail.policies.sensitive_data import SensitiveDataPolicy
+from trustrail.policies.supply_chain import SupplyChainPolicy
 from trustrail.policies.tools import ToolPolicy
 from trustrail.protocols import ApprovalProvider, AuditSink
 from trustrail.rules.base import BaseRule
@@ -185,6 +186,7 @@ class Guard:
         return {
             "prompt_injection": PromptInjectionPolicy(),
             "sensitive_data": SensitiveDataPolicy(),
+            "supply_chain": SupplyChainPolicy(),
             "output_safety": OutputSafetyPolicy(),
             "content_safety": ContentSafetyPolicy(),
             "resource": ResourcePolicy(
@@ -257,6 +259,7 @@ class Guard:
         ):
             rules.extend(self._policies["prompt_injection"].get_rules())
             rules.extend(self._policies["rag"].get_rules())
+            rules.extend(self._policies["supply_chain"].get_rules())
             rules.extend(self._policies["sensitive_data"].get_rules())
 
         elif stage in (GuardStage.TOOL_REQUEST,):
@@ -265,6 +268,7 @@ class Guard:
             rules.extend(self._policies["sensitive_data"].get_rules())
 
         elif stage in (GuardStage.TOOL_RESPONSE,):
+            rules.extend(self._policies["supply_chain"].get_rules())
             rules.extend(self._policies["prompt_injection"].get_rules())
             rules.extend(self._policies["output_safety"].get_rules())
             rules.extend(self._policies["sensitive_data"].get_rules())

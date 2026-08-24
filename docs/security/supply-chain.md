@@ -1,122 +1,206 @@
-# Supply-chain security
+# AI supply-chain security
 
-An LLM application depends on packages, models, prompts, plugins, tools, vector
-indexes, and external content. trustrail can inspect content crossing these
-boundaries, but it cannot establish the integrity of the components themselves.
+trustrail provides application-layer controls for
+[OWASP LLM03:2025 Supply Chain](https://genai.owasp.org/llmrisk/llm032025-supply-chain/).
+An AI application should inventory and verify more than Python packages: models,
+datasets, system prompts, LoRA/PEFT adapters, plugins, external inference
+services, and retrieved artifacts can all be substituted or compromised.
 
-## API response integrity (SC-001)
+## Component and threat mapping
 
-Supply chain attacks embed prompt-injection payloads inside the responses of
-third-party APIs or tools. When an infected response is later included in the
-LLM context, the embedded instructions execute as if typed by the user.
+| Component | Provenance and integrity evidence |
+| --- | --- |
+| Models and adapters | Supplier, repository, immutable commit/revision, digest, approval, lifecycle, license |
+| Datasets and prompt templates | Publisher, source, immutable version, digest, review status, license |
+| Plugins and packages | Publisher, registry/source, exact version, package digest, permission review |
+| External AI services | Operator, exact endpoint and API revision, approval, trust and lifecycle status |
+| Retrieved artifacts | Owning supplier/source, content revision and digest before RAG ingestion |
 
-`ApiResponseIntegrityRule` (SC-001) scans tool and API responses for
-instruction-hijacking patterns before they are passed to the model:
+`ArtifactManifest` is a versioned, typed AI inventory. `ArtifactVerifier` rejects
+unknown IDs and mismatches in kind, supplier, source, revision, digest algorithm,
+or digest value. It also enforces approval, minimum trust, supplier allowlists,
+license metadata, lifecycle state, and immutable revision policy.
+
+## Verify file-backed artifacts
+
+Create the record only after the component and its supplier have been reviewed.
+Calculate the digest from bytes obtained through that trusted review process:
 
 ```python
-from trustrail.rules.rag import ApiResponseIntegrityRule
-from trustrail import GuardContext, GuardStage
+from trustrail import (
+    ArtifactKind,
+    ArtifactManifest,
+    ArtifactRecord,
+    ArtifactVerifier,
+    TrustLevel,
+)
 
-rule = ApiResponseIntegrityRule()
-context = GuardContext(stage=GuardStage.TOOL_RESPONSE)
+reviewed_model_bytes = release_file.read_bytes()
+record = ArtifactRecord.from_bytes(
+    artifact_id="model.support-summarizer",
+    kind=ArtifactKind.MODEL,
+    supplier="internal-ml",
+    source_uri="https://models.example/support-summarizer",
+    revision="8f1c2d3e4a5b6c7d8e9f",
+    payload=reviewed_model_bytes,
+    trust_level=TrustLevel.TRUSTED,
+    approved=True,
+    license_id="Apache-2.0",
+)
+manifest = ArtifactManifest(
+    manifest_id="production-ai-bom-2026-08",
+    artifacts=(record,),
+)
+```
 
-# Run on every API/tool response before including it in the prompt
-result = rule.evaluate(api_response_body, context)
+At deployment or immediately before loading the model, verify the bytes again:
+
+```python
+verifier = ArtifactVerifier(manifest)
+verifier.require_bytes("model.support-summarizer", downloaded_model_bytes)
+model = load_model(downloaded_model_bytes)
+```
+
+`require_bytes()` raises `ArtifactVerificationError` before use when verification
+fails. The exception and findings contain stable codes and generic messages; they
+do not reproduce supplier URLs or observed metadata.
+
+SHA-256 is the default. SHA-384 and SHA-512 are also supported. Weak and
+ambiguous algorithms are intentionally not accepted, and changing the declared
+algorithm is treated as an integrity mismatch.
+
+## Pin the manifest separately
+
+A digest stored beside an artifact does not stop an attacker from replacing
+both. Pin the manifest fingerprint in a separate trusted channel such as signed
+deployment configuration, an attestation, or a protected release variable:
+
+```python
+trusted_fingerprint = deployment_config["AI_BOM_SHA256"]
+verifier = ArtifactVerifier(
+    manifest,
+    expected_manifest_sha256=trusted_fingerprint,
+)
+verifier.require_bytes("model.support-summarizer", downloaded_model_bytes)
+```
+
+Use `manifest.fingerprint_sha256` when publishing the reviewed inventory. The
+fingerprint is tamper-evident, not a signature: authenticity still depends on
+how the trusted value is distributed and protected.
+
+## Verify service metadata
+
+External services have no local artifact bytes. Record and compare exact
+operator, endpoint, and API/model revision metadata:
+
+```python
+from trustrail import (
+    ArtifactKind,
+    ArtifactManifest,
+    ArtifactObservation,
+    ArtifactRecord,
+    ArtifactVerifier,
+    TrustLevel,
+)
+
+service = ArtifactRecord(
+    artifact_id="service.primary-inference",
+    kind=ArtifactKind.EXTERNAL_SERVICE,
+    supplier="reviewed-provider",
+    source_uri="https://api.provider.example/v1",
+    revision="2026-08-01",
+    trust_level=TrustLevel.TRUSTED,
+    approved=True,
+)
+service_verifier = ArtifactVerifier(
+    ArtifactManifest(manifest_id="production-services", artifacts=(service,))
+)
+
+service_verifier.require(
+    ArtifactObservation(
+        artifact_id=service.artifact_id,
+        kind=service.kind,
+        supplier=observed_operator,
+        source_uri=configured_endpoint,
+        revision=observed_api_revision,
+    )
+)
+```
+
+The observation must come from trusted application configuration or authenticated
+provider metadata. Do not accept supplier or revision values generated by the
+model being verified.
+
+## Verify retrieved artifacts before RAG
+
+Hash private or externally retrieved content against an approved
+`RETRIEVED_ARTIFACT` record before normal RAG scanning and envelope assembly:
+
+```python
+verifier.require_bytes("kb.refund-policy-v4", document.content.encode())
+envelope = guard.build_rag_context([document])
+safe_context = guard.protect_rag_context(envelope)
+```
+
+The artifact check establishes expected bytes; RAG rules then enforce trust,
+provenance labels, prompt-injection checks, and structural integrity through the
+text pipeline.
+
+## Third-party response integrity
+
+`SC-001` detects instruction-hijacking content embedded in API or tool responses.
+It is enabled automatically for `TOOL_RESPONSE`, `EXTERNAL_CONTENT`, and RAG
+artifact stages:
+
+```python
+result = guard.check(api_response_body, GuardStage.TOOL_RESPONSE)
 if result.is_blocked:
-    raise ValueError("Injected instruction detected in API response")
+    reject_response()
 ```
 
-Detected patterns include:
+This is a content-boundary control. It does not prove that the API, plugin, or
+supplier itself is trustworthy; verify the corresponding component record too.
 
-- `"Ignore all previous instructions and …"`
-- `"New instructions: you are now …"` / `"Updated system prompt: …"`
-- `"Disregard your guidelines and reveal …"`
-- `"From now on, always …"` / role-reassignment pivots (`"Act as a jailbroken …"`)
+## Dependency, review, and update practices
 
-Apply this rule at the `TOOL_RESPONSE` and `EXTERNAL_CONTENT` guard stages.
-SC-001 defaults to `BLOCK` with `CRITICAL` severity.
+- Lock exact direct and transitive package versions and verify package hashes.
+  Review `uv.lock` or equivalent lockfile changes separately from application
+  code.
+- Generate and retain software and AI bills of materials, including licenses,
+  suppliers, model/dataset revisions, and adapter relationships. Sign or attest
+  released BOMs where supported.
+- Run vulnerability, malware, secret, and license scans in CI and in development
+  environments that can access sensitive data. A clean scan is not permanent;
+  monitor newly disclosed vulnerabilities.
+- Review model cards, dataset documentation, licenses, privacy policies, terms of
+  use, maintenance status, and supplier security posture before approval and at
+  every update.
+- Evaluate models and adapters with use-case-specific safety, bias, backdoor, and
+  adversarial tests. Treat model merges and format-conversion services as new
+  suppliers and produce new digests.
+- Use an explicit proposal, review, evaluation, and rollout process for every
+  manifest change. Keep rollback artifacts and mark compromised entries
+  `REVOKED`; do not silently replace bytes under an existing revision.
+- Install only required integration extras, restrict release-workflow writers,
+  and use short-lived, least-privilege publishing credentials.
 
-## IDOR detection in tool arguments (TL-004)
+## Assumptions, limitations, and residual risk
 
-Insecure Direct Object Reference (IDOR) occurs when an LLM autonomously
-constructs a tool call that references another user's resource — by enumerating
-numeric IDs, constructing admin paths, or inserting path-traversal sequences.
-
-`IdorDetectionRule` (TL-004) inspects ownership-sensitive argument fields
-(`user_id`, `account_id`, `document_id`, `endpoint`, `path`, etc.) for:
-
-- Bare numeric IDs that look like enumeration (`"user_id": 1337`)
-- REST paths with numeric segments (`/api/v1/users/99999/profile`)
-- Admin or privileged resource paths (`/admin/`, `/internal/`, `/debug/`)
-- Path-traversal sequences (`../../../`)
-
-```python
-from trustrail.rules.tools import IdorDetectionRule
-
-rule = IdorDetectionRule()
-context = GuardContext(
-    stage=GuardStage.TOOL_REQUEST,
-    metadata={"tool_args": {"user_id": 99999}},
-)
-result = rule.evaluate("", context)
-if result.is_blocked:
-    raise PermissionError("IDOR attempt blocked in tool arguments")
-```
-
-TL-004 defaults to `BLOCK` with `HIGH` severity.
-
-## Plugin permission scope (TL-003)
-
-Plugins that call operations outside their declared permission scope are a
-leading cause of privilege escalation in agentic systems (OWASP LLM07).
-
-`PluginPermissionScopeRule` (TL-003) validates every tool call against a
-per-plugin allowlist of permitted operations:
-
-```python
-from trustrail.rules.tools import PluginPermissionScopeRule
-
-rule = PluginPermissionScopeRule(
-    plugin_scopes={
-        "calendar": {"read_events", "create_event", "delete_event"},
-        "email":    {"read_inbox", "send_email"},
-    }
-)
-
-context = GuardContext(
-    stage=GuardStage.TOOL_REQUEST,
-    metadata={
-        "plugin_name": "email",
-        "tool_name":   "delete_database",   # out of scope → blocked
-    },
-)
-result = rule.evaluate("", context)
-```
-
-Or using the `validate_tool_call` helper directly:
-
-```python
-result = rule.validate_tool_call(tool_call, context, plugin_name="email")
-```
-
-Plugins not present in `plugin_scopes` are allowed through (the rule only
-enforces scopes it knows about). TL-003 defaults to `BLOCK` with `HIGH`
-severity.
-
-## Recommended controls
-
-- Pin dependencies and review lockfile changes.
-- Run dependency and secret scanning in CI.
-- Verify model, prompt, and dataset provenance.
-- Restrict who can modify release and publishing workflows.
-- Use short-lived credentials and least-privilege service accounts.
-- Sign or attest release artifacts where supported.
-- Treat tool/plugin output as `TOOL_RESPONSE` and retrieved data as
-  `EXTERNAL_CONTENT` or `RAG_DOCUMENT`.
-- Rebuild indexes after a compromised source or pipeline is remediated.
-- Apply SC-001 at every `TOOL_RESPONSE` boundary, not just on first use.
-
-For trustrail itself, install from PyPI with an exact version in production and
-test upgrades against your attack and benign corpora. Trusted Publishing proves
-which workflow uploaded an artifact; it does not prove the artifact is free of
-vulnerabilities.
+- Verification proves equality with reviewed metadata or bytes. It cannot detect
+  a backdoor, poisoning, bias, license violation, or unsafe behavior already
+  present in a correctly hashed and approved artifact.
+- Manifest fingerprints need an authenticated, out-of-band trust anchor. Without
+  one, coordinated replacement of the manifest and artifact remains possible.
+- `revision` checks reject common mutable aliases and version ranges, but a
+  supplier can still move a tag. File-backed artifacts therefore also require a
+  digest by default.
+- External-service verification relies on trustworthy observed configuration and
+  provider authentication. It cannot attest the provider's deployed model bytes
+  or detect a server-side model change under an unchanged API revision.
+- trustrail does not download artifacts, validate certificate chains, verify
+  vendor signatures, generate CycloneDX attestations, query vulnerability feeds,
+  or provide hardware/device attestation. Integrate those controls in CI/CD,
+  MLOps, and deployment infrastructure.
+- Verify as close as possible to use and avoid changing files between verification
+  and loading. The in-memory API avoids filesystem race assumptions but cannot
+  prevent a caller from loading different bytes afterward.

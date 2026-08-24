@@ -8,6 +8,7 @@ from trustrail.policies.prompt_injection import PromptInjectionPolicy
 from trustrail.policies.rag import RAGPolicy
 from trustrail.policies.resource import ResourcePolicy
 from trustrail.policies.sensitive_data import SensitiveDataPolicy
+from trustrail.policies.supply_chain import SupplyChainPolicy
 from trustrail.policies.tools import ToolPolicy
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "RAGPolicy",
     "ResourcePolicy",
     "SensitiveDataPolicy",
+    "SupplyChainPolicy",
     "ToolPolicy",
 ]

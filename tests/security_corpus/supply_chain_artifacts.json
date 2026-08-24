@@ -1,0 +1,17 @@
+[
+  {"name": "approved-artifact", "mutation": "none", "expected_action": "allow"},
+  {"name": "tampered-digest", "mutation": "digest", "expected_action": "block"},
+  {
+    "name": "digest-algorithm-substitution",
+    "mutation": "algorithm-substitution",
+    "expected_action": "block"
+  },
+  {"name": "supplier-lookalike", "mutation": "supplier", "expected_action": "block"},
+  {"name": "source-host-lookalike", "mutation": "source", "expected_action": "block"},
+  {"name": "changed-revision", "mutation": "revision", "expected_action": "block"},
+  {
+    "name": "unknown-lookalike-artifact-id",
+    "mutation": "unknown-lookalike-id",
+    "expected_action": "block"
+  }
+]

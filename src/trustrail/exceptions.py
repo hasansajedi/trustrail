@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from trustrail.models.supply_chain import ArtifactVerificationResult
 
 from trustrail.models.enums import GuardStage, Severity
 
@@ -39,6 +42,14 @@ class GuardrailBlockedError(AegisRailError):
         self.stage = stage
         self.findings = findings or []
         self.score = score
+
+
+class ArtifactVerificationError(AegisRailError):
+    """Raised when an AI supply-chain artifact fails verification."""
+
+    def __init__(self, result: ArtifactVerificationResult) -> None:
+        super().__init__("AI artifact verification failed")
+        self.result = result
 
 
 class ProviderError(AegisRailError):
