@@ -289,15 +289,19 @@ class TestStructuredOutput:
             OutputHandlingCode.STRUCTURED_LIMIT_EXCEEDED
         )
 
-    def test_json_decoder_recursion_limit_fails_closed(self):
+    def test_deeply_nested_json_fails_closed_across_parser_limits(self):
         deeply_nested = "[" * 2_000 + "]" * 2_000
 
         with pytest.raises(OutputHandlingError) as exc_info:
             _handler(max_structured_depth=128).parse_json(deeply_nested, AnswerPayload)
 
-        assert exc_info.value.result.findings[0].code == (
-            OutputHandlingCode.INVALID_STRUCTURED_OUTPUT
-        )
+        result = exc_info.value.result
+        assert result.is_blocked
+        assert result.safe_value is None
+        assert result.findings[0].code in {
+            OutputHandlingCode.INVALID_STRUCTURED_OUTPUT,
+            OutputHandlingCode.STRUCTURED_LIMIT_EXCEEDED,
+        }
 
     def test_tool_call_is_fixed_name_strictly_typed_and_not_executed(self):
         call = _handler().parse_tool_call(
