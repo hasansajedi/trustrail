@@ -15,8 +15,11 @@
 - Accidental content disclosure through findings, audit events, and integration logs
 
 ### Supply Chain (OWASP LLM03)
-- RAG document poisoning
-- Tool response injection
+- Unknown, unapproved, untrusted, deprecated, or revoked AI components
+- Changed model, dataset, prompt, adapter, plugin, package, and retrieved-artifact bytes
+- Supplier, source, kind, or immutable-revision substitution
+- Artifact-manifest tampering when its fingerprint is pinned separately
+- Injected instructions in third-party API and tool responses
 
 ### Data and Model Poisoning (OWASP LLM04)
 - Memory write injection
@@ -47,3 +50,4 @@
 - Model training security
 - Hardware security
 - Network-level controls
+- Detection of a backdoor or bias already present in correctly hashed, approved bytes

@@ -7,6 +7,7 @@ from trustrail.policies.content_safety import ContentSafetyPolicy
 from trustrail.policies.output import OutputSafetyPolicy
 from trustrail.policies.prompt_injection import PromptInjectionPolicy
 from trustrail.policies.sensitive_data import SensitiveDataPolicy
+from trustrail.policies.supply_chain import SupplyChainPolicy
 from trustrail.policies.tools import ToolPolicy
 
 # ── SensitiveDataPolicy ───────────────────────────────────────────────────────
@@ -208,6 +209,15 @@ class TestContentSafetyPolicyCompleteness:
 
 
 # ── ToolPolicy ────────────────────────────────────────────────────────────────
+
+
+class TestSupplyChainPolicyCompleteness:
+    def test_includes_api_response_integrity_rule(self):
+        policy = SupplyChainPolicy()
+        rules = policy.get_rules()
+
+        assert {rule.rule_id for rule in rules} == {"SC-001"}
+        assert "LLM03:2025" in rules[0].owasp
 
 
 class TestToolPolicyCompleteness:

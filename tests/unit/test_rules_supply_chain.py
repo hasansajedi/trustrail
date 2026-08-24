@@ -1,4 +1,4 @@
-"""Tests for OWASP LLM05/LLM07 supply chain and plugin scope rules."""
+"""Tests for OWASP LLM03/LLM06 supply-chain and plugin-scope rules."""
 
 import pytest
 

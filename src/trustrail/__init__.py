@@ -15,6 +15,7 @@ from trustrail.audit import LoggingAuditSink, MemoryAuditSink, NullAuditSink
 from trustrail.exceptions import (
     AegisRailError,
     ApprovalRequiredError,
+    ArtifactVerificationError,
     ConfigurationError,
     GuardrailBlockedError,
     ProviderError,
@@ -55,6 +56,19 @@ from trustrail.models.prompt import (
 )
 from trustrail.models.rag import ProvenanceLabel, RAGContextEnvelope, RAGContextSegment
 from trustrail.models.sensitive_data import ProtectedData
+from trustrail.models.supply_chain import (
+    ArtifactDigest,
+    ArtifactKind,
+    ArtifactManifest,
+    ArtifactObservation,
+    ArtifactRecord,
+    ArtifactStatus,
+    ArtifactVerificationCode,
+    ArtifactVerificationFinding,
+    ArtifactVerificationPolicy,
+    ArtifactVerificationResult,
+    DigestAlgorithm,
+)
 from trustrail.protocols import (
     ApprovalProvider,
     AsyncGuardRule,
@@ -67,6 +81,7 @@ from trustrail.protocols import (
     StateBackend,
     TokenCounter,
 )
+from trustrail.supply_chain import ArtifactVerifier
 
 try:
     __version__ = version("trustrail")
@@ -77,12 +92,25 @@ __all__ = [
     "AegisRailError",
     "ApprovalProvider",
     "ApprovalRequiredError",
+    "ArtifactDigest",
+    "ArtifactKind",
+    "ArtifactManifest",
+    "ArtifactObservation",
+    "ArtifactRecord",
+    "ArtifactStatus",
+    "ArtifactVerificationCode",
+    "ArtifactVerificationError",
+    "ArtifactVerificationFinding",
+    "ArtifactVerificationPolicy",
+    "ArtifactVerificationResult",
+    "ArtifactVerifier",
     "AsyncGuardRule",
     # Data models
     "AuditEvent",
     "AuditSink",
     "ConfigurationError",
     "ContentSafetyProvider",
+    "DigestAlgorithm",
     "Document",
     "FailMode",
     "GroundingVerifier",

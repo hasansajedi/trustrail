@@ -84,3 +84,28 @@ Validate with CLI:
 ```bash
 trustrail validate-config guardrails.yaml
 ```
+
+## AI artifact verification policy
+
+Supply-chain verification is configured separately from text guardrails because
+it runs before a model, dataset, prompt, adapter, plugin, package, service, or
+retrieved artifact is loaded:
+
+```python
+from trustrail import ArtifactVerificationPolicy, TrustLevel
+
+artifact_policy = ArtifactVerificationPolicy(
+    minimum_trust=TrustLevel.TRUSTED,
+    require_approval=True,
+    require_pinned_revision=True,
+    reject_deprecated=True,
+    require_license=True,
+    allowed_suppliers=frozenset({"internal-ml", "reviewed-provider"}),
+)
+```
+
+File-backed artifact kinds require SHA-256, SHA-384, or SHA-512 integrity
+evidence by default. External services use exact supplier, endpoint, and API
+revision metadata because there are no local bytes to hash. See
+[Supply-chain security](security/supply-chain.md) for manifest and verification
+examples.
