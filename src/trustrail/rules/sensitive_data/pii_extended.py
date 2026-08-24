@@ -99,14 +99,14 @@ class SsnRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.CRITICAL
     default_action: ClassVar[GuardAction] = GuardAction.REDACT
     description: ClassVar[str] = "Detects US Social Security Numbers."
-    owasp: ClassVar[list[str]] = ["LLM06"]
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def __init__(self, enabled: bool = True, redact_placeholder: str = "[SSN]") -> None:
         super().__init__(enabled=enabled)
         self.redact_placeholder = redact_placeholder
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for m in _SSN_BARE_RE.finditer(text):
             raw = m.group(0)
             # Formatted SSNs (with dashes/spaces) are unambiguous; bare digits need context
@@ -119,7 +119,6 @@ class SsnRule(BaseRule):
                     offset_start=m.start(),
                     offset_end=m.end(),
                 )
-                finding.redacted_value = redacted
                 return GuardDecision(
                     action=GuardAction.REDACT,
                     finding=finding,
@@ -144,14 +143,14 @@ class IbanRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.CRITICAL
     default_action: ClassVar[GuardAction] = GuardAction.REDACT
     description: ClassVar[str] = "Detects International Bank Account Numbers (IBAN)."
-    owasp: ClassVar[list[str]] = ["LLM06"]
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def __init__(self, enabled: bool = True, redact_placeholder: str = "[IBAN]") -> None:
         super().__init__(enabled=enabled)
         self.redact_placeholder = redact_placeholder
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _IBAN_RE.search(text)
         if m:
             redacted = _make_redacted(text, _IBAN_RE, self.redact_placeholder)
@@ -161,7 +160,6 @@ class IbanRule(BaseRule):
                 offset_start=m.start(),
                 offset_end=m.end(),
             )
-            finding.redacted_value = redacted
             return GuardDecision(
                 action=GuardAction.REDACT,
                 finding=finding,
@@ -186,14 +184,14 @@ class PassportNumberRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.CRITICAL
     default_action: ClassVar[GuardAction] = GuardAction.REDACT
     description: ClassVar[str] = "Detects passport numbers with context keywords."
-    owasp: ClassVar[list[str]] = ["LLM06"]
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def __init__(self, enabled: bool = True, redact_placeholder: str = "[PASSPORT]") -> None:
         super().__init__(enabled=enabled)
         self.redact_placeholder = redact_placeholder
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for m in _PASSPORT_BARE_RE.finditer(text):
             if _has_context(text, m.start(), m.end(), _PASSPORT_CONTEXT_RE):
                 redacted = _make_redacted(text, _PASSPORT_BARE_RE, self.redact_placeholder)
@@ -203,7 +201,6 @@ class PassportNumberRule(BaseRule):
                     offset_start=m.start(),
                     offset_end=m.end(),
                 )
-                finding.redacted_value = redacted
                 return GuardDecision(
                     action=GuardAction.REDACT,
                     finding=finding,
@@ -229,14 +226,14 @@ class DriversLicenseRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.REDACT
     description: ClassVar[str] = "Detects driver's licence numbers with context keywords."
-    owasp: ClassVar[list[str]] = ["LLM06"]
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def __init__(self, enabled: bool = True, redact_placeholder: str = "[DRIVERS_LICENSE]") -> None:
         super().__init__(enabled=enabled)
         self.redact_placeholder = redact_placeholder
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for m in _DL_BARE_RE.finditer(text):
             if _has_context(text, m.start(), m.end(), _DL_CONTEXT_RE):
                 redacted = _make_redacted(text, _DL_BARE_RE, self.redact_placeholder)
@@ -246,7 +243,6 @@ class DriversLicenseRule(BaseRule):
                     offset_start=m.start(),
                     offset_end=m.end(),
                 )
-                finding.redacted_value = redacted
                 return GuardDecision(
                     action=GuardAction.REDACT,
                     finding=finding,

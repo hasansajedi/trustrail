@@ -3,7 +3,9 @@
 import pytest
 
 from trustrail.guard import Guard
-from trustrail.models.enums import GuardAction, GuardStage
+from trustrail.models.config import GuardConfig
+from trustrail.models.enums import GuardAction, GuardStage, SensitiveDataMode
+from trustrail.models.sensitive_data import ProtectedData
 
 
 class TestStreamScanner:
@@ -73,6 +75,47 @@ class TestStreamScanner:
 
         scanner.process_chunk("<scr\u200b")
         result = scanner.process_chunk("ipt>alert(1)</script>")
+
+        assert result.action == GuardAction.BLOCK
+        assert result.safe_chunk == ""
+
+    def test_stream_redacts_pii_before_emission(self):
+        scanner = self.guard.stream(GuardStage.STREAM)
+
+        result = scanner.process_chunk("Contact user@example.com")
+
+        assert result.action == GuardAction.REDACT
+        assert result.safe_chunk == "Contact [EMAIL]"
+        assert "user@example.com" not in scanner.finalize().value
+
+    def test_stream_blocks_sensitive_match_spanning_emitted_boundary(self):
+        scanner = self.guard.stream(GuardStage.STREAM)
+        scanner.process_chunk("Contact user@")
+
+        result = scanner.process_chunk("example.com")
+
+        assert result.action == GuardAction.BLOCK
+        assert result.safe_chunk == ""
+
+    def test_stream_applies_redact_mode_to_provider_tokens(self):
+        guard = Guard(config=GuardConfig(sensitive_data_mode=SensitiveDataMode.REDACT))
+        scanner = guard.stream(GuardStage.STREAM)
+        token = "ghp_" + "A1b2C3d4E5f6G7h8I9j0K1l2"
+
+        result = scanner.process_chunk(f"Token: {token}")
+
+        assert result.action == GuardAction.REDACT
+        assert result.safe_chunk == "Token: [REDACTED]"
+        assert token not in result.safe_chunk
+
+    def test_stream_checks_application_protected_data(self):
+        private_context = "Project Borealis has confidential launch terms."
+        scanner = self.guard.stream(
+            GuardStage.STREAM,
+            protected_data=[ProtectedData(value=private_context)],
+        )
+
+        result = scanner.process_chunk(private_context)
 
         assert result.action == GuardAction.BLOCK
         assert result.safe_chunk == ""

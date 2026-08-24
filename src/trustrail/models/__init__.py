@@ -21,6 +21,7 @@ from trustrail.models.enums import (
     OutputContext,
     RuleCategory,
     RulePhase,
+    SensitiveDataMode,
     Severity,
     TrustLevel,
 )
@@ -31,6 +32,7 @@ from trustrail.models.prompt import (
     PromptSource,
 )
 from trustrail.models.rag import ProvenanceLabel, RAGContextEnvelope, RAGContextSegment
+from trustrail.models.sensitive_data import ProtectedData
 
 __all__ = [
     "AuditEvent",
@@ -51,6 +53,7 @@ __all__ = [
     "PromptSegment",
     "PromptSegmentResult",
     "PromptSource",
+    "ProtectedData",
     "ProvenanceLabel",
     "RAGContextEnvelope",
     "RAGContextSegment",
@@ -58,6 +61,7 @@ __all__ = [
     "RuleCategory",
     "RuleConfig",
     "RulePhase",
+    "SensitiveDataMode",
     "Severity",
     "ToolCall",
     "ToolResult",

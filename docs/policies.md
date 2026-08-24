@@ -9,10 +9,10 @@ normally choose a stage instead of invoking policies directly.
 | `USER_INPUT`, `LLM_REQUEST` | Prompt injection, sensitive data, unsafe URLs |
 | `SYSTEM_PROMPT` | Sensitive data |
 | `LLM_RESPONSE`, `FINAL_OUTPUT`, `STREAM` | Output safety, sensitive data |
-| `RAG_DOCUMENT`, `EXTERNAL_CONTENT`, `RAG_CONTEXT` | Injection and RAG trust |
-| `TOOL_REQUEST` | Tool constraints and injection |
+| `RAG_DOCUMENT`, `EXTERNAL_CONTENT`, `RAG_CONTEXT` | Injection, RAG trust, and sensitive data |
+| `TOOL_REQUEST` | Tool constraints, injection, and sensitive data |
 | `TOOL_RESPONSE` | Output safety and sensitive data |
-| `AGENT_ACTION` | Agency limits and injection |
+| `AGENT_ACTION` | Agency limits, injection, and sensitive data |
 | `MEMORY_READ` | Sensitive data |
 | `MEMORY_WRITE` | Injection, sensitive data, persistent-write classification and approval |
 

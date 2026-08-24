@@ -6,7 +6,13 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from trustrail.models.enums import FailMode, GuardAction, RuleCategory, Severity
+from trustrail.models.enums import (
+    FailMode,
+    GuardAction,
+    RuleCategory,
+    SensitiveDataMode,
+    Severity,
+)
 
 
 class RuleConfig(BaseModel):
@@ -56,6 +62,10 @@ class GuardConfig(BaseModel):
     # Audit settings
     audit_enabled: bool = True
     audit_include_metadata: bool = True
+
+    # DEFAULT preserves each detector's secure native action. REDACT, BLOCK,
+    # and ALLOW apply one explicit policy to every sensitive-data finding.
+    sensitive_data_mode: SensitiveDataMode = SensitiveDataMode.DEFAULT
 
     # Performance settings
     max_text_length: int = Field(default=100_000, ge=1)

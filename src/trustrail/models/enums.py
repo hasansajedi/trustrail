@@ -35,6 +35,15 @@ class GuardAction(StrEnum):
     RETRY = "retry"
 
 
+class SensitiveDataMode(StrEnum):
+    """How detected sensitive data is handled by the guard engine."""
+
+    DEFAULT = "default"
+    REDACT = "redact"
+    BLOCK = "block"
+    ALLOW = "allow"
+
+
 class Severity(StrEnum):
     """Severity level of a finding."""
 

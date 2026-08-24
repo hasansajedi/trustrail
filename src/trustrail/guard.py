@@ -21,6 +21,7 @@ from trustrail.models.config import GuardConfig
 from trustrail.models.core import (
     Document,
     GuardContext,
+    GuardDecision,
     GuardFinding,
     GuardResult,
     Message,
@@ -30,6 +31,8 @@ from trustrail.models.enums import (
     FailMode,
     GuardAction,
     GuardStage,
+    RuleCategory,
+    SensitiveDataMode,
     Severity,
     TrustLevel,
 )
@@ -40,6 +43,7 @@ from trustrail.models.prompt import (
     PromptSource,
 )
 from trustrail.models.rag import RAGContextEnvelope
+from trustrail.models.sensitive_data import ProtectedData
 from trustrail.policies.agent import AgentPolicy
 from trustrail.policies.content_safety import ContentSafetyPolicy
 from trustrail.policies.memory import MemoryPolicy
@@ -53,6 +57,7 @@ from trustrail.protocols import ApprovalProvider, AuditSink
 from trustrail.rules.base import BaseRule
 from trustrail.rules.prompt_injection import InvisibleUnicodeRule
 from trustrail.rules.prompt_injection.boundary import CrossBoundaryInjectionRule
+from trustrail.rules.sensitive_data import ProtectedDataDisclosureRule
 from trustrail.streaming import StreamScanner
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -193,7 +198,11 @@ class Guard:
 
     # ── Core evaluation ───────────────────────────────────────────────────────
 
-    def _get_rules_for_stage(self, stage: GuardStage) -> list[BaseRule]:
+    def _get_rules_for_stage(
+        self,
+        stage: GuardStage,
+        protected_data: list[ProtectedData] | None = None,
+    ) -> list[BaseRule]:
         """Return the rules applicable to a given pipeline stage."""
         rules: list[BaseRule] = []
 
@@ -248,10 +257,12 @@ class Guard:
         ):
             rules.extend(self._policies["prompt_injection"].get_rules())
             rules.extend(self._policies["rag"].get_rules())
+            rules.extend(self._policies["sensitive_data"].get_rules())
 
         elif stage in (GuardStage.TOOL_REQUEST,):
             rules.extend(self._policies["tools"].get_rules())
             rules.extend(self._policies["prompt_injection"].get_rules())
+            rules.extend(self._policies["sensitive_data"].get_rules())
 
         elif stage in (GuardStage.TOOL_RESPONSE,):
             rules.extend(self._policies["prompt_injection"].get_rules())
@@ -261,6 +272,7 @@ class Guard:
         elif stage in (GuardStage.AGENT_ACTION,):
             rules.extend(self._policies["agent"].get_rules())
             rules.extend(self._policies["prompt_injection"].get_rules())
+            rules.extend(self._policies["sensitive_data"].get_rules())
 
         elif stage == GuardStage.MEMORY_READ:
             rules.extend(self._policies["prompt_injection"].get_rules())
@@ -273,6 +285,8 @@ class Guard:
 
         # Add extra rules always
         rules.extend(self._extra_rules)
+        if protected_data:
+            rules.append(ProtectedDataDisclosureRule(protected_data))
 
         return rules
 
@@ -281,30 +295,38 @@ class Guard:
         value: str,
         stage: GuardStage,
         context: GuardContext,
+        protected_data: list[ProtectedData] | None = None,
     ) -> GuardResult:
         """Synchronous rule evaluation."""
-        rules = self._get_rules_for_stage(stage)
+        rules = self._get_rules_for_stage(stage, protected_data)
         findings: list[GuardFinding] = []
         transformed_value: str | None = None
         current_value = value
         start = time.perf_counter()
         rule_blocked = False  # Track if any rule explicitly requested BLOCK
         rule_warned = False  # Track if any rule explicitly requested WARN
+        rule_redacted = False
         rule_requires_approval = False
+        policy_handled_finding_ids: set[int] = set()
 
         for rule in rules:
             if not rule.enabled:
                 continue
             try:
                 decision = rule.timed_evaluate(current_value, context)
+                policy_handled = self._apply_sensitive_data_mode(decision)
                 if decision.finding is not None:
                     findings.append(decision.finding)
+                    if policy_handled:
+                        policy_handled_finding_ids.add(id(decision.finding))
 
                 # Track explicit BLOCK decisions from rules
                 if decision.action == GuardAction.BLOCK:
                     rule_blocked = True
                 elif decision.action == GuardAction.WARN:
                     rule_warned = True
+                elif decision.action == GuardAction.REDACT:
+                    rule_redacted = True
                 elif decision.action == GuardAction.REQUIRE_APPROVAL:
                     rule_requires_approval = True
 
@@ -316,8 +338,16 @@ class Guard:
                     transformed_value = decision.transformed_value
                     current_value = decision.transformed_value
 
-                # Short-circuit on critical findings or explicit block
-                if decision.finding and decision.finding.severity == Severity.CRITICAL:
+                # Critical and resource-limit findings fail closed immediately.
+                if (
+                    decision.finding
+                    and decision.finding.severity == Severity.CRITICAL
+                    and not policy_handled
+                ) or (
+                    decision.action == GuardAction.BLOCK
+                    and decision.finding is not None
+                    and decision.finding.category == RuleCategory.RESOURCE
+                ):
                     break
 
             except Exception as exc:
@@ -345,7 +375,9 @@ class Guard:
             findings,
             rule_blocked,
             rule_warned,
+            rule_redacted,
             rule_requires_approval,
+            policy_handled_finding_ids,
         )
 
         return GuardResult(
@@ -366,11 +398,16 @@ class Guard:
         findings: list[GuardFinding],
         rule_blocked: bool = False,
         rule_warned: bool = False,
+        rule_redacted: bool = False,
         rule_requires_approval: bool = False,
+        policy_handled_finding_ids: set[int] | None = None,
     ) -> GuardAction:
         """Determine final action from score, findings, and rule decisions."""
+        handled_ids = policy_handled_finding_ids or set()
+        actionable_findings = [finding for finding in findings if id(finding) not in handled_ids]
+
         # Check for critical findings — always block
-        for f in findings:
+        for f in actionable_findings:
             if f.severity == Severity.CRITICAL:
                 return GuardAction.BLOCK
 
@@ -378,21 +415,55 @@ class Guard:
         if rule_blocked:
             return GuardAction.BLOCK
 
-        if score.should_block:
+        actionable_score = RiskScore.from_findings(
+            actionable_findings,
+            block_at=score.block_at,
+            warn_at=score.warn_at,
+        )
+        if actionable_score.should_block:
             return GuardAction.BLOCK
 
         if rule_requires_approval:
             return GuardAction.REQUIRE_APPROVAL
 
-        if score.should_warn or rule_warned:
+        if actionable_score.should_warn or rule_warned:
             return GuardAction.WARN
 
         # Check if any HIGH finding warrants a warning
-        for f in findings:
+        for f in actionable_findings:
             if f.severity == Severity.HIGH:
                 return GuardAction.WARN
 
+        if rule_redacted:
+            return GuardAction.REDACT
+
         return GuardAction.ALLOW
+
+    def _apply_sensitive_data_mode(self, decision: GuardDecision) -> bool:
+        """Apply the configured disclosure policy and report explicit handling."""
+        finding = decision.finding
+        if finding is None or finding.category not in (
+            RuleCategory.SENSITIVE_DATA,
+            RuleCategory.SECRET,
+        ):
+            return False
+
+        mode = self._config.sensitive_data_mode
+        if mode == SensitiveDataMode.DEFAULT:
+            return False
+        if mode == SensitiveDataMode.BLOCK:
+            decision.action = GuardAction.BLOCK
+            return False
+        if mode == SensitiveDataMode.REDACT:
+            # A detector that cannot produce a safe replacement fails closed.
+            decision.action = (
+                GuardAction.REDACT if decision.transformed_value is not None else GuardAction.BLOCK
+            )
+            return decision.action == GuardAction.REDACT
+
+        decision.action = GuardAction.ALLOW
+        decision.transformed_value = None
+        return True
 
     # ── Public synchronous API ────────────────────────────────────────────────
 
@@ -401,11 +472,12 @@ class Guard:
         value: str,
         stage: GuardStage,
         context: GuardContext | None = None,
+        protected_data: list[ProtectedData] | None = None,
         **kwargs: Any,
     ) -> GuardResult:
         """Check a value at the given stage. Returns GuardResult."""
         ctx = context or self._make_context(stage, **kwargs)
-        result = self._evaluate_rules(value, stage, ctx)
+        result = self._evaluate_rules(value, stage, ctx, protected_data)
         self._fire_alerts(result)
         if self._config.audit_enabled:
             self._emit_audit_sync(result)
@@ -416,10 +488,17 @@ class Guard:
         value: str,
         stage: GuardStage,
         context: GuardContext | None = None,
+        protected_data: list[ProtectedData] | None = None,
         **kwargs: Any,
     ) -> str:
         """Check and raise GuardrailBlockedError if blocked, else return value."""
-        result = self.check(value, stage, context=context, **kwargs)
+        result = self.check(
+            value,
+            stage,
+            context=context,
+            protected_data=protected_data,
+            **kwargs,
+        )
         if result.is_blocked:
             raise GuardrailBlockedError(
                 f"Content blocked at stage '{stage.value}'",
@@ -663,11 +742,18 @@ class Guard:
         value: str,
         stage: GuardStage,
         context: GuardContext | None = None,
+        protected_data: list[ProtectedData] | None = None,
         **kwargs: Any,
     ) -> GuardResult:
         """Async check. Runs synchronous rules in a thread pool."""
         ctx = context or self._make_context(stage, **kwargs)
-        result = await asyncio.to_thread(self._evaluate_rules, value, stage, ctx)
+        result = await asyncio.to_thread(
+            self._evaluate_rules,
+            value,
+            stage,
+            ctx,
+            protected_data,
+        )
         self._fire_alerts(result)
         if self._config.audit_enabled:
             await self._emit_audit(result)
@@ -678,10 +764,17 @@ class Guard:
         value: str,
         stage: GuardStage,
         context: GuardContext | None = None,
+        protected_data: list[ProtectedData] | None = None,
         **kwargs: Any,
     ) -> str:
         """Async protect. Raises GuardrailBlockedError if blocked."""
-        result = await self.acheck(value, stage, context=context, **kwargs)
+        result = await self.acheck(
+            value,
+            stage,
+            context=context,
+            protected_data=protected_data,
+            **kwargs,
+        )
         if result.is_blocked:
             raise GuardrailBlockedError(
                 f"Content blocked at stage '{stage.value}'",
@@ -782,11 +875,16 @@ class Guard:
         self,
         stage: GuardStage = GuardStage.STREAM,
         context: GuardContext | None = None,
+        protected_data: list[ProtectedData] | None = None,
     ) -> StreamScanner:
         """Create a StreamScanner for real-time chunk processing."""
         ctx = context or self._make_context(stage)
-        rules = self._get_rules_for_stage(stage)
-        return StreamScanner(rules=rules, context=ctx)
+        rules = self._get_rules_for_stage(stage, protected_data)
+        return StreamScanner(
+            rules=rules,
+            context=ctx,
+            sensitive_data_mode=self._config.sensitive_data_mode,
+        )
 
     # ── Session context managers ──────────────────────────────────────────────
 

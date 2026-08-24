@@ -13,6 +13,16 @@ from trustrail.policies.tools import ToolPolicy
 
 
 class TestSensitiveDataPolicyCompleteness:
+    def test_includes_provider_api_token_rule_by_default(self):
+        policy = SensitiveDataPolicy()
+        rule_ids = {r.rule_id for r in policy.get_rules()}
+        assert "SD-015" in rule_ids
+
+    def test_includes_named_credential_rule_by_default(self):
+        policy = SensitiveDataPolicy()
+        rule_ids = {r.rule_id for r in policy.get_rules()}
+        assert "SD-016" in rule_ids
+
     def test_includes_ssn_rule_by_default(self):
         policy = SensitiveDataPolicy()
         rule_ids = {r.rule_id for r in policy.get_rules()}
