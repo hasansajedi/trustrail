@@ -266,6 +266,6 @@ class RagContextTamperingRule(BaseRule):
                     severity=Severity.HIGH,
                     offset_start=m.start(),
                     offset_end=m.end(),
-                    matched_pattern=m.group(0)[:80],
+                    match_length=len(m.group(0)),
                 )
         return self._allow()

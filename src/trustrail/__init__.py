@@ -46,6 +46,12 @@ from trustrail.models.enums import (
     Severity,
     TrustLevel,
 )
+from trustrail.models.prompt import (
+    PromptScanResult,
+    PromptSegment,
+    PromptSegmentResult,
+    PromptSource,
+)
 from trustrail.models.rag import ProvenanceLabel, RAGContextEnvelope, RAGContextSegment
 from trustrail.protocols import (
     ApprovalProvider,
@@ -101,6 +107,10 @@ __all__ = [
     "NullAuditSink",
     "OutputContext",
     "PromptInjectionProvider",
+    "PromptScanResult",
+    "PromptSegment",
+    "PromptSegmentResult",
+    "PromptSource",
     "ProvenanceLabel",
     "ProviderError",
     "RAGContextEnvelope",

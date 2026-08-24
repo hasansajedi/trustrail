@@ -95,11 +95,11 @@ class ModelExtractionProbeRule(BaseRule):
         match = _EXTRACTION_PROBE_RE.search(value)
         if match:
             return self._block(
-                f"Model extraction probe detected: '{match.group(0)[:80]}'",
+                "Model extraction probe detected",
                 severity=Severity.HIGH,
                 offset_start=match.start(),
                 offset_end=match.end(),
-                matched_phrase=match.group(0)[:80],
+                match_length=len(match.group(0)),
             )
         return self._allow()
 
@@ -127,11 +127,11 @@ class SystemPromptExtractionRule(BaseRule):
         match = _SYSTEM_PROMPT_EXTRACT_RE.search(value)
         if match:
             return self._block(
-                f"System prompt extraction attempt detected: '{match.group(0)[:80]}'",
+                "System prompt extraction attempt detected",
                 severity=Severity.HIGH,
                 offset_start=match.start(),
                 offset_end=match.end(),
-                matched_phrase=match.group(0)[:80],
+                match_length=len(match.group(0)),
             )
         return self._allow()
 

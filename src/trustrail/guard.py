@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from trustrail.agents.session import AgentSession
 
 from trustrail.audit import AuditEvent, LoggingAuditSink, NullAuditSink
-from trustrail.exceptions import ApprovalRequiredError, GuardrailBlockedError
+from trustrail.exceptions import ApprovalRequiredError, GuardrailBlockedError, ResourceLimitError
 from trustrail.models.config import GuardConfig
 from trustrail.models.core import (
     Document,
@@ -33,6 +33,12 @@ from trustrail.models.enums import (
     Severity,
     TrustLevel,
 )
+from trustrail.models.prompt import (
+    PromptScanResult,
+    PromptSegment,
+    PromptSegmentResult,
+    PromptSource,
+)
 from trustrail.models.rag import RAGContextEnvelope
 from trustrail.policies.agent import AgentPolicy
 from trustrail.policies.content_safety import ContentSafetyPolicy
@@ -46,6 +52,7 @@ from trustrail.policies.tools import ToolPolicy
 from trustrail.protocols import ApprovalProvider, AuditSink
 from trustrail.rules.base import BaseRule
 from trustrail.rules.prompt_injection import InvisibleUnicodeRule
+from trustrail.rules.prompt_injection.boundary import CrossBoundaryInjectionRule
 from trustrail.streaming import StreamScanner
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -65,6 +72,16 @@ _SEVERITY_ORDER = {
     Severity.MEDIUM: 2,
     Severity.HIGH: 3,
     Severity.CRITICAL: 4,
+}
+
+_PROMPT_SOURCE_STAGES: dict[PromptSource, GuardStage] = {
+    PromptSource.SYSTEM: GuardStage.SYSTEM_PROMPT,
+    PromptSource.USER: GuardStage.USER_INPUT,
+    PromptSource.RAG: GuardStage.RAG_DOCUMENT,
+    PromptSource.TOOL: GuardStage.TOOL_RESPONSE,
+    PromptSource.MEMORY: GuardStage.MEMORY_READ,
+    PromptSource.EXTERNAL: GuardStage.EXTERNAL_CONTENT,
+    PromptSource.MULTIMODAL: GuardStage.EXTERNAL_CONTENT,
 }
 
 
@@ -237,6 +254,7 @@ class Guard:
             rules.extend(self._policies["prompt_injection"].get_rules())
 
         elif stage in (GuardStage.TOOL_RESPONSE,):
+            rules.extend(self._policies["prompt_injection"].get_rules())
             rules.extend(self._policies["output_safety"].get_rules())
             rules.extend(self._policies["sensitive_data"].get_rules())
 
@@ -245,6 +263,7 @@ class Guard:
             rules.extend(self._policies["prompt_injection"].get_rules())
 
         elif stage == GuardStage.MEMORY_READ:
+            rules.extend(self._policies["prompt_injection"].get_rules())
             rules.extend(self._policies["sensitive_data"].get_rules())
 
         elif stage == GuardStage.MEMORY_WRITE:
@@ -434,6 +453,116 @@ class Guard:
             },
         )
         return self.check(document.content, stage, context=ctx)
+
+    def check_prompt_segments(self, segments: list[PromptSegment]) -> PromptScanResult:
+        """Scan a composed prompt without discarding source and trust boundaries.
+
+        Every segment is evaluated at the stage associated with its source. The
+        cross-boundary pass then detects payloads that become malicious only
+        after separately safe segments are concatenated.
+        """
+        if not segments:
+            raise ValueError("segments must contain at least one prompt segment")
+        if len(segments) > self._config.max_prompt_segments:
+            raise ResourceLimitError(
+                f"Prompt contains {len(segments)} segments; "
+                f"limit is {self._config.max_prompt_segments}"
+            )
+
+        segment_results: list[PromptSegmentResult] = []
+        for segment in segments:
+            stage = _PROMPT_SOURCE_STAGES[segment.source]
+            if segment.source == PromptSource.SYSTEM and segment.trust_level != TrustLevel.TRUSTED:
+                stage = GuardStage.EXTERNAL_CONTENT
+            metadata: dict[str, Any] = {
+                **segment.metadata,
+                "prompt_segment_id": segment.segment_id,
+                "prompt_source": segment.source.value,
+            }
+            context = GuardContext(
+                stage=stage,
+                trust_level=segment.trust_level,
+                metadata=metadata,
+            )
+            segment_results.append(
+                PromptSegmentResult(
+                    segment=segment, result=self.check(segment.content, stage, context)
+                )
+            )
+
+        boundary_rule = CrossBoundaryInjectionRule(window_chars=self._config.prompt_boundary_window)
+        boundary_context = GuardContext(
+            stage=GuardStage.LLM_REQUEST,
+            metadata={"prompt_segment_count": len(segments)},
+        )
+        boundary_findings: list[GuardFinding] = []
+        boundary_checks = 0
+        scanned_segments = [item.output_segment for item in segment_results]
+        for left_index, left in enumerate(scanned_segments):
+            for right in scanned_segments[left_index + 1 :]:
+                if left.trust_level == right.trust_level == TrustLevel.TRUSTED:
+                    continue
+                boundary_checks += 1
+                decision = boundary_rule.evaluate_segments(left, right, boundary_context)
+                if decision.finding is not None:
+                    boundary_findings.append(decision.finding)
+                    break
+            if boundary_findings:
+                break
+
+        if boundary_findings:
+            boundary_result = GuardResult(
+                action=GuardAction.BLOCK,
+                findings=boundary_findings,
+                score=RiskScore.from_findings(
+                    boundary_findings,
+                    block_at=self._config.block_at,
+                    warn_at=self._config.warn_at,
+                ),
+                value="",
+                stage=GuardStage.LLM_REQUEST,
+                context=boundary_context,
+                rules_evaluated=boundary_checks,
+            )
+            self._fire_alerts(boundary_result)
+            if self._config.audit_enabled:
+                self._emit_audit_sync(boundary_result)
+
+        action = self._prompt_scan_action(segment_results, boundary_findings)
+        return PromptScanResult(
+            action=action,
+            segment_results=segment_results,
+            boundary_findings=boundary_findings,
+        )
+
+    def protect_prompt_segments(self, segments: list[PromptSegment]) -> list[PromptSegment]:
+        """Return downstream-safe prompt segments or raise when any boundary is unsafe."""
+        result = self.check_prompt_segments(segments)
+        if result.is_blocked:
+            raise GuardrailBlockedError(
+                "Structured prompt blocked by guardrail",
+                stage=GuardStage.LLM_REQUEST,
+                findings=result.findings,
+            )
+        if result.action == GuardAction.REQUIRE_APPROVAL:
+            raise ApprovalRequiredError(
+                "Structured prompt requires approval",
+                stage=GuardStage.LLM_REQUEST,
+            )
+        return result.output_segments
+
+    def _prompt_scan_action(
+        self,
+        segment_results: list[PromptSegmentResult],
+        boundary_findings: list[GuardFinding],
+    ) -> GuardAction:
+        if boundary_findings or any(item.result.is_blocked for item in segment_results):
+            return GuardAction.BLOCK
+        if any(item.result.requires_approval for item in segment_results):
+            return GuardAction.REQUIRE_APPROVAL
+        if any(item.result.action == GuardAction.WARN for item in segment_results):
+            return GuardAction.WARN
+        return GuardAction.ALLOW
 
     def build_rag_context(
         self,

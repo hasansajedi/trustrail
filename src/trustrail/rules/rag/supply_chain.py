@@ -72,10 +72,10 @@ class ApiResponseIntegrityRule(BaseRule):
         match = _INJECTED_INSTRUCTION_RE.search(value)
         if match:
             return self._block(
-                f"Injected instruction detected in API response: '{match.group(0)[:80]}'",
+                "Injected instruction detected in API response",
                 severity=Severity.CRITICAL,
                 offset_start=match.start(),
                 offset_end=match.end(),
-                matched_phrase=match.group(0)[:80],
+                match_length=len(match.group(0)),
             )
         return self._allow()

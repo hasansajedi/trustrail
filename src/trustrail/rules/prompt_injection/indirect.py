@@ -335,7 +335,8 @@ class EncodingObfuscationRule(BaseRule):
                     severity=Severity.HIGH,
                     offset_start=m.start(),
                     offset_end=m.end(),
-                    decoded_snippet=decoded[:100],
+                    encoded_length=len(blob),
+                    decoded_length=len(decoded),
                 )
 
         for m in self._HEX_RE.finditer(text):
@@ -346,7 +347,8 @@ class EncodingObfuscationRule(BaseRule):
                     severity=Severity.HIGH,
                     offset_start=m.start(),
                     offset_end=m.end(),
-                    decoded_snippet=decoded[:100],
+                    encoded_length=len(m.group(0)),
+                    decoded_length=len(decoded),
                 )
 
         return self._allow()

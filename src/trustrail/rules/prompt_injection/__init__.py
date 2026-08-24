@@ -6,6 +6,7 @@ from trustrail.rules.prompt_injection.advanced import (
     MultimodalInjectionRule,
     PayloadSplittingRule,
 )
+from trustrail.rules.prompt_injection.boundary import CrossBoundaryInjectionRule
 from trustrail.rules.prompt_injection.direct import (
     DirectInjectionRule,
     JailbreakRule,
@@ -23,11 +24,13 @@ from trustrail.rules.prompt_injection.indirect import (
     EncodingObfuscationRule,
     IndirectInjectionRule,
     ToolManipulationRule,
+    ToolResponseInjectionRule,
 )
 from trustrail.rules.prompt_injection.unicode_controls import InvisibleUnicodeRule
 
 __all__ = [
     "AdversarialSuffixRule",
+    "CrossBoundaryInjectionRule",
     "DataExfiltrationRule",
     "DirectInjectionRule",
     "EncodingObfuscationRule",
@@ -44,4 +47,5 @@ __all__ = [
     "SystemPromptVerbatimEchoRule",
     "TokenSmugglingRule",
     "ToolManipulationRule",
+    "ToolResponseInjectionRule",
 ]
