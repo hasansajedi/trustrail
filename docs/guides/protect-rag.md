@@ -42,3 +42,9 @@ Preserve provenance through the pipeline. Trust level is a risk signal, not a
 bypass: trusted sources can be compromised or contain stale malicious content.
 Limit retrieved document size and count, and quarantine blocked documents for
 review rather than silently indexing them again.
+
+For ingestion-time source, writer, tenant, version, digest, transformation, and
+anomaly enforcement, call `DataPoisoningVerifier.require()` before indexing.
+Then call `build_rag_context()` after retrieval so the same document is scanned
+again at the model-context boundary. See
+[Data and model poisoning](../security/data-model-poisoning.md).

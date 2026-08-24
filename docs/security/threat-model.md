@@ -22,7 +22,12 @@
 - Injected instructions in third-party API and tool responses
 
 ### Data and Model Poisoning (OWASP LLM04)
-- Memory write injection
+- Unknown or substituted training, fine-tuning, RAG, memory, metadata, and model sources
+- Unauthorized writer, tenant, purpose, kind, trust-label, or version changes
+- Content changes after digest capture and broken transformation lineage
+- Direct, nested-metadata, invisible-Unicode, and encoded poisoning instructions
+- Upstream or application-specific anomaly signals and unavailable detectors
+- Persistent-memory injection before human approval
 
 ### Insecure Output Handling (OWASP LLM05)
 - XSS in rendered output
@@ -47,7 +52,8 @@
 - Dangerous URL schemes
 
 ## Out of Scope
-- Model training security
+- Training infrastructure and optimizer security
 - Hardware security
 - Network-level controls
-- Detection of a backdoor or bias already present in correctly hashed, approved bytes
+- Proof that correctly hashed, approved data or model bytes contain no bias,
+  factual corruption, semantic poison, or sleeper trigger

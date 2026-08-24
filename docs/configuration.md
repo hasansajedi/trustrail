@@ -109,3 +109,43 @@ evidence by default. External services use exact supplier, endpoint, and API
 revision metadata because there are no local bytes to hash. See
 [Supply-chain security](security/supply-chain.md) for manifest and verification
 examples.
+
+## Data poisoning policy
+
+Configure ingestion separately because it runs before data reaches a training
+job, index, prompt, persistent store, or model loader:
+
+```python
+from trustrail import (
+    DataAssetKind,
+    DataPoisoningPolicy,
+    DataPoisoningVerifier,
+    DataSourcePolicy,
+    TrustLevel,
+)
+
+poisoning_policy = DataPoisoningPolicy(
+    sources=(
+        DataSourcePolicy(
+            source_id="knowledge-export",
+            source_uri="https://content.example.com/export",
+            allowed_kinds=frozenset({DataAssetKind.RAG_DOCUMENT}),
+            trust_level=TrustLevel.SEMI_TRUSTED,
+            authorized_writers=frozenset({"ingestion-service"}),
+            allowed_tenants=frozenset({"tenant-a"}),
+            allowed_purposes=frozenset({"rag-index"}),
+            allowed_versions=frozenset({"snapshot-8f71c2"}),
+        ),
+    ),
+    anomaly_threshold=0.8,
+    max_scan_chars=100_000,
+    max_metadata_depth=8,
+    max_metadata_nodes=1_000,
+)
+poisoning_verifier = DataPoisoningVerifier(poisoning_policy)
+```
+
+Training data, fine-tuning data, and model artifacts require a separately trusted
+expected digest by default. See
+[Data and model poisoning](security/data-model-poisoning.md) for complete RAG,
+memory, model, lineage, and custom detector examples.

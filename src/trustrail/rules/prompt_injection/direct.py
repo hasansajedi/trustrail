@@ -247,8 +247,8 @@ class SystemOverrideRule(BaseRule):
 class MetadataPoisoningRule(BaseRule):
     """Detects prompt injection payloads hidden inside metadata fields.
 
-    Scans all string-typed values in ``context.metadata`` using the same
-    override and system-marker patterns as ``DirectInjectionRule``.  Use
+    Recursively scans string values in ``context.metadata`` using the same
+    override and system-marker patterns as ``DirectInjectionRule``. Use
     ``ignore_keys`` to exclude fields that legitimately contain instruction-
     like text (e.g. ``"system_prompt"`` that you own and trust).
     """
@@ -259,7 +259,7 @@ class MetadataPoisoningRule(BaseRule):
     phase: ClassVar[RulePhase] = RulePhase.DETECT
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
-    owasp: ClassVar[list[str]] = ["LLM01"]
+    owasp: ClassVar[list[str]] = ["LLM01:2025", "LLM04:2025"]
     description: ClassVar[str] = (
         "Detects prompt-injection payloads embedded in context metadata fields."
     )
@@ -269,27 +269,54 @@ class MetadataPoisoningRule(BaseRule):
         enabled: bool = True,
         ignore_keys: set[str] | None = None,
         max_value_length: int = 2_000,
+        max_depth: int = 8,
+        max_nodes: int = 1_000,
     ) -> None:
         super().__init__(enabled=enabled)
         self.ignore_keys: set[str] = ignore_keys or set()
         self.max_value_length = max_value_length
+        self.max_depth = max_depth
+        self.max_nodes = max_nodes
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         metadata = context.metadata or {}
+        stack: list[tuple[object, int]] = []
         for key, raw in metadata.items():
-            if key in self.ignore_keys or not isinstance(raw, str):
+            if key not in self.ignore_keys:
+                stack.extend(((key, 0), (raw, 0)))
+        nodes = 0
+        while stack:
+            raw, depth = stack.pop()
+            nodes += 1
+            if nodes > self.max_nodes or depth > self.max_depth:
+                return self._block(
+                    "Metadata structure exceeds safe poisoning scan bounds",
+                    severity=Severity.HIGH,
+                    metadata_location="nested" if depth else "top_level",
+                )
+            if isinstance(raw, dict):
+                stack.extend((key, depth + 1) for key in raw)
+                stack.extend((nested, depth + 1) for nested in raw.values())
                 continue
-            text = raw[: self.max_value_length]
-            for pattern in _OVERRIDE_PATTERNS + _SYSTEM_MARKERS:
-                m = pattern.search(text)
-                if m:
-                    return self._block(
-                        f"Metadata poisoning detected in field '{key}'",
-                        severity=Severity.HIGH,
-                        offset_start=m.start(),
-                        offset_end=m.end(),
-                        poisoned_key=key,
-                    )
+            if isinstance(raw, (list, tuple)):
+                stack.extend((nested, depth + 1) for nested in raw)
+                continue
+            if not isinstance(raw, str):
+                continue
+
+            normalized = _normalizer.normalize(raw[: self.max_value_length])
+            variants = [normalized.normalized]
+            variants.extend(_normalizer.extract_base64_payloads(normalized.normalized))
+            if any(
+                pattern.search(text)
+                for text in variants
+                for pattern in _OVERRIDE_PATTERNS + _SYSTEM_MARKERS
+            ):
+                return self._block(
+                    "Metadata poisoning detected",
+                    severity=Severity.HIGH,
+                    metadata_location="nested" if depth else "top_level",
+                )
         return self._allow()
 
 

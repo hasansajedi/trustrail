@@ -21,7 +21,10 @@ Resource limits apply at every stage. Custom rules supplied through
 
 Binary and metadata verification happens before these text stages. Use an
 `ArtifactVerifier` to admit the component, then pass its text or response through
-the appropriate `GuardStage`.
+the appropriate `GuardStage`. Use `DataPoisoningVerifier` before data enters a
+training job, RAG index, persistent store, prompt, or model loader; it validates
+source policy, writer and tenant authorization, version, digest, lineage, and
+anomaly evidence before the stage-specific text rules run.
 
 ## Selecting the right stage
 

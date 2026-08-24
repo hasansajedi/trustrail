@@ -17,6 +17,7 @@ from trustrail.exceptions import (
     ApprovalRequiredError,
     ArtifactVerificationError,
     ConfigurationError,
+    DataPoisoningError,
     GuardrailBlockedError,
     ProviderError,
     RateLimitError,
@@ -48,6 +49,18 @@ from trustrail.models.enums import (
     Severity,
     TrustLevel,
 )
+from trustrail.models.poisoning import (
+    DataAssetKind,
+    DataIngestionRecord,
+    DataPoisoningPolicy,
+    DataPoisoningResult,
+    DataProvenance,
+    DataSourcePolicy,
+    DataTransformation,
+    IngestionAuthorization,
+    PoisoningCode,
+    PoisoningFinding,
+)
 from trustrail.models.prompt import (
     PromptScanResult,
     PromptSegment,
@@ -69,6 +82,7 @@ from trustrail.models.supply_chain import (
     ArtifactVerificationResult,
     DigestAlgorithm,
 )
+from trustrail.poisoning import DataPoisoningVerifier, PoisoningDetector
 from trustrail.protocols import (
     ApprovalProvider,
     AsyncGuardRule,
@@ -110,6 +124,15 @@ __all__ = [
     "AuditSink",
     "ConfigurationError",
     "ContentSafetyProvider",
+    "DataAssetKind",
+    "DataIngestionRecord",
+    "DataPoisoningError",
+    "DataPoisoningPolicy",
+    "DataPoisoningResult",
+    "DataPoisoningVerifier",
+    "DataProvenance",
+    "DataSourcePolicy",
+    "DataTransformation",
     "DigestAlgorithm",
     "Document",
     "FailMode",
@@ -129,6 +152,7 @@ __all__ = [
     # Enums
     "GuardStage",
     "GuardrailBlockedError",
+    "IngestionAuthorization",
     # Audit sinks
     "LoggingAuditSink",
     "MemoryAuditSink",
@@ -136,6 +160,9 @@ __all__ = [
     "Message",
     "NullAuditSink",
     "OutputContext",
+    "PoisoningCode",
+    "PoisoningDetector",
+    "PoisoningFinding",
     "PromptInjectionProvider",
     "PromptScanResult",
     "PromptSegment",

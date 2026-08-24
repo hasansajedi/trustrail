@@ -41,7 +41,7 @@ class PersistentMemoryWriteRule(BaseRule):
     description: ClassVar[str] = (
         "Classifies persistent memory writes and requires out-of-band approval."
     )
-    owasp: ClassVar[list[str]] = ["LLM01:2026"]
+    owasp: ClassVar[list[str]] = ["LLM01:2025", "LLM04:2025"]
 
     _SENSITIVE_RE: ClassVar[re.Pattern[str]] = re.compile(
         r"\b(?:password|passcode|api[ _-]?key|access[ _-]?token|refresh[ _-]?token|"
