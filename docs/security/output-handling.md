@@ -1,59 +1,148 @@
-# Insecure output handling
+# Safe model output handling
 
-Model output is untrusted data. trustrail detects common HTML injection, path
-traversal, shell metacharacters, unsafe protocols, suspicious URLs, and external
-Markdown image patterns at output stages. It also flags output that carries
-overconfidence signals or hallucination-prone language.
+Model output is untrusted data, even when the prompt asks the model to be safe.
+trustrail implements the zero-trust output boundary recommended by
+[OWASP LLM05:2025](https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/)
+in two layers:
+
+1. `Guard` detects suspicious output at `LLM_RESPONSE` or `FINAL_OUTPUT`.
+2. `SafeOutputHandler` applies the control required by the actual destination.
 
 ```python
-result = guard.check(model_output, GuardStage.LLM_RESPONSE)
-if result.is_blocked:
+from trustrail import Guard, GuardStage, OutputContext, SafeOutputHandler
+
+scan = Guard.balanced().check(model_output, GuardStage.FINAL_OUTPUT)
+if scan.is_blocked or scan.output_value is None:
     return fallback_response
-safe_output = result.output_value
+
+html_text = SafeOutputHandler().require(scan.output_value, OutputContext.HTML)
 ```
 
-## Output safety rules (OS-001 – OS-007)
+The returned HTML is encoded text, not trusted markup. A successful pattern scan
+alone never makes a string safe for an interpreter.
 
-| Rule ID | Name | What it detects |
-| --- | --- | --- |
-| OS-001 | HTML Injection | `<script>`, event handlers, and XSS payloads |
-| OS-002 | Path Traversal | `../` sequences and absolute path references |
-| OS-003 | Shell Metachar | Shell metacharacters that could reach a subprocess |
-| OS-004 | Suspicious URL | Obfuscated, redirecting, or typosquatting URLs |
-| OS-005 | Unsafe Protocol | `javascript:`, `data:`, `vbscript:` and similar |
-| OS-006 | Markdown External Image | `![...]()` patterns that load remote tracking pixels |
-| OS-007 | Dangerous Code Construct | `eval`, `exec`, `subprocess`, `child_process`, download-and-execute shells |
+## Destination contracts
 
-### OS-007 `DangerousCodeConstructRule`
+`OutputHandlingPolicy` is fail closed. URL hosts and filesystem roots have no
+permissive default, structured output needs an explicit schema, and raw
+interpreter/tool contexts are rejected.
 
-Warns when generated output contains code that could execute attacker-controlled
-payloads: Python's `eval()`, `exec()`, `__import__()`, `subprocess.Popen()`,
-`os.system()`; JavaScript's `child_process` and `new Function()`; and shell
-download-and-execute one-liners (`curl … | bash`).
+| Context | Contract |
+| --- | --- |
+| `TEXT` | Enforce output-size and control-character limits |
+| `HTML` | Encode as HTML text, including quotes |
+| `JAVASCRIPT` | Encode one JavaScript string literal and escape HTML-breaking characters |
+| `MARKDOWN` | Reject raw HTML and images; validate links against exact scheme/host allowlists |
+| `URL` | Require an allowed scheme and exact hostname; reject credentials and malformed URLs |
+| `PATH` | Require a relative path that resolves beneath `path_root` |
+| `JSON` | Reject raw use; parse once into a strict Pydantic schema with duplicate-key and size/depth checks |
+| `SQL` | Reject raw queries; bind validated model text only as prepared-statement data |
+| `SHELL` | Reject raw commands; use a fixed executable, `shell=False`, and one validated argv item at a time |
+| `TEMPLATE` | Reject model-generated template source; pass encoded/validated data to a fixed autoescaping template |
+| `TOOL` | Reject raw tool execution; validate a fixed tool name and typed arguments without executing them |
+| `CODE` | Reject by default; optional review mode returns `REQUIRE_APPROVAL`, never execution permission |
 
-Default action: `WARN`. Switch to `BLOCK` when generated code is automatically
-executed (e.g., agentic code-execution pipelines).
+### SQL, commands, and files
 
 ```python
-from trustrail.rules.output import DangerousCodeConstructRule
+from pathlib import Path
 
-rule = DangerousCodeConstructRule()
-result = rule.evaluate(llm_generated_code, context)
-if result.action == GuardAction.WARN:
-    require_human_review(llm_generated_code)
+from trustrail import OutputHandlingPolicy, SafeOutputHandler
+
+handler = SafeOutputHandler(
+    OutputHandlingPolicy(path_root=Path("/srv/app/reports"))
+)
+
+# The query and executable are application-owned constants.
+database.execute(
+    "SELECT id FROM documents WHERE title = ?",
+    (handler.as_sql_parameter(model_title),),
+)
+subprocess.run(
+    ["/usr/bin/printf", "--", handler.as_command_argument(model_text)],
+    shell=False,
+    check=True,
+)
+report_path = handler.resolve_path(model_relative_path)
 ```
 
-Passing a guard check does not make a string safe for every interpreter. Apply a
-control appropriate to the destination:
+Never use `as_sql_parameter()` for table names, column names, operators, or SQL
+fragments. Never let model output select the executable. The `--` separator is
+still recommended because each command has its own option semantics.
 
-| Destination | Required control |
+### Strict structured output and tools
+
+```python
+from pydantic import BaseModel, ConfigDict
+
+from trustrail import SafeOutputHandler
+
+
+class EmailArguments(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    recipient_id: int
+    subject: str
+
+
+handler = SafeOutputHandler()
+call = handler.parse_tool_call(
+    model_output,
+    expected_name="send_email",
+    arguments_schema=EmailArguments,
+)
+
+# Parsing creates a plan only. Apply deterministic authorization, tenant checks,
+# rate limits, and out-of-band approval before an executor sees call.arguments.
+assert call.requires_approval
+```
+
+`parse_json()` uses strict Pydantic validation: type coercion, unknown fields
+(when the schema forbids them), duplicate keys, non-finite numbers, excessive
+nesting, and excessive node counts fail closed.
+
+## Output safety rules (OS-001 – OS-013)
+
+All output safety rules scan the complete guard-bounded value, emit
+content-free findings, and map to `LLM05:2025`.
+
+| Rule ID | Detection |
 | --- | --- |
-| HTML | Context-aware escaping and a Content Security Policy |
-| SQL | Parameterized statements; never concatenate model text |
-| Shell | Avoid execution; otherwise use fixed commands and validated arguments |
-| Filesystem | Resolve paths and enforce an allowed root directory |
-| URL fetch | Scheme/host allowlists and network egress restrictions |
-| JSON | Schema validation and size/depth limits |
+| OS-001 | HTML injection and event handlers |
+| OS-002 | Path traversal and absolute paths |
+| OS-003 | Shell metacharacters |
+| OS-004 | Suspicious and obfuscated URLs |
+| OS-005 | Unsafe protocols |
+| OS-006 | External Markdown images |
+| OS-007 | Dangerous generated-code constructs |
+| OS-008 | SQL injection patterns |
+| OS-009 | Server-side template expressions |
+| OS-010 | CRLF and forged log entries |
+| OS-011 | LDAP injection patterns |
+| OS-012 | XML, XPath, and XXE patterns |
+| OS-013 | Insecure file paths and wrapper schemes |
+
+OS-007 warns because code may be legitimate content. `SafeOutputHandler` still
+blocks the `CODE` destination unless review mode is explicitly enabled.
+
+## Defense in depth and residual risk
+
+- Keep a strict Content Security Policy and framework autoescaping; never mark
+  model text as trusted HTML.
+- Markdown checks are intentionally conservative and not a full renderer.
+  Disable raw HTML in the renderer and sanitize the renderer's final HTML.
+- URL validation is syntactic and uses exact hostnames. Enforce DNS/IP checks,
+  redirect validation, TLS, egress allowlists, and SSRF controls when fetching.
+- Path resolution can race with symlink changes. Use descriptor-relative secure
+  file APIs and appropriate filesystem permissions for privileged operations.
+- Prepared statements protect data values, not dynamic identifiers or query
+  structure. Use application-owned allowlists for those choices.
+- Fixed argv avoids shell expansion, but target programs can interpret values as
+  options, file paths, templates, or code. Apply destination-specific validation.
+- Tool parsing grants no authority. Keep credentials scoped, re-check object and
+  tenant authorization, cap effects, and require approval for consequential work.
+- Generated code still needs sandboxing, resource/network limits, dependency
+  controls, and human review. `REQUIRE_APPROVAL` is not an allow decision.
 
 ## Grounding rules (GR-001 – GR-004)
 

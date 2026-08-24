@@ -69,8 +69,11 @@ class TestDangerousCodeConstructRule:
         result = rule.evaluate(text, _ctx())
         assert result.action == GuardAction.ALLOW
 
-    def test_finding_includes_matched_construct(self):
+    def test_finding_does_not_echo_matched_construct(self):
         rule = DangerousCodeConstructRule()
-        result = rule.evaluate("x = eval(input())", _ctx())
+        dangerous = "x = eval(private_output_marker)"
+        result = rule.evaluate(dangerous, _ctx())
         assert result.finding is not None
-        assert "eval" in result.finding.metadata.get("matched_construct", "")
+        assert dangerous not in result.finding.model_dump_json()
+        assert "private_output_marker" not in result.finding.model_dump_json()
+        assert result.finding.metadata == {}

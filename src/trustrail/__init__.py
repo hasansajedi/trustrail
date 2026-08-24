@@ -19,6 +19,7 @@ from trustrail.exceptions import (
     ConfigurationError,
     DataPoisoningError,
     GuardrailBlockedError,
+    OutputHandlingError,
     ProviderError,
     RateLimitError,
     ResourceLimitError,
@@ -48,6 +49,12 @@ from trustrail.models.enums import (
     SensitiveDataMode,
     Severity,
     TrustLevel,
+)
+from trustrail.models.output_handling import (
+    OutputHandlingCode,
+    OutputHandlingFinding,
+    OutputHandlingPolicy,
+    OutputHandlingResult,
 )
 from trustrail.models.poisoning import (
     DataAssetKind,
@@ -82,6 +89,7 @@ from trustrail.models.supply_chain import (
     ArtifactVerificationResult,
     DigestAlgorithm,
 )
+from trustrail.output_handling import SafeOutputHandler, ValidatedToolCall
 from trustrail.poisoning import DataPoisoningVerifier, PoisoningDetector
 from trustrail.protocols import (
     ApprovalProvider,
@@ -160,6 +168,11 @@ __all__ = [
     "Message",
     "NullAuditSink",
     "OutputContext",
+    "OutputHandlingCode",
+    "OutputHandlingError",
+    "OutputHandlingFinding",
+    "OutputHandlingPolicy",
+    "OutputHandlingResult",
     "PoisoningCode",
     "PoisoningDetector",
     "PoisoningFinding",
@@ -179,6 +192,7 @@ __all__ = [
     "RuleCategory",
     "RuleConfig",
     "RulePhase",
+    "SafeOutputHandler",
     "SensitiveDataMode",
     "SensitiveDataProvider",
     "Severity",
@@ -187,6 +201,7 @@ __all__ = [
     "ToolCall",
     "ToolResult",
     "TrustLevel",
+    "ValidatedToolCall",
     # Version
     "__version__",
 ]

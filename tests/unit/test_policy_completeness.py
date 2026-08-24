@@ -255,6 +255,13 @@ class TestToolPolicyCompleteness:
 
 
 class TestOutputSafetyPolicyCompleteness:
+    def test_includes_every_llm05_output_rule_with_current_mapping(self):
+        rules = OutputSafetyPolicy().get_rules()
+        output_rules = {rule.rule_id: rule for rule in rules if rule.rule_id.startswith("OS-")}
+
+        assert set(output_rules) == {f"OS-{number:03d}" for number in range(1, 14)}
+        assert all(rule.owasp == ["LLM05:2025"] for rule in output_rules.values())
+
     def test_includes_code_injection_rule_by_default(self):
         policy = OutputSafetyPolicy()
         rule_ids = {r.rule_id for r in policy.get_rules()}

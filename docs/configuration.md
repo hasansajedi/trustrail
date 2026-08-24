@@ -85,6 +85,35 @@ Validate with CLI:
 trustrail validate-config guardrails.yaml
 ```
 
+## Destination-aware output policy
+
+`OutputHandlingPolicy` is separate from `GuardConfig` because it describes where
+an already-scanned model value will be used:
+
+```python
+from pathlib import Path
+
+from trustrail import OutputHandlingPolicy, SafeOutputHandler
+
+output_handler = SafeOutputHandler(
+    OutputHandlingPolicy(
+        max_output_chars=50_000,
+        allowed_url_schemes=frozenset({"https"}),
+        allowed_url_hosts=frozenset({"docs.example.com"}),
+        allow_relative_urls=False,
+        allow_markdown_links=True,
+        allow_markdown_images=False,
+        path_root=Path("/srv/app/generated"),
+        max_structured_depth=12,
+        max_structured_nodes=5_000,
+        allow_code_for_review=False,
+    )
+)
+```
+
+Empty URL allowlists and missing path roots fail closed. Enabling `allow_code_for_review`
+returns `REQUIRE_APPROVAL`; it does not enable code execution.
+
 ## AI artifact verification policy
 
 Supply-chain verification is configured separately from text guardrails because
