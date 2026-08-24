@@ -173,15 +173,13 @@ class AdversarialSuffixRule(BaseRule):
     ADVERSARIAL_PATTERNS: ClassVar[list[re.Pattern[str]]] = [
         # Gibberish/optimized tokens (common in GCG attacks)
         re.compile(r"(?:[a-z]{1,3}\s+){10,}", re.IGNORECASE),
-        re.compile(r"(?:\S+\s+){5,}(?:!!+|\.{3,}|\?{3,})", re.IGNORECASE),
         # Suspicious repetition patterns
         re.compile(r"(\b\w{1,4}\b\s*){15,}", re.IGNORECASE),
         re.compile(
             r"(sure|okay|yes|absolutely|certainly)(\s+\1){5,}",
             re.IGNORECASE,
         ),
-        # Ending manipulation
-        re.compile(r"(?:!{5,}|\?{5,}|\.{5,})", re.IGNORECASE),
+        # Ending manipulation coupled to an instruction-override signal.
         re.compile(
             r"(?:now|sure|yes|okay)\s*[!.]{3,}\s*(?:now\s+)?(?:ignore|disregard|forget)",
             re.IGNORECASE,
@@ -216,7 +214,7 @@ class AdversarialSuffixRule(BaseRule):
                     "Adversarial suffix pattern detected",
                     confidence=confidence,
                     pattern=pattern.pattern,
-                    matched_text=match.group()[:100],  # First 100 chars of match
+                    match_length=len(match.group()),
                 )
 
         return self._allow()

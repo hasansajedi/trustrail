@@ -336,10 +336,10 @@ class TokenSmugglingRule(BaseRule):
             m = pattern.search(text)
             if m:
                 return self._block(
-                    f"Token smuggling / delimiter injection detected: '{m.group(0)[:60]}'",
+                    "Token smuggling / delimiter injection detected",
                     severity=Severity.HIGH,
                     offset_start=m.start(),
                     offset_end=m.end(),
-                    matched_token=m.group(0)[:60],
+                    token_length=len(m.group(0)),
                 )
         return self._allow()

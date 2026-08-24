@@ -70,6 +70,10 @@ class GuardConfig(BaseModel):
     # Require an out-of-band human decision before persistent memory writes
     require_memory_write_approval: bool = True
 
+    # Structured prompt-boundary scan limits
+    max_prompt_segments: int = Field(default=64, ge=1, le=1_000)
+    prompt_boundary_window: int = Field(default=512, ge=32, le=10_000)
+
     # Enable/disable entire categories
     enabled_categories: list[RuleCategory] | None = None  # None = all
     disabled_categories: list[RuleCategory] = Field(default_factory=list)

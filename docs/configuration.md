@@ -25,6 +25,8 @@ config = GuardConfig(
     strip_invisible_unicode=True,
     require_rag_context_labels=True,
     require_memory_write_approval=True,
+    max_prompt_segments=64,
+    prompt_boundary_window=512,
 )
 
 guard = Guard(config=config)
@@ -51,6 +53,8 @@ audit_enabled: true
 strip_invisible_unicode: true
 require_rag_context_labels: true
 require_memory_write_approval: true
+max_prompt_segments: 64
+prompt_boundary_window: 512
 ```
 
 `require_rag_context_labels` is enabled by default. It rejects plain joined text
@@ -61,6 +65,11 @@ at `GuardStage.RAG_CONTEXT`; use `Guard.build_rag_context()` and
 return `REQUIRE_APPROVAL` and must pass through `Guard.authorize_memory_write()`.
 Disabling it leaves injection and sensitive-data scanning enabled, but removes the
 human approval gate.
+
+`max_prompt_segments` limits work performed by the structured prompt scanner.
+`prompt_boundary_window` controls how many trailing and leading characters are
+checked on each side of a source boundary. Lower it for tightly bounded latency;
+raise it only after testing representative workloads and bypass cases.
 
 Validate with CLI:
 ```bash

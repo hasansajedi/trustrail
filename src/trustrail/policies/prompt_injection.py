@@ -5,6 +5,7 @@ from __future__ import annotations
 from trustrail.policies.base import BasePolicy
 from trustrail.rules.base import BaseRule
 from trustrail.rules.prompt_injection import (
+    AdversarialSuffixRule,
     DataExfiltrationRule,
     DirectInjectionRule,
     EncodingObfuscationRule,
@@ -12,12 +13,15 @@ from trustrail.rules.prompt_injection import (
     JailbreakRule,
     MetadataPoisoningRule,
     ModelExtractionProbeRule,
+    MultilingualInjectionRule,
     MultimodalInjectionRule,
+    PayloadSplittingRule,
     SystemOverrideRule,
     SystemPromptExtractionRule,
     SystemPromptVerbatimEchoRule,
     TokenSmugglingRule,
     ToolManipulationRule,
+    ToolResponseInjectionRule,
 )
 
 
@@ -37,6 +41,10 @@ class PromptInjectionPolicy(BasePolicy):
         include_encoding_obfuscation: bool = True,
         include_token_smuggling: bool = True,
         include_multimodal: bool = True,
+        include_multilingual: bool = True,
+        include_payload_splitting: bool = True,
+        include_adversarial_suffix: bool = True,
+        include_tool_response: bool = True,
     ) -> None:
         super().__init__(enabled=enabled)
         self.include_indirect = include_indirect
@@ -49,6 +57,10 @@ class PromptInjectionPolicy(BasePolicy):
         self.include_encoding_obfuscation = include_encoding_obfuscation
         self.include_token_smuggling = include_token_smuggling
         self.include_multimodal = include_multimodal
+        self.include_multilingual = include_multilingual
+        self.include_payload_splitting = include_payload_splitting
+        self.include_adversarial_suffix = include_adversarial_suffix
+        self.include_tool_response = include_tool_response
 
     def get_rules(self) -> list[BaseRule]:
         rules: list[BaseRule] = [
@@ -75,4 +87,12 @@ class PromptInjectionPolicy(BasePolicy):
             rules.append(TokenSmugglingRule())
         if self.include_multimodal:
             rules.append(MultimodalInjectionRule())
+        if self.include_multilingual:
+            rules.append(MultilingualInjectionRule())
+        if self.include_payload_splitting:
+            rules.append(PayloadSplittingRule())
+        if self.include_adversarial_suffix:
+            rules.append(AdversarialSuffixRule())
+        if self.include_tool_response:
+            rules.append(ToolResponseInjectionRule())
         return rules + self._rules

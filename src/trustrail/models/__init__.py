@@ -24,6 +24,12 @@ from trustrail.models.enums import (
     Severity,
     TrustLevel,
 )
+from trustrail.models.prompt import (
+    PromptScanResult,
+    PromptSegment,
+    PromptSegmentResult,
+    PromptSource,
+)
 from trustrail.models.rag import ProvenanceLabel, RAGContextEnvelope, RAGContextSegment
 
 __all__ = [
@@ -41,6 +47,10 @@ __all__ = [
     "MemoryWriteClassification",
     "Message",
     "OutputContext",
+    "PromptScanResult",
+    "PromptSegment",
+    "PromptSegmentResult",
+    "PromptSource",
     "ProvenanceLabel",
     "RAGContextEnvelope",
     "RAGContextSegment",
