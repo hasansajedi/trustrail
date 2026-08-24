@@ -7,14 +7,17 @@ from trustrail.rules.sensitive_data.pii_extended import (
     PassportNumberRule,
     SsnRule,
 )
+from trustrail.rules.sensitive_data.protected import ProtectedDataDisclosureRule
 from trustrail.rules.sensitive_data.secrets import (
     AwsKeyRule,
     BearerTokenRule,
     DatabaseUrlRule,
     HighEntropySecretRule,
     JwtTokenRule,
+    NamedCredentialRule,
     PaymentCardRule,
     PrivateKeyRule,
+    ProviderApiTokenRule,
 )
 
 __all__ = [
@@ -27,9 +30,12 @@ __all__ = [
     "IbanRule",
     "IpAddressRule",
     "JwtTokenRule",
+    "NamedCredentialRule",
     "PassportNumberRule",
     "PaymentCardRule",
     "PhoneRule",
     "PrivateKeyRule",
+    "ProtectedDataDisclosureRule",
+    "ProviderApiTokenRule",
     "SsnRule",
 ]

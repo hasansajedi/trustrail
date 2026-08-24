@@ -58,7 +58,10 @@ class AegisRailCallbackHandler:
             except GuardrailBlockedError:
                 raise
             except Exception as exc:
-                logger.warning(f"trustrail check error in LangChain handler: {exc}")
+                logger.warning(
+                    "trustrail check error in LangChain handler: %s",
+                    type(exc).__name__,
+                )
 
     def on_llm_end(self, response: Any, *, run_id: UUID, **kwargs: Any) -> None:
         """Guard LLM output."""
@@ -76,10 +79,24 @@ class AegisRailCallbackHandler:
                                     stage=GuardStage.LLM_RESPONSE,
                                     findings=result.findings,
                                 )
+                            if result.output_value != text:
+                                try:
+                                    gen.text = result.output_value
+                                except (AttributeError, TypeError, ValueError) as exc:
+                                    if self.raise_on_block:
+                                        raise GuardrailBlockedError(
+                                            "LLM output required redaction but response "
+                                            "is immutable",
+                                            stage=GuardStage.LLM_RESPONSE,
+                                            findings=result.findings,
+                                        ) from exc
         except GuardrailBlockedError:
             raise
         except Exception as exc:
-            logger.warning(f"trustrail check error in LangChain handler: {exc}")
+            logger.warning(
+                "trustrail check error in LangChain handler: %s",
+                type(exc).__name__,
+            )
 
     def on_tool_start(
         self,
@@ -108,4 +125,4 @@ class AegisRailCallbackHandler:
         except GuardrailBlockedError:
             raise
         except Exception as exc:
-            logger.warning(f"trustrail tool check error: {exc}")
+            logger.warning("trustrail tool check error: %s", type(exc).__name__)

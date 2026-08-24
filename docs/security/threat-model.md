@@ -8,10 +8,11 @@
 - Jailbreak attacks
 - System prompt hijacking
 
-### Sensitive Data Exposure (OWASP LLM02, LLM06)
-- PII in user input/output (email, phone)
-- Secret leakage (API keys, tokens, private keys)
-- Payment card data
+### Sensitive Information Disclosure (OWASP LLM02:2025)
+- PII and payment data across model inputs and outputs
+- Credential and private-key leakage
+- Verbatim disclosure of application-defined private context
+- Accidental content disclosure through findings, audit events, and integration logs
 
 ### Supply Chain (OWASP LLM03)
 - RAG document poisoning
@@ -25,7 +26,7 @@
 - Path traversal
 - Shell injection
 
-### Excessive Agency (OWASP LLM08)
+### Excessive Agency (OWASP LLM06)
 - Unlimited tool calls
 - Runaway agent loops
 - Unauthorized operations

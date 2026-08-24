@@ -55,13 +55,14 @@ class PaymentCardRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects payment card numbers with Luhn validation."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def __init__(self, enabled: bool = True, redact_placeholder: str = "[PAYMENT_CARD]") -> None:
         super().__init__(enabled=enabled)
         self.redact_placeholder = redact_placeholder
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for m in _CC_RE.finditer(text):
             candidate = re.sub(r"[\s\-]", "", m.group(0))
             if _luhn_valid(candidate):
@@ -72,7 +73,6 @@ class PaymentCardRule(BaseRule):
                     offset_start=m.start(),
                     offset_end=m.end(),
                 )
-                finding.redacted_value = redacted
                 return GuardDecision(
                     action=GuardAction.BLOCK,
                     finding=finding,
@@ -98,9 +98,10 @@ class JwtTokenRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects JWT tokens."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _JWT_RE.search(text)
         if m:
             redacted = _JWT_RE.sub("[JWT_TOKEN]", text)
@@ -109,7 +110,6 @@ class JwtTokenRule(BaseRule):
                 offset_start=m.start(),
                 offset_end=m.end(),
             )
-            finding.redacted_value = redacted
             return GuardDecision(
                 action=GuardAction.BLOCK,
                 finding=finding,
@@ -147,9 +147,10 @@ class BearerTokenRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects Bearer tokens and API keys."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for pattern, label in [(_BEARER_RE, "Bearer token"), (_API_KEY_RE, "API key")]:
             m = pattern.search(text)
             if m:
@@ -162,7 +163,6 @@ class BearerTokenRule(BaseRule):
                     offset_start=m.start(),
                     offset_end=m.end(),
                 )
-                finding.redacted_value = redacted
                 return GuardDecision(
                     action=GuardAction.BLOCK,
                     finding=finding,
@@ -206,29 +206,40 @@ class AwsKeyRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.CRITICAL
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects AWS access keys, secrets, GCP SA keys, Azure connections."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
-        for pattern, label in [
-            (_AWS_ACCESS_KEY_RE, "AWS access key"),
-            (_AWS_SECRET_RE, "AWS secret key"),
-            (_GCP_SA_RE, "GCP service account key"),
-            (_AZURE_CONN_RE, "Azure connection string"),
+        text = value
+        for pattern, label, placeholder in [
+            (_AWS_ACCESS_KEY_RE, "AWS access key", "[AWS_ACCESS_KEY]"),
+            (_AWS_SECRET_RE, "AWS secret key", "[AWS_SECRET_KEY]"),
+            (_GCP_SA_RE, "GCP service account key", "[GCP_SERVICE_ACCOUNT]"),
+            (_AZURE_CONN_RE, "Azure connection string", "[AZURE_CONNECTION]"),
         ]:
             m = pattern.search(text)
             if m:
-                return self._block(
+                redacted = placeholder if pattern is _GCP_SA_RE else pattern.sub(placeholder, text)
+                finding = self._finding(
                     f"{label} detected",
                     severity=Severity.CRITICAL,
                     offset_start=m.start(),
                     offset_end=m.end(),
+                )
+                return GuardDecision(
+                    action=GuardAction.BLOCK,
+                    finding=finding,
+                    transformed_value=redacted,
+                    rule_id=self.rule_id,
                 )
         return self._allow()
 
 
 # ── Private Keys ──────────────────────────────────────────────────────────────
 
-_PRIVATE_KEY_RE = re.compile(r"-----BEGIN\s+(?:RSA\s+|EC\s+|DSA\s+|OPENSSH\s+)?PRIVATE\s+KEY-----")
+_PRIVATE_KEY_RE = re.compile(
+    r"-----BEGIN\s+(?:(?:RSA|EC|DSA|OPENSSH)\s+)?PRIVATE\s+KEY-----"
+    r"[\s\S]*?(?:-----END\s+(?:(?:RSA|EC|DSA|OPENSSH)\s+)?PRIVATE\s+KEY-----|$)"
+)
 
 
 @registry.register
@@ -242,16 +253,23 @@ class PrivateKeyRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.CRITICAL
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects private key material."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _PRIVATE_KEY_RE.search(text)
         if m:
-            return self._block(
+            finding = self._finding(
                 "Private key material detected",
                 severity=Severity.CRITICAL,
                 offset_start=m.start(),
                 offset_end=m.end(),
+            )
+            return GuardDecision(
+                action=GuardAction.BLOCK,
+                finding=finding,
+                transformed_value=_PRIVATE_KEY_RE.sub("[PRIVATE_KEY]", text),
+                rule_id=self.rule_id,
             )
         return self._allow()
 
@@ -283,9 +301,10 @@ class DatabaseUrlRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.CRITICAL
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Detects database connection strings containing credentials."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _DB_URL_RE.search(text)
         if m:
             redacted = _DB_URL_RE.sub("[DB_URL_REDACTED]", text)
@@ -295,7 +314,6 @@ class DatabaseUrlRule(BaseRule):
                 offset_start=m.start(),
                 offset_end=m.end(),
             )
-            finding.redacted_value = redacted
             return GuardDecision(
                 action=GuardAction.BLOCK,
                 finding=finding,
@@ -334,21 +352,139 @@ class HighEntropySecretRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.HIGH
     default_action: ClassVar[GuardAction] = GuardAction.WARN
     description: ClassVar[str] = "Detects high-entropy strings assigned to secret-named variables."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         for m in _HIGH_ENTROPY_CANDIDATE.finditer(text):
             candidate = m.group(1)
             if (
                 len(candidate) >= _MIN_SECRET_LENGTH
                 and _shannon_entropy(candidate) >= _ENTROPY_THRESHOLD
             ):
-                return self._block(
+                redacted = _HIGH_ENTROPY_CANDIDATE.sub(
+                    lambda match: match.group(0).replace(match.group(1), "[REDACTED]"),
+                    text,
+                )
+                finding = self._finding(
                     "High-entropy secret-like value detected",
                     severity=Severity.HIGH,
-                    action=GuardAction.WARN,
                     offset_start=m.start(),
                     offset_end=m.end(),
                     entropy=round(_shannon_entropy(candidate), 2),
                 )
+                return GuardDecision(
+                    action=GuardAction.WARN,
+                    finding=finding,
+                    transformed_value=redacted,
+                    rule_id=self.rule_id,
+                )
         return self._allow()
+
+
+# ── Named credentials ────────────────────────────────────────────────────────
+
+_NAMED_CREDENTIAL_RE = re.compile(
+    r"""
+    \b(?:password|passwd|pwd|client[_-]?secret|consumer[_-]?secret|private[_-]?token)\b
+    \s*[=:]\s*
+    ['"]?
+    ([^\s'",;}{]{8,128})
+    ['"]?
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+
+@registry.register
+class NamedCredentialRule(BaseRule):
+    """Detect password and client-secret assignment patterns."""
+
+    rule_id: ClassVar[str] = "SD-016"
+    rule_name: ClassVar[str] = "Named Credential"
+    category: ClassVar[RuleCategory] = RuleCategory.SECRET
+    phase: ClassVar[RulePhase] = RulePhase.DETECT
+    default_severity: ClassVar[Severity] = Severity.CRITICAL
+    default_action: ClassVar[GuardAction] = GuardAction.BLOCK
+    description: ClassVar[str] = "Detects values assigned to password and secret fields."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
+
+    def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
+        match = _NAMED_CREDENTIAL_RE.search(value)
+        if match is None:
+            return self._allow()
+
+        redacted = _NAMED_CREDENTIAL_RE.sub(
+            lambda item: item.group(0).replace(item.group(1), "[REDACTED]"),
+            value,
+        )
+        finding = self._finding(
+            "Named credential detected",
+            offset_start=match.start(),
+            offset_end=match.end(),
+        )
+        return GuardDecision(
+            action=GuardAction.BLOCK,
+            finding=finding,
+            transformed_value=redacted,
+            rule_id=self.rule_id,
+        )
+
+
+# ── Provider API tokens ──────────────────────────────────────────────────────
+
+_PROVIDER_TOKEN_PATTERNS = (
+    re.compile(
+        r"(?<![A-Za-z0-9])(?:gh[pousr]_[A-Za-z0-9]{20,255}|github_pat_[A-Za-z0-9_]{20,255})"
+    ),
+    re.compile(r"(?<![A-Za-z0-9])glpat-[A-Za-z0-9_-]{20,}"),
+    re.compile(r"(?<![A-Za-z0-9])xox[baprs]-[A-Za-z0-9-]{16,}"),
+    re.compile(r"(?<![A-Za-z0-9])(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{16,}"),
+    re.compile(r"(?<![A-Za-z0-9])sk-(?:(?:proj|svcacct)-)?[A-Za-z0-9_-]{20,}"),
+    re.compile(r"(?<![A-Za-z0-9])sk-ant-[A-Za-z0-9_-]{20,}"),
+    re.compile(r"(?<![A-Za-z0-9])AIza[0-9A-Za-z_-]{35}(?![0-9A-Za-z_-])"),
+    re.compile(r"(?<![A-Za-z0-9])npm_[A-Za-z0-9]{36}(?![A-Za-z0-9])"),
+)
+
+
+@registry.register
+class ProviderApiTokenRule(BaseRule):
+    """Detect common provider-specific API token formats."""
+
+    rule_id: ClassVar[str] = "SD-015"
+    rule_name: ClassVar[str] = "Provider API Token"
+    category: ClassVar[RuleCategory] = RuleCategory.SECRET
+    phase: ClassVar[RulePhase] = RulePhase.DETECT
+    default_severity: ClassVar[Severity] = Severity.CRITICAL
+    default_action: ClassVar[GuardAction] = GuardAction.BLOCK
+    description: ClassVar[str] = "Detects common hosted-service API token formats."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
+
+    def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
+        first_match: re.Match[str] | None = None
+        redacted = value
+        match_count = 0
+        for pattern in _PROVIDER_TOKEN_PATTERNS:
+            matches = list(pattern.finditer(redacted))
+            if not matches:
+                continue
+            if first_match is None:
+                first_match = matches[0]
+            match_count += len(matches)
+            redacted = pattern.sub("[API_TOKEN]", redacted)
+
+        if first_match is None:
+            return self._allow()
+
+        finding = self._finding(
+            "Provider API token detected",
+            offset_start=first_match.start(),
+            offset_end=first_match.end(),
+            match_count=match_count,
+        )
+        return GuardDecision(
+            action=GuardAction.BLOCK,
+            finding=finding,
+            transformed_value=redacted,
+            rule_id=self.rule_id,
+        )

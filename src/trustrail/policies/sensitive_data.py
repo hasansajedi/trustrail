@@ -14,10 +14,12 @@ from trustrail.rules.sensitive_data import (
     IbanRule,
     IpAddressRule,
     JwtTokenRule,
+    NamedCredentialRule,
     PassportNumberRule,
     PaymentCardRule,
     PhoneRule,
     PrivateKeyRule,
+    ProviderApiTokenRule,
     SsnRule,
 )
 
@@ -64,7 +66,9 @@ class SensitiveDataPolicy(BasePolicy):
                     AwsKeyRule(),
                     PrivateKeyRule(),
                     DatabaseUrlRule(),
+                    NamedCredentialRule(),
                     HighEntropySecretRule(),
+                    ProviderApiTokenRule(),
                 ]
             )
 

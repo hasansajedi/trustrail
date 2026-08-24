@@ -25,13 +25,14 @@ class EmailRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.MEDIUM
     default_action: ClassVar[GuardAction] = GuardAction.REDACT
     description: ClassVar[str] = "Detects email addresses."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def __init__(self, enabled: bool = True, redact_placeholder: str = "[EMAIL]") -> None:
         super().__init__(enabled=enabled)
         self.redact_placeholder = redact_placeholder
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _EMAIL_RE.search(text)
         if m:
             # Redact all occurrences
@@ -41,7 +42,6 @@ class EmailRule(BaseRule):
                 offset_start=m.start(),
                 offset_end=m.end(),
             )
-            finding.redacted_value = redacted
             return GuardDecision(
                 action=GuardAction.REDACT,
                 finding=finding,
@@ -84,13 +84,14 @@ class PhoneRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.MEDIUM
     default_action: ClassVar[GuardAction] = GuardAction.REDACT
     description: ClassVar[str] = "Detects phone numbers in various international formats."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def __init__(self, enabled: bool = True, redact_placeholder: str = "[PHONE]") -> None:
         super().__init__(enabled=enabled)
         self.redact_placeholder = redact_placeholder
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _PHONE_RE.search(text)
         if m:
             redacted = _PHONE_RE.sub(self.redact_placeholder, text)
@@ -99,7 +100,6 @@ class PhoneRule(BaseRule):
                 offset_start=m.start(),
                 offset_end=m.end(),
             )
-            finding.redacted_value = redacted
             return GuardDecision(
                 action=GuardAction.REDACT,
                 finding=finding,
@@ -135,16 +135,22 @@ class IpAddressRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.LOW
     default_action: ClassVar[GuardAction] = GuardAction.WARN
     description: ClassVar[str] = "Detects IPv4 addresses."
+    owasp: ClassVar[list[str]] = ["LLM02:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        text = value[:50_000]
+        text = value
         m = _IPV4_RE.search(text)
         if m:
-            return self._block(
+            finding = self._finding(
                 "IP address detected",
                 severity=Severity.LOW,
-                action=GuardAction.WARN,
                 offset_start=m.start(),
                 offset_end=m.end(),
+            )
+            return GuardDecision(
+                action=GuardAction.WARN,
+                finding=finding,
+                transformed_value=_IPV4_RE.sub("[IP_ADDRESS]", text),
+                rule_id=self.rule_id,
             )
         return self._allow()

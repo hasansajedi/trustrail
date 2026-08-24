@@ -1,0 +1,37 @@
+[
+  {
+    "name": "github-token",
+    "text_parts": ["credential=gh", "p_", "A1b2C3d4E5f6G7h8I9j0K1l2"],
+    "expected_action": "block"
+  },
+  {
+    "name": "slack-token",
+    "text_parts": ["xo", "xb-", "123456789012-", "abcdefghijklmnopqrstuvwx"],
+    "expected_action": "block"
+  },
+  {
+    "name": "contextual-api-key-spacing-bypass",
+    "text": "Api-Key : 'AbCDef0123456789xyZ_9876543210'",
+    "expected_action": "block"
+  },
+  {
+    "name": "mixed-case-bearer-bypass",
+    "text": "bEaReR AbCDef0123456789xyZ_9876543210",
+    "expected_action": "block"
+  },
+  {
+    "name": "low-entropy-password-assignment",
+    "text": "password = 'correct-horse'",
+    "expected_action": "block"
+  },
+  {
+    "name": "short-documentation-placeholder",
+    "text": "Set the token to ghp_example in local documentation.",
+    "expected_action": "allow"
+  },
+  {
+    "name": "ordinary-identifier",
+    "text": "The build identifier is sk-demo and is not a credential.",
+    "expected_action": "allow"
+  }
+]

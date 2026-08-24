@@ -47,7 +47,7 @@ class AegisRailObserver:
         except GuardrailBlockedError:
             raise
         except Exception as exc:
-            logger.warning(f"trustrail query check error: {exc}")
+            logger.warning("trustrail query check error: %s", type(exc).__name__)
             return query
 
     def on_retrieve(self, nodes: list[Any], **kwargs: Any) -> list[Any]:
@@ -61,14 +61,36 @@ class AegisRailObserver:
             try:
                 result = self.guard.check(text, GuardStage.RAG_DOCUMENT)
                 if not result.is_blocked:
-                    safe_nodes.append(node)
+                    safe_text = result.output_value
+                    if safe_text == text or self._replace_node_text(node, safe_text):
+                        safe_nodes.append(node)
+                    else:
+                        logger.warning(
+                            "RAG document dropped because redacted content could not be applied"
+                        )
                 else:
-                    msg = result.findings[0].message if result.findings else "unknown"
-                    logger.warning(f"RAG document blocked: {msg}")
+                    rule_ids = [finding.rule_id for finding in result.findings]
+                    logger.warning("RAG document blocked by rules: %s", rule_ids)
             except Exception as exc:
-                logger.warning(f"trustrail retrieve check error: {exc}")
+                logger.warning("trustrail retrieve check error: %s", type(exc).__name__)
                 safe_nodes.append(node)
         return safe_nodes
+
+    @staticmethod
+    def _replace_node_text(node: Any, safe_text: str) -> bool:
+        """Apply redacted text through common LlamaIndex node interfaces."""
+        setter = getattr(node, "set_content", None)
+        if callable(setter):
+            setter(safe_text)
+            return True
+        for attribute in ("text", "content"):
+            if hasattr(node, attribute):
+                try:
+                    setattr(node, attribute, safe_text)
+                except (AttributeError, TypeError, ValueError):
+                    continue
+                return True
+        return False
 
     def on_llm_response(self, response: str, **kwargs: Any) -> str:
         """Check LLM response before returning."""
@@ -84,5 +106,5 @@ class AegisRailObserver:
         except GuardrailBlockedError:
             raise
         except Exception as exc:
-            logger.warning(f"trustrail response check error: {exc}")
+            logger.warning("trustrail response check error: %s", type(exc).__name__)
             return response
