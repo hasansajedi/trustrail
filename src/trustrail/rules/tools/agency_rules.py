@@ -1,4 +1,4 @@
-"""Excessive agency detection rules — OWASP LLM08."""
+"""Excessive agency detection rules — OWASP LLM06:2025."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ class AgentStepLimitRule(BaseRule):
     description: ClassVar[str] = (
         "Blocks agent execution when the number of sequential steps exceeds the limit."
     )
-    owasp: ClassVar[list[str]] = ["LLM08"]
+    owasp: ClassVar[list[str]] = ["LLM06:2025"]
 
     def __init__(self, max_steps: int = 25, enabled: bool = True) -> None:
         super().__init__(enabled=enabled)
@@ -64,7 +64,7 @@ class ToolCallFrequencyRule(BaseRule):
     description: ClassVar[str] = (
         "Rate-limits tool invocations per session to prevent runaway agent loops."
     )
-    owasp: ClassVar[list[str]] = ["LLM08"]
+    owasp: ClassVar[list[str]] = ["LLM06:2025"]
 
     def __init__(
         self,
@@ -118,7 +118,7 @@ class RecursionDepthRule(BaseRule):
     description: ClassVar[str] = (
         "Blocks execution when agent recursion depth exceeds the configured limit."
     )
-    owasp: ClassVar[list[str]] = ["LLM08"]
+    owasp: ClassVar[list[str]] = ["LLM06:2025"]
 
     def __init__(self, max_depth: int = 10, enabled: bool = True) -> None:
         super().__init__(enabled=enabled)
@@ -177,7 +177,7 @@ class DestructiveToolCallRule(BaseRule):
     description: ClassVar[str] = (
         "Blocks tool calls with destructive or irreversible effects (drop, delete, rm -rf)."
     )
-    owasp: ClassVar[list[str]] = ["LLM06"]
+    owasp: ClassVar[list[str]] = ["LLM06:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         tool_name: str = str(context.metadata.get("tool_name", value))
@@ -243,7 +243,7 @@ class PrivilegeEscalationRule(BaseRule):
     Inspects ``tool_name`` and string values in ``tool_args`` from
     ``context.metadata`` for privilege-escalation indicators: sudo/su calls,
     chmod/chown to root, and attempts to assign admin/root roles. Covers
-    OWASP LLM08 (Excessive Agency) and LLM06.
+    OWASP LLM06:2025 (Excessive Agency).
     """
 
     rule_id: ClassVar[str] = "EA-005"
@@ -255,7 +255,7 @@ class PrivilegeEscalationRule(BaseRule):
     description: ClassVar[str] = (
         "Detects privilege escalation attempts in tool calls (sudo, chmod root, role elevation)."
     )
-    owasp: ClassVar[list[str]] = ["LLM06", "LLM08"]
+    owasp: ClassVar[list[str]] = ["LLM06:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         tool_name: str = str(context.metadata.get("tool_name", value))

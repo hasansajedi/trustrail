@@ -33,9 +33,12 @@ async with guard.agent_session(
 Call `enter_recursion()` and `exit_recursion()` around nested agent execution.
 Treat `GuardrailBlockedError` from a budget limit as terminal for that session.
 
-Keep authorization outside the model: allowlist tools per user, validate typed
-arguments, require approval for high-impact operations, use least-privilege
-credentials, and make write operations idempotent where possible.
+Keep authorization outside the model. Use `ToolAuthorizer` immediately before
+execution to enforce the exact tool/version, typed arguments, user and tenant,
+intent, resource ownership, scopes, approvals, and chain/retry/parallel/autonomy
+limits. Keep its `ToolExecutionBudget` for the entire session; replacing the
+budget to evade a denial is a security failure. See
+[Excessive agency](../security/excessive-agency.md).
 
 Do not expose a persistent-memory write tool directly to the model. Use
 `authorize_memory_write()` and store the returned normalized/redacted value only

@@ -48,9 +48,14 @@ result = guard.check(retrieved_text, GuardStage.EXTERNAL_CONTENT, context=contex
 Treat `WARN` as a signal for logging, review, or an application-specific
 confirmation step. Never silently turn `BLOCK` into `ALLOW` at a later stage.
 `REQUIRE_APPROVAL` is not an allowed result; use the stage-specific authorization
-workflow, such as `authorize_memory_write()`, to obtain an out-of-band decision.
+workflow, such as `authorize_memory_write()` or a bound `ToolApprovalGrant`, to
+obtain an out-of-band decision.
 
 For model output, stage selection describes the source but does not describe the
 destination. After an allowed `LLM_RESPONSE` or `FINAL_OUTPUT` result, use
 `SafeOutputHandler` with an explicit `OutputContext` before rendering, querying,
 executing, opening a path, parsing structured data, or planning a tool call.
+
+At `TOOL_REQUEST`, content policy is defense-in-depth only. Run the typed
+`ToolAuthorizer` with application-owned principal, intent, resource ownership,
+scope, approval, and execution-budget state before invoking the downstream tool.

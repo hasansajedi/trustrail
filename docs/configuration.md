@@ -85,6 +85,53 @@ Validate with CLI:
 trustrail validate-config guardrails.yaml
 ```
 
+## Least-privilege tool authorization policy
+
+Tool authorization is configured separately from text scanning because it must
+run with authenticated application state immediately before execution:
+
+```python
+from trustrail import (
+    ToolArgumentConstraint,
+    ToolArgumentKind,
+    ToolAuthorizationPolicy,
+    ToolCapability,
+    ToolEffect,
+)
+
+tool_policy = ToolAuthorizationPolicy(
+    capabilities=(
+        ToolCapability(
+            name="documents.read",
+            version="2026-08-01",
+            effects=frozenset({ToolEffect.READ}),
+            required_scopes=frozenset({"documents:read"}),
+            arguments={
+                "document_id": ToolArgumentConstraint(
+                    kind=ToolArgumentKind.STRING,
+                    pattern=r"doc-[a-z0-9]{8}",
+                )
+            },
+            required_arguments=frozenset({"document_id"}),
+            resource_id_argument="document_id",
+            require_owned_resource=True,
+            allow_autonomous=True,
+        ),
+    ),
+    max_tool_calls=20,
+    max_chain_actions=5,
+    max_retries_per_operation=1,
+    max_parallel_calls=2,
+    max_autonomous_actions=5,
+)
+```
+
+Capabilities default to denying autonomous use and cannot delegate any scope
+unless explicitly configured. Delete, external-communication, and
+permission-change effects require authenticated approval by default. See
+[Excessive agency](security/excessive-agency.md) for request construction,
+approval handling, and security assumptions.
+
 ## Destination-aware output policy
 
 `OutputHandlingPolicy` is separate from `GuardConfig` because it describes where
