@@ -59,3 +59,9 @@ executing, opening a path, parsing structured data, or planning a tool call.
 At `TOOL_REQUEST`, content policy is defense-in-depth only. Run the typed
 `ToolAuthorizer` with application-owned principal, intent, resource ownership,
 scope, approval, and execution-budget state before invoking the downstream tool.
+
+At `SYSTEM_PROMPT`, the stage policy detects sensitive text but does not control
+template interpolation or retain an output reference. Construct prompts with
+`SystemPromptValidator`, send only `ValidatedSystemPrompt.content`, and run
+`SystemPromptLeakageDetector` against model output before delivery. See
+[system prompt leakage](security/system-prompt-leakage.md).

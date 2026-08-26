@@ -1,4 +1,4 @@
-"""Model theft and extraction detection rules — OWASP LLM10."""
+"""Model and system-prompt extraction detection rules."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from typing import ClassVar
 
 from trustrail.models.core import GuardContext, GuardDecision
 from trustrail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
+from trustrail.normalization import TextNormalizer
 from trustrail.rules.base import BaseRule, registry
 
 # Vocabulary associated with model extraction / reverse-engineering attacks
@@ -44,8 +45,15 @@ _SYSTEM_PROMPT_EXTRACT_RE = re.compile(
     r"""
     \b(?:
         # Direct requests
-        (?:(?:what|tell\s+me)\s+(?:is|are)\s+)?
-        (?:your\s+)?system\s+prompt|
+        (?:(?:what\s+(?:is|are)|tell\s+me|show\s+me|reveal|display|provide|disclose)\s+
+        (?:your|the)\s+(?:exact\s+|full\s+|complete\s+)?
+        (?:system\s+prompt|developer\s+message|hidden\s+(?:system\s+)?instructions?))|
+
+        # Explicit reproduction requests
+        (?:(?:repeat|print|output|copy|echo)\s+(?:your\s+|the\s+)?
+        (?:exact\s+|full\s+|complete\s+)?
+        (?:system\s+prompt|developer\s+message|hidden\s+(?:system\s+)?instructions?)
+        (?:\s+verbatim)?)|
 
         # "repeat everything above / below"
         (?:repeat|print|output|copy|echo)\s+
@@ -70,6 +78,55 @@ _SYSTEM_PROMPT_EXTRACT_RE = re.compile(
     """,
     re.IGNORECASE | re.VERBOSE,
 )
+
+_SYSTEM_PROMPT_PARTIAL_RE = re.compile(
+    r"""
+    \b(?:
+        (?:(?:give|show|print|output|reveal|repeat)\s+)?
+        (?:the\s+)?(?:first|last|next)\s+(?:\d+|few|several)\s+
+        (?:characters?|tokens?|words?|lines?|sentences?)\s+(?:of|from)\s+
+        (?:your\s+|the\s+)?
+        (?:system\s+prompt|developer\s+message|hidden\s+(?:system\s+)?instructions?)|
+
+        (?:reveal|repeat|output|provide)\s+(?:your\s+|the\s+)?
+        (?:system\s+prompt|developer\s+message|hidden\s+(?:system\s+)?instructions?)\s+
+        (?:one|a)\s+(?:character|token|word|line|sentence|chunk)\s+at\s+a\s+time|
+
+        (?:split|divide|break)\s+(?:your\s+|the\s+)?
+        (?:system\s+prompt|developer\s+message|hidden\s+(?:system\s+)?instructions?)\s+
+        into\s+(?:small\s+)?(?:parts?|chunks?|pieces?)|
+
+        (?:give|output|print|reveal)\s+(?:every|each)\s+
+        (?:other|second|third|nth|\d+(?:st|nd|rd|th))\s+
+        (?:character|token|word|line)\s+(?:of|from)\s+(?:your\s+|the\s+)?
+        (?:system\s+prompt|developer\s+message|hidden\s+(?:system\s+)?instructions?)
+    )\b
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+_SYSTEM_PROMPT_RECONSTRUCTION_RE = re.compile(
+    r"""
+    \b(?:
+        (?:reconstruct|recover|infer|derive|piece\s+together)\s+
+        (?:your\s+|the\s+)?(?:original\s+|initial\s+|hidden\s+)?
+        (?:system\s+prompt|developer\s+message|instructions?|preamble)
+        (?:\s+from\s+(?:the\s+)?(?:context|conversation|clues|fragments?|responses?))?|
+
+        (?:paraphrase|summarize|translate|encode|transform|rewrite)\s+
+        (?:your\s+|the\s+)?
+        (?:system\s+prompt|developer\s+message|hidden\s+(?:system\s+)?instructions?)|
+
+        (?:describe|list|enumerate)\s+(?:all\s+)?(?:your\s+|the\s+)?
+        (?:hidden\s+|internal\s+|system\s+)?
+        (?:rules?|constraints?|instructions?|directives?)\s+
+        (?:without\s+quoting|in\s+your\s+own\s+words|one\s+by\s+one|individually)
+    )\b
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+_prompt_normalizer = TextNormalizer()
 
 
 @registry.register
@@ -108,8 +165,9 @@ class ModelExtractionProbeRule(BaseRule):
 class SystemPromptExtractionRule(BaseRule):
     """Detects attempts to reveal or extract the system prompt / instructions.
 
-    Exposing system prompts can leak business logic, safety constraints,
-    and proprietary instructions that constitute intellectual property.
+    Prompt wording is not a security boundary, but extraction attempts can expose
+    sensitive data that was incorrectly embedded in a prompt and facilitate
+    attacks on independently enforced controls.
     """
 
     rule_id: ClassVar[str] = "MT-002"
@@ -121,18 +179,36 @@ class SystemPromptExtractionRule(BaseRule):
     description: ClassVar[str] = (
         "Detects attempts to extract or reveal the system prompt or internal instructions."
     )
-    owasp: ClassVar[list[str]] = ["LLM10"]
+    owasp: ClassVar[list[str]] = ["LLM07:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        match = _SYSTEM_PROMPT_EXTRACT_RE.search(value)
-        if match:
-            return self._block(
-                "System prompt extraction attempt detected",
-                severity=Severity.HIGH,
-                offset_start=match.start(),
-                offset_end=match.end(),
-                match_length=len(match.group(0)),
-            )
+        text = value[:20_000]
+        normalized = _prompt_normalizer.normalize(text).normalized
+        variants: list[tuple[str, bool]] = [(text, False)]
+        if normalized != text:
+            variants.append((normalized, True))
+        for decoded in _prompt_normalizer.extract_base64_payloads(text)[:16]:
+            variants.append((_prompt_normalizer.normalize(decoded).normalized, True))
+
+        patterns = (
+            ("direct", _SYSTEM_PROMPT_EXTRACT_RE),
+            ("partial", _SYSTEM_PROMPT_PARTIAL_RE),
+            ("reconstruction", _SYSTEM_PROMPT_RECONSTRUCTION_RE),
+        )
+        for candidate, obfuscated in variants:
+            for attack_type, pattern in patterns:
+                match = pattern.search(candidate)
+                if match is None:
+                    continue
+                return self._block(
+                    "System prompt extraction attempt detected",
+                    severity=Severity.HIGH,
+                    offset_start=None if obfuscated else match.start(),
+                    offset_end=None if obfuscated else match.end(),
+                    match_length=len(match.group(0)),
+                    attack_type=attack_type,
+                    obfuscated=obfuscated,
+                )
         return self._allow()
 
 
@@ -177,7 +253,7 @@ class SystemPromptVerbatimEchoRule(BaseRule):
     Flags output that starts reproducing the system prompt text, wraps it in
     ``<system>`` tags, or explicitly announces it is about to repeat the prompt.
     Applies primarily to LLM_RESPONSE, FINAL_OUTPUT, and STREAM stages.
-    Covers OWASP LLM07 (System Prompt Leakage).
+    Covers OWASP LLM07:2025 (System Prompt Leakage).
     """
 
     rule_id: ClassVar[str] = "SP-001"
@@ -189,7 +265,7 @@ class SystemPromptVerbatimEchoRule(BaseRule):
     description: ClassVar[str] = (
         "Detects LLM output that verbatim echoes or discloses the system prompt."
     )
-    owasp: ClassVar[list[str]] = ["LLM07"]
+    owasp: ClassVar[list[str]] = ["LLM07:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         text = value[:20_000]

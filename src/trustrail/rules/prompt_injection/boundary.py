@@ -14,6 +14,7 @@ from trustrail.rules.prompt_injection.direct import (
     JailbreakRule,
     SystemOverrideRule,
 )
+from trustrail.rules.prompt_injection.extraction_rules import SystemPromptExtractionRule
 from trustrail.rules.prompt_injection.indirect import (
     EncodingObfuscationRule,
     IndirectInjectionRule,
@@ -49,6 +50,7 @@ class CrossBoundaryInjectionRule(BaseRule):
             ToolManipulationRule(),
             EncodingObfuscationRule(),
             MultilingualInjectionRule(),
+            SystemPromptExtractionRule(),
         )
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:

@@ -80,6 +80,39 @@ human approval gate.
 checked on each side of a source boundary. Lower it for tightly bounded latency;
 raise it only after testing representative workloads and bypass cases.
 
+## System prompt policy
+
+System-prompt construction and output comparison use typed policies rather than
+`GuardConfig` because they require application-owned templates and references:
+
+```python
+from trustrail import (
+    SystemPromptLeakageDetector,
+    SystemPromptLeakagePolicy,
+    SystemPromptPolicy,
+    SystemPromptValidator,
+)
+
+prompt_validator = SystemPromptValidator(
+    SystemPromptPolicy(max_prompt_chars=16_000)
+)
+leakage_detector = SystemPromptLeakageDetector(
+    SystemPromptLeakagePolicy(
+        min_fragment_chars=32,
+        fragment_words=8,
+        max_fragments_per_prompt=512,
+        detect_encoded_output=True,
+        detect_structured_echo=True,
+    )
+)
+```
+
+The construction policy rejects personal, internal, security, authorization,
+credential, and secret classifications by default. Keep those defaults unless a
+documented risk decision demonstrates that the value is safe to expose; changing
+a classification does not make prompt content confidential. See
+[system prompt leakage](security/system-prompt-leakage.md).
+
 Validate with CLI:
 ```bash
 trustrail validate-config guardrails.yaml

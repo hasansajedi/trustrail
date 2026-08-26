@@ -9,6 +9,10 @@ if TYPE_CHECKING:
     from trustrail.models.output_handling import OutputHandlingResult
     from trustrail.models.poisoning import DataPoisoningResult
     from trustrail.models.supply_chain import ArtifactVerificationResult
+    from trustrail.models.system_prompt import (
+        SystemPromptLeakageResult,
+        SystemPromptValidationResult,
+    )
 
 from trustrail.models.enums import GuardStage, Severity
 
@@ -76,6 +80,22 @@ class ToolAuthorizationError(AegisRailError):
 
     def __init__(self, result: ToolAuthorizationResult) -> None:
         super().__init__("Tool invocation was not authorized")
+        self.result = result
+
+
+class SystemPromptValidationError(AegisRailError):
+    """Raised when sensitive or security-critical data enters a system prompt."""
+
+    def __init__(self, result: SystemPromptValidationResult) -> None:
+        super().__init__("System prompt failed validation")
+        self.result = result
+
+
+class SystemPromptLeakageError(AegisRailError):
+    """Raised when generated output reproduces protected prompt material."""
+
+    def __init__(self, result: SystemPromptLeakageResult) -> None:
+        super().__init__("Generated output may disclose a system prompt")
         self.result = result
 
 

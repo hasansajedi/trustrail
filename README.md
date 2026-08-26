@@ -31,6 +31,7 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 - **AI Supply-Chain Verification** — Pin provenance, revisions, and cryptographic artifact digests
 - **Data Poisoning Controls** — Quarantine unauthorized, changed, or anomalous AI data and models
 - **Least-Privilege Tool Authorization** — Bind exact tools and arguments to identity, intent, ownership, scopes, approval, and execution budgets
+- **System Prompt Leakage Controls** — Validate classified prompt construction and block extraction attempts and generated prompt fragments
 - **Resource Limits** — Cap input length, token counts, and message depth
 - **Agent Session Tracking** — Monitor step counts, tool usage, and recursion depth
 - **Streaming Support** — Real-time cross-chunk pattern detection
@@ -123,6 +124,7 @@ trustrail is designed with security-first principles:
 - No eval/exec/pickle
 - Bounded regex processing (no ReDoS)
 - Privacy-preserving audit logs (metadata only, no content)
+- System-prompt values excluded from normal serialization and findings
 - Pre-compiled regex patterns
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting.

@@ -64,6 +64,21 @@ from trustrail.models.supply_chain import (
     ArtifactVerificationResult,
     DigestAlgorithm,
 )
+from trustrail.models.system_prompt import (
+    SystemPromptDataClass,
+    SystemPromptLeakageCode,
+    SystemPromptLeakageFinding,
+    SystemPromptLeakagePolicy,
+    SystemPromptLeakageResult,
+    SystemPromptPolicy,
+    SystemPromptReference,
+    SystemPromptTemplate,
+    SystemPromptValidationCode,
+    SystemPromptValidationFinding,
+    SystemPromptValidationResult,
+    SystemPromptVariable,
+    ValidatedSystemPrompt,
+)
 
 __all__ = [
     "ArtifactDigest",
@@ -119,7 +134,20 @@ __all__ = [
     "RulePhase",
     "SensitiveDataMode",
     "Severity",
+    "SystemPromptDataClass",
+    "SystemPromptLeakageCode",
+    "SystemPromptLeakageFinding",
+    "SystemPromptLeakagePolicy",
+    "SystemPromptLeakageResult",
+    "SystemPromptPolicy",
+    "SystemPromptReference",
+    "SystemPromptTemplate",
+    "SystemPromptValidationCode",
+    "SystemPromptValidationFinding",
+    "SystemPromptValidationResult",
+    "SystemPromptVariable",
     "ToolCall",
     "ToolResult",
     "TrustLevel",
+    "ValidatedSystemPrompt",
 ]
