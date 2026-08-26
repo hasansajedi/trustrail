@@ -65,3 +65,9 @@ template interpolation or retain an output reference. Construct prompts with
 `SystemPromptValidator`, send only `ValidatedSystemPrompt.content`, and run
 `SystemPromptLeakageDetector` against model output before delivery. See
 [system prompt leakage](security/system-prompt-leakage.md).
+
+RAG text policy does not authorize the vector query or trust similarity metadata.
+Before `build_rag_context`, use `SecureVectorWorkflow` with an authenticated
+principal, authoritative document/resource grants, approved indexes and
+embedding models, and a protected index-entry catalog. See
+[vector and embedding security](security/vector-embedding-security.md).

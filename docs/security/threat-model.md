@@ -61,6 +61,23 @@ memory. Semantic paraphrase, novel encodings, multi-turn reconstruction,
 provider logging, compromised dependencies, and side channels remain residual
 risks. See [system prompt leakage](system-prompt-leakage.md).
 
+### Vector and Embedding Weaknesses (OWASP LLM08:2025)
+- Cross-user or cross-tenant retrieval caused by missing or attacker-controlled
+  metadata filters
+- Documents and resources outside the authenticated request's authorization
+  grants entering model context
+- Loss or mutation of source, trust, access, embedding-model, index, or namespace
+  lineage across chunking, embedding, indexing, and retrieval
+- Changed retrieved content, unknown index entries, embedding-dimension
+  substitution, inflated similarity, rank manipulation, and duplicate poisoning
+- Indirect instructions and poisoned content in otherwise authorized chunks
+- Accidental disclosure of embedding vectors through results, logs, or exceptions
+
+Physical database isolation, embedding inversion resistance, semantic poisoning,
+provider-specific distance calculations, and corpus-wide behavior monitoring
+remain application and infrastructure responsibilities. See
+[vector and embedding security](vector-embedding-security.md).
+
 ### Overreliance (OWASP LLM09)
 - Hallucination detection (via grounding verifier)
 

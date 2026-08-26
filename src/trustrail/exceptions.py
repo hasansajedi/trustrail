@@ -13,6 +13,7 @@ if TYPE_CHECKING:
         SystemPromptLeakageResult,
         SystemPromptValidationResult,
     )
+    from trustrail.models.vector import VectorVerificationResult
 
 from trustrail.models.enums import GuardStage, Severity
 
@@ -96,6 +97,14 @@ class SystemPromptLeakageError(AegisRailError):
 
     def __init__(self, result: SystemPromptLeakageResult) -> None:
         super().__init__("Generated output may disclose a system prompt")
+        self.result = result
+
+
+class VectorVerificationError(AegisRailError):
+    """Raised when retrieved vector content fails authorization or integrity checks."""
+
+    def __init__(self, result: VectorVerificationResult) -> None:
+        super().__init__("Vector retrieval failed security verification")
         self.result = result
 
 

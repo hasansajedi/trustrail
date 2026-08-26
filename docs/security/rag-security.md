@@ -37,6 +37,13 @@ source, writer, tenant, purpose, version, digest, transformation, and anomaly
 policy. `Guard.check_document()` remains the runtime text scan; neither control
 replaces the other. See [Data and model poisoning](data-model-poisoning.md).
 
+For embedding-based retrieval, run `SecureVectorWorkflow` between the vector
+store and `build_rag_context`. It verifies each result against an authoritative
+chunk-to-embedding-to-index catalog, applies exact tenant/user/scope/document/
+resource authorization, recomputes similarity, and rejects rank or duplicate
+manipulation before scanning content. See
+[vector and embedding security](vector-embedding-security.md).
+
 ## Structured context boundary
 
 Do not join retrieved strings directly. `build_rag_context` scans every document,
