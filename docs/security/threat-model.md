@@ -46,6 +46,21 @@
 - Excessive chained actions, retries, parallel calls, or autonomous execution
 - Unlimited tool calls and runaway agent loops
 
+### System Prompt Leakage (OWASP LLM07:2025)
+- Secrets, credentials, personal data, security configuration, or authorization
+  logic embedded in a system prompt
+- Direct, indirect, encoded, partial, reconstruction, and cross-boundary prompt
+  extraction attempts
+- Structured, normalized verbatim, partial, or Base64-encoded prompt fragments in
+  generated output
+- Accidental prompt retention in serialized validation results, references,
+  findings, and exceptions
+
+System prompts remain visible to the model provider and present in application
+memory. Semantic paraphrase, novel encodings, multi-turn reconstruction,
+provider logging, compromised dependencies, and side channels remain residual
+risks. See [system prompt leakage](system-prompt-leakage.md).
+
 ### Overreliance (OWASP LLM09)
 - Hallucination detection (via grounding verifier)
 

@@ -24,6 +24,8 @@ from trustrail.exceptions import (
     ProviderError,
     RateLimitError,
     ResourceLimitError,
+    SystemPromptLeakageError,
+    SystemPromptValidationError,
     ToolAuthorizationError,
 )
 from trustrail.guard import Guard
@@ -107,6 +109,21 @@ from trustrail.models.supply_chain import (
     ArtifactVerificationResult,
     DigestAlgorithm,
 )
+from trustrail.models.system_prompt import (
+    SystemPromptDataClass,
+    SystemPromptLeakageCode,
+    SystemPromptLeakageFinding,
+    SystemPromptLeakagePolicy,
+    SystemPromptLeakageResult,
+    SystemPromptPolicy,
+    SystemPromptReference,
+    SystemPromptTemplate,
+    SystemPromptValidationCode,
+    SystemPromptValidationFinding,
+    SystemPromptValidationResult,
+    SystemPromptVariable,
+    ValidatedSystemPrompt,
+)
 from trustrail.output_handling import SafeOutputHandler, ValidatedToolCall
 from trustrail.poisoning import DataPoisoningVerifier, PoisoningDetector
 from trustrail.protocols import (
@@ -123,6 +140,7 @@ from trustrail.protocols import (
     ToolApprovalVerifier,
 )
 from trustrail.supply_chain import ArtifactVerifier
+from trustrail.system_prompt import SystemPromptLeakageDetector, SystemPromptValidator
 
 try:
     __version__ = version("trustrail")
@@ -218,6 +236,22 @@ __all__ = [
     "Severity",
     "StateBackend",
     "StaticToolApprovalVerifier",
+    "SystemPromptDataClass",
+    "SystemPromptLeakageCode",
+    "SystemPromptLeakageDetector",
+    "SystemPromptLeakageError",
+    "SystemPromptLeakageFinding",
+    "SystemPromptLeakagePolicy",
+    "SystemPromptLeakageResult",
+    "SystemPromptPolicy",
+    "SystemPromptReference",
+    "SystemPromptTemplate",
+    "SystemPromptValidationCode",
+    "SystemPromptValidationError",
+    "SystemPromptValidationFinding",
+    "SystemPromptValidationResult",
+    "SystemPromptValidator",
+    "SystemPromptVariable",
     "TokenCounter",
     "ToolApprovalGrant",
     "ToolApprovalVerifier",
@@ -239,6 +273,7 @@ __all__ = [
     "ToolResource",
     "ToolResult",
     "TrustLevel",
+    "ValidatedSystemPrompt",
     "ValidatedToolCall",
     # Version
     "__version__",

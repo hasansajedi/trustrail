@@ -99,6 +99,7 @@ nav:
       - Persistent memory: security/memory-security.md
       - Data and model poisoning: security/data-model-poisoning.md
       - Excessive agency: security/excessive-agency.md
+      - System prompt leakage: security/system-prompt-leakage.md
       - Resource consumption: security/resource-consumption.md
       - Supply chain: security/supply-chain.md
       - OWASP mapping: owasp-mapping.md

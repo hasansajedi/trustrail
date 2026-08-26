@@ -89,3 +89,22 @@ checks that evidence against trusted source policy and emits content-free result
 ::: trustrail.poisoning.DataPoisoningVerifier
     options:
       members: true
+
+## System prompt leakage
+
+`SystemPromptTemplate` requires explicit data classification before rendering.
+`SystemPromptValidator` rejects sensitive values and authorization logic before
+provider submission. `SystemPromptReference` keeps the submitted prompt available
+for bounded output comparison without including it in normal serialization.
+
+::: trustrail.models.system_prompt
+    options:
+      members: true
+
+::: trustrail.system_prompt.SystemPromptValidator
+    options:
+      members: true
+
+::: trustrail.system_prompt.SystemPromptLeakageDetector
+    options:
+      members: true
