@@ -80,6 +80,46 @@ human approval gate.
 checked on each side of a source boundary. Lower it for tightly bounded latency;
 raise it only after testing representative workloads and bypass cases.
 
+## Resource consumption policy
+
+Model and agent budgets use a typed policy because authenticated identities,
+exact tokenizer counts, operation IDs, and concurrency state are not text-rule
+configuration:
+
+```python
+from trustrail import ConsumptionBudgetPolicy, ResourceBudgetManager
+
+resource_manager = ResourceBudgetManager(
+    ConsumptionBudgetPolicy(
+        max_input_chars=100_000,
+        max_input_bytes=400_000,
+        max_input_tokens=8_192,
+        max_output_chars=100_000,
+        max_output_bytes=400_000,
+        max_output_tokens=4_096,
+        max_nesting_depth=100,
+        max_compressed_bytes=10_000_000,
+        max_decompressed_bytes=50_000_000,
+        max_decompression_ratio=100,
+        max_concurrent_operations_per_principal=2,
+        max_concurrent_operations_per_tenant=20,
+        max_retries_per_operation=2,
+        max_tool_actions_per_session=100,
+        max_session_duration_seconds=300,
+        max_session_tokens=100_000,
+        request_window_seconds=60,
+        max_requests_per_principal_window=60,
+        max_requests_per_tenant_window=600,
+        lease_timeout_seconds=30,
+    )
+)
+```
+
+Use the same manager for all requests in one process. Distributed deployments
+must repeat these checks in an atomic shared gateway or budget service. See
+[bounded resource consumption](security/resource-consumption.md) for the full
+reservation, completion, decompression, audit, and cancellation flow.
+
 ## System prompt policy
 
 System-prompt construction and output comparison use typed policies rather than

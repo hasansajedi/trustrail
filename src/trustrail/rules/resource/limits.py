@@ -23,6 +23,7 @@ class InputLengthRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.MEDIUM
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Enforces maximum input character length."
+    owasp: ClassVar[list[str]] = ["LLM10:2025"]
 
     def __init__(
         self,
@@ -71,6 +72,7 @@ class TokenEstimateRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.MEDIUM
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Estimates token count and enforces a maximum."
+    owasp: ClassVar[list[str]] = ["LLM10:2025"]
 
     # Approx chars per token for most models
     _CHARS_PER_TOKEN: ClassVar[float] = 4.0
@@ -112,6 +114,7 @@ class MessageCountRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.MEDIUM
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Enforces a maximum conversation message count."
+    owasp: ClassVar[list[str]] = ["LLM10:2025"]
 
     def __init__(
         self,
@@ -150,7 +153,7 @@ class RepetitivePatternRule(BaseRule):
     description: ClassVar[str] = (
         "Blocks inputs with a high ratio of repeated n-grams (token-bomb detection)."
     )
-    owasp: ClassVar[list[str]] = ["LLM04"]
+    owasp: ClassVar[list[str]] = ["LLM10:2025"]
 
     def __init__(
         self,
@@ -209,7 +212,7 @@ class CumulativeTokenBudgetRule(BaseRule):
     description: ClassVar[str] = (
         "Blocks when cumulative estimated tokens for a session exceed the budget."
     )
-    owasp: ClassVar[list[str]] = ["LLM04"]
+    owasp: ClassVar[list[str]] = ["LLM10:2025"]
 
     _CHARS_PER_TOKEN: ClassVar[float] = 4.0
 
@@ -261,7 +264,7 @@ class TokenFloodingRule(BaseRule):
     description: ClassVar[str] = (
         "Blocks token-flooding attacks: repeated chars/words and low-diversity inputs."
     )
-    owasp: ClassVar[list[str]] = ["LLM10"]
+    owasp: ClassVar[list[str]] = ["LLM10:2025"]
 
     _CHAR_RUN_RE: ClassVar[re.Pattern[str]] = re.compile(r"(.)\1{999,}")
     _WORD_RUN_RE: ClassVar[re.Pattern[str]] = re.compile(r"\b(\w+)(?:\s+\1){499,}\b", re.IGNORECASE)
@@ -339,7 +342,7 @@ class NestingDepthRule(BaseRule):
     description: ClassVar[str] = (
         "Blocks deeply nested JSON or XML payloads that could cause parser crashes."
     )
-    owasp: ClassVar[list[str]] = ["LLM04"]
+    owasp: ClassVar[list[str]] = ["LLM10:2025"]
 
     _OPEN_TAG_RE: ClassVar = re.compile(r"<(?!/)(?!--)[^>]{1,100}>")
     _CLOSE_TAG_RE: ClassVar = re.compile(r"</[^>]{1,100}>")
@@ -426,7 +429,7 @@ class RecursivePromptExpansionRule(BaseRule):
     description: ClassVar[str] = (
         "Detects recursive prompt expansion and algorithmic amplification attacks."
     )
-    owasp: ClassVar[list[str]] = ["LLM10"]
+    owasp: ClassVar[list[str]] = ["LLM10:2025"]
 
     _EXPANSION_PATTERNS: ClassVar[list[re.Pattern[str]]] = [
         re.compile(
@@ -488,7 +491,7 @@ class SessionRequestRateLimitRule(BaseRule):
     default_severity: ClassVar[Severity] = Severity.MEDIUM
     default_action: ClassVar[GuardAction] = GuardAction.BLOCK
     description: ClassVar[str] = "Rate-limits requests per session within a sliding time window."
-    owasp: ClassVar[list[str]] = ["LLM10"]
+    owasp: ClassVar[list[str]] = ["LLM10:2025"]
 
     def __init__(
         self,

@@ -24,6 +24,7 @@ from trustrail.exceptions import (
     OutputHandlingError,
     ProviderError,
     RateLimitError,
+    ResourceBudgetError,
     ResourceLimitError,
     SystemPromptLeakageError,
     SystemPromptValidationError,
@@ -116,6 +117,21 @@ from trustrail.models.prompt import (
     PromptSource,
 )
 from trustrail.models.rag import ProvenanceLabel, RAGContextEnvelope, RAGContextSegment
+from trustrail.models.resource import (
+    CompressedPayloadRequest,
+    CompressionFormat,
+    ConsumptionBudgetPolicy,
+    DecompressionResult,
+    ResourceBudgetResult,
+    ResourceCompletionRequest,
+    ResourceIdentity,
+    ResourceLease,
+    ResourceLimitCode,
+    ResourceLimitFinding,
+    ResourceOperationKind,
+    ResourceReservationRequest,
+    ResourceUsageSignal,
+)
 from trustrail.models.sensitive_data import ProtectedData
 from trustrail.models.supply_chain import (
     ArtifactDigest,
@@ -174,6 +190,7 @@ from trustrail.protocols import (
     TokenCounter,
     ToolApprovalVerifier,
 )
+from trustrail.resource import BoundedDecompressor, ResourceBudgetManager
 from trustrail.supply_chain import ArtifactVerifier
 from trustrail.system_prompt import SystemPromptLeakageDetector, SystemPromptValidator
 from trustrail.vector import SecureVectorWorkflow
@@ -205,8 +222,12 @@ __all__ = [
     "AuditSink",
     "AuthorizedToolCall",
     "AuthorizedVectorHit",
+    "BoundedDecompressor",
     "ClaimKind",
+    "CompressedPayloadRequest",
+    "CompressionFormat",
     "ConfigurationError",
+    "ConsumptionBudgetPolicy",
     "ContentSafetyProvider",
     "DataAssetKind",
     "DataIngestionRecord",
@@ -217,6 +238,7 @@ __all__ = [
     "DataProvenance",
     "DataSourcePolicy",
     "DataTransformation",
+    "DecompressionResult",
     "DigestAlgorithm",
     "Document",
     "EvidenceGroundingVerifier",
@@ -280,7 +302,18 @@ __all__ = [
     "RAGContextEnvelope",
     "RAGContextSegment",
     "RateLimitError",
+    "ResourceBudgetError",
+    "ResourceBudgetManager",
+    "ResourceBudgetResult",
+    "ResourceCompletionRequest",
+    "ResourceIdentity",
+    "ResourceLease",
+    "ResourceLimitCode",
     "ResourceLimitError",
+    "ResourceLimitFinding",
+    "ResourceOperationKind",
+    "ResourceReservationRequest",
+    "ResourceUsageSignal",
     "RiskScore",
     "RuleCategory",
     "RuleConfig",

@@ -1,0 +1,16 @@
+[
+  {"name": "bounded model operation", "mutation": "none", "expected_action": "allow", "expected_code": null},
+  {"name": "multibyte input amplification", "mutation": "input-bytes", "expected_action": "block", "expected_code": "input_bytes_exceeded"},
+  {"name": "token estimate underreports exact tokenizer", "mutation": "input-tokens", "expected_action": "block", "expected_code": "input_tokens_exceeded"},
+  {"name": "quoted brackets are not nesting", "mutation": "quoted-brackets", "expected_action": "allow", "expected_code": null},
+  {"name": "deep structure bomb", "mutation": "nesting", "expected_action": "block", "expected_code": "nesting_depth_exceeded"},
+  {"name": "concurrent operation flood", "mutation": "concurrency", "expected_action": "block", "expected_code": "principal_concurrency_exceeded"},
+  {"name": "operation retry churn", "mutation": "retries", "expected_action": "block", "expected_code": "retry_limit_exceeded"},
+  {"name": "agent tool loop", "mutation": "tool-loop", "expected_action": "block", "expected_code": "tool_loop_limit_exceeded"},
+  {"name": "cross-session low-rate principal abuse", "mutation": "principal-window", "expected_action": "block", "expected_code": "principal_rate_exceeded"},
+  {"name": "cross-principal tenant abuse", "mutation": "tenant-window", "expected_action": "block", "expected_code": "tenant_rate_exceeded"},
+  {"name": "reservation replay", "mutation": "replay", "expected_action": "block", "expected_code": "reservation_replayed"},
+  {"name": "provider ignores output token cap", "mutation": "output-tokens", "expected_action": "block", "expected_code": "output_tokens_exceeded"},
+  {"name": "gzip expansion bomb", "mutation": "compression-ratio", "expected_action": "block", "expected_code": "decompression_ratio_exceeded"},
+  {"name": "concatenated gzip bypass", "mutation": "concatenated-stream", "expected_action": "block", "expected_code": "concatenated_compressed_stream"}
+]
