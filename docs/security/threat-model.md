@@ -78,8 +78,22 @@ provider-specific distance calculations, and corpus-wide behavior monitoring
 remain application and infrastructure responsibilities. See
 [vector and embedding security](vector-embedding-security.md).
 
-### Overreliance (OWASP LLM09)
-- Hallucination detection (via grounding verifier)
+### Misinformation and Unsafe Overreliance (OWASP LLM09:2025)
+- Unsupported or contradicted generated claims reaching users or automation
+- Fabricated, unknown, or provenance-mismatched citations
+- Evidence changed after assessment or supplied below the configured trust level
+- Low-confidence output presented without uncertainty disclosure
+- Absolute or high-impact claims omitted from the assessed claim inventory
+- Medical, legal, financial, security, safety, employment, or other high-impact
+  output released without independent sources and bound human approval
+- Human approval replayed across requests or used after expiration
+
+Evidence digests establish integrity relative to captured content, not publisher
+authenticity or truth. Sources and automated assessors can be stale, biased,
+dependent, compromised, or wrong; claim extraction and keyword rules can miss
+semantic and multilingual statements; human reviewers can make mistakes or
+suffer automation bias. See
+[misinformation and unsafe overreliance](misinformation-overreliance.md).
 
 ### Denial of Service (OWASP LLM10)
 - Token bomb / large input attacks

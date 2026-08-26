@@ -11,6 +11,7 @@ trustrail provides comprehensive security guardrails for LLM applications. It pr
 - Unsafe outputs (XSS, path traversal, shell injection)
 - SSRF / dangerous URLs
 - Excessive agent agency
+- Misinformation and unsafe overreliance
 - Resource abuse
 
 ## Navigation

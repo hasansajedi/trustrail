@@ -35,6 +35,12 @@ _ABSOLUTE_CLAIM_RE = re.compile(
     re.IGNORECASE,
 )
 
+
+def contains_absolute_claim(value: str) -> bool:
+    """Return whether bounded output contains overconfident absolute language."""
+    return _ABSOLUTE_CLAIM_RE.search(value[:100_000]) is not None
+
+
 # Patterns consistent with hallucinated academic/web references
 _INVENTED_CITATION_RE = re.compile(
     r"""
@@ -56,6 +62,11 @@ _INVENTED_CITATION_RE = re.compile(
 )
 
 
+def contains_citation_candidate(value: str) -> bool:
+    """Return whether output contains a citation-like identifier to validate."""
+    return _INVENTED_CITATION_RE.search(value[:100_000]) is not None
+
+
 @registry.register
 class HallucinationIndicatorRule(BaseRule):
     """Warns when LLM output contains phrases that signal uncertain or potentially
@@ -74,7 +85,7 @@ class HallucinationIndicatorRule(BaseRule):
     description: ClassVar[str] = (
         "Detects uncertainty phrases that signal potentially hallucinated LLM output."
     )
-    owasp: ClassVar[list[str]] = ["LLM09"]
+    owasp: ClassVar[list[str]] = ["LLM09:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         for pattern in _HALLUCINATION_PHRASES:
@@ -109,7 +120,7 @@ class AbsoluteClaimRule(BaseRule):
     description: ClassVar[str] = (
         "Detects overconfident absolute claims in LLM output that could cause overreliance."
     )
-    owasp: ClassVar[list[str]] = ["LLM09"]
+    owasp: ClassVar[list[str]] = ["LLM09:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         match = _ABSOLUTE_CLAIM_RE.search(value)
@@ -143,7 +154,7 @@ class InventedCitationRule(BaseRule):
     description: ClassVar[str] = (
         "Flags citation-like patterns (DOI, arXiv, author-year) that may be hallucinated."
     )
-    owasp: ClassVar[list[str]] = ["LLM09"]
+    owasp: ClassVar[list[str]] = ["LLM09:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         match = _INVENTED_CITATION_RE.search(value)
@@ -217,6 +228,15 @@ _HIGH_RISK_RULES: list[tuple[re.Pattern[str], str]] = [
 ]
 
 
+def detect_high_risk_domain(value: str) -> str | None:
+    """Return the first heuristic high-impact advice domain in bounded output."""
+    text = value[:100_000]
+    for pattern, domain in _HIGH_RISK_RULES:
+        if pattern.search(text):
+            return domain
+    return None
+
+
 @registry.register
 class HighRiskDomainAdviceRule(BaseRule):
     """Warns when LLM output gives specific medical, legal, or financial advice
@@ -235,25 +255,22 @@ class HighRiskDomainAdviceRule(BaseRule):
     description: ClassVar[str] = (
         "Warns when LLM gives specific medical, legal, or financial advice without a disclaimer."
     )
-    owasp: ClassVar[list[str]] = ["LLM09"]
+    owasp: ClassVar[list[str]] = ["LLM09:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:  # GR-004
         text = value[:50_000]
         has_disclaimer = bool(_DISCLAIMER_RE.search(text))
         if has_disclaimer:
             return self._allow()
-        for pattern, domain in _HIGH_RISK_RULES:
-            m = pattern.search(text)
-            if m:
-                return self._block(
-                    f"High-risk {domain} advice detected without disclaimer",
-                    action=GuardAction.WARN,
-                    severity=Severity.HIGH,
-                    offset_start=m.start(),
-                    offset_end=m.end(),
-                    confidence=0.85,
-                    domain=domain,
-                )
+        domain = detect_high_risk_domain(text)
+        if domain is not None:
+            return self._block(
+                f"High-risk {domain} advice detected without disclaimer",
+                action=GuardAction.WARN,
+                severity=Severity.HIGH,
+                confidence=0.85,
+                domain=domain,
+            )
         return self._allow()
 
 
@@ -297,7 +314,7 @@ class SycophancyRule(BaseRule):
     description: ClassVar[str] = (
         "Detects sycophantic validation phrases and known false-premise agreements."
     )
-    owasp: ClassVar[list[str]] = ["LLM09"]
+    owasp: ClassVar[list[str]] = ["LLM09:2025"]
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         text = value[:50_000]

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from trustrail.models.agency import ToolAuthorizationResult
+    from trustrail.models.grounding import GroundingResult
     from trustrail.models.output_handling import OutputHandlingResult
     from trustrail.models.poisoning import DataPoisoningResult
     from trustrail.models.supply_chain import ArtifactVerificationResult
@@ -65,6 +66,14 @@ class DataPoisoningError(AegisRailError):
 
     def __init__(self, result: DataPoisoningResult) -> None:
         super().__init__("Data asset failed poisoning controls and was quarantined")
+        self.result = result
+
+
+class GroundingVerificationError(AegisRailError):
+    """Raised when claims lack support or mandatory review is incomplete."""
+
+    def __init__(self, result: GroundingResult) -> None:
+        super().__init__("Generated claims failed grounding verification")
         self.result = result
 
 

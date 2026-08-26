@@ -122,3 +122,18 @@ an authoritative catalog before RAG context assembly.
 ::: trustrail.vector.SecureVectorWorkflow
     options:
       members: true
+
+## Evidence-backed grounding
+
+Grounding models bind exact claims and citations to immutable evidence
+provenance, independent relation assessments, confidence, impact domain, and
+time-bound review. `EvidenceGroundingVerifier` returns content-free findings and
+downstream provenance signals before output delivery.
+
+::: trustrail.models.grounding
+    options:
+      members: true
+
+::: trustrail.grounding.EvidenceGroundingVerifier
+    options:
+      members: true
