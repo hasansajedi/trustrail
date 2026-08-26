@@ -141,6 +141,38 @@ duplicate, and tolerance limits for the deployed embedding model and vector
 store. See [vector and embedding security](security/vector-embedding-security.md)
 for the full request/catalog flow and residual risks.
 
+## Evidence grounding policy
+
+Grounding uses a typed policy because trusted assessors, reviewers, evidence,
+and impact classifications are application-owned state:
+
+```python
+from trustrail import EvidenceGroundingVerifier, GroundingPolicy, TrustLevel
+
+grounding_verifier = EvidenceGroundingVerifier(
+    GroundingPolicy(
+        trusted_assessor_ids=frozenset({"fact-checker-v3"}),
+        trusted_reviewer_ids=frozenset({"medical-review", "risk-review"}),
+        minimum_evidence_trust=TrustLevel.SEMI_TRUSTED,
+        max_evidence_age_seconds=2_592_000,
+        minimum_support_confidence=0.8,
+        contradiction_threshold=0.6,
+        uncertainty_disclosure_threshold=0.8,
+        minimum_high_impact_sources=2,
+        require_citations=True,
+        max_output_chars=100_000,
+        max_claims=100,
+        max_evidence_items=200,
+    )
+)
+```
+
+Assessor and reviewer allowlists are required. Tune thresholds against
+domain-specific calibration data, not a model's claimed confidence. The default
+high-impact set covers medical, legal, financial, security, safety, employment,
+and explicitly classified high-impact claims. See
+[misinformation and unsafe overreliance](security/misinformation-overreliance.md).
+
 Validate with CLI:
 ```bash
 trustrail validate-config guardrails.yaml

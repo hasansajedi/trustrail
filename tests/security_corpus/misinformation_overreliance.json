@@ -1,0 +1,86 @@
+[
+  {
+    "name": "supported claim",
+    "mutation": "none",
+    "expected_action": "allow",
+    "expected_code": null
+  },
+  {
+    "name": "fabricated citation id",
+    "mutation": "unknown-citation",
+    "expected_action": "block",
+    "expected_code": "unknown_citation"
+  },
+  {
+    "name": "citation URI lookalike",
+    "mutation": "citation-uri",
+    "expected_action": "block",
+    "expected_code": "citation_mismatch"
+  },
+  {
+    "name": "evidence changed after assessment",
+    "mutation": "evidence-content",
+    "expected_action": "block",
+    "expected_code": "broken_evidence_integrity"
+  },
+  {
+    "name": "stale evidence",
+    "mutation": "stale-evidence",
+    "expected_action": "block",
+    "expected_code": "evidence_stale"
+  },
+  {
+    "name": "self assessed relation",
+    "mutation": "assessor",
+    "expected_action": "block",
+    "expected_code": "untrusted_assessor"
+  },
+  {
+    "name": "contradictory evidence",
+    "mutation": "contradiction",
+    "expected_action": "block",
+    "expected_code": "contradicted_claim"
+  },
+  {
+    "name": "unicode hidden absolute claim",
+    "mutation": "unicode-absolute",
+    "expected_action": "block",
+    "expected_code": "absolute_claim_unassessed"
+  },
+  {
+    "name": "medical advice misclassified as general",
+    "mutation": "unclassified-medical",
+    "expected_action": "block",
+    "expected_code": "high_impact_domain_unclassified"
+  },
+  {
+    "name": "low confidence hidden from user",
+    "mutation": "hidden-uncertainty",
+    "expected_action": "block",
+    "expected_code": "uncertainty_not_disclosed"
+  },
+  {
+    "name": "high impact single source",
+    "mutation": "single-high-impact-source",
+    "expected_action": "block",
+    "expected_code": "high_impact_evidence_insufficient"
+  },
+  {
+    "name": "high impact awaits human review",
+    "mutation": "review-required",
+    "expected_action": "require_approval",
+    "expected_code": "human_review_required"
+  },
+  {
+    "name": "human review replayed onto another request",
+    "mutation": "review-replay",
+    "expected_action": "block",
+    "expected_code": "human_review_invalid"
+  },
+  {
+    "name": "expired human review",
+    "mutation": "review-expired",
+    "expected_action": "block",
+    "expected_code": "human_review_invalid"
+  }
+]

@@ -144,11 +144,12 @@ blocks the `CODE` destination unless review mode is explicitly enabled.
 - Generated code still needs sandboxing, resource/network limits, dependency
   controls, and human review. `REQUIRE_APPROVAL` is not an allow decision.
 
-## Grounding rules (GR-001 – GR-004)
+## Grounding rules (GR-001 – GR-005)
 
 LLM output can be technically safe for the rendering context but still harmful
 if it misleads users into over-trusting fabricated or overconfident claims.
-These grounding rules address OWASP LLM09 (Misinformation):
+These heuristic grounding rules provide defense in depth for OWASP LLM09:2025
+(Misinformation):
 
 | Rule ID | Name | Default action |
 | --- | --- | --- |
@@ -194,10 +195,19 @@ an appropriate disclaimer. Detected patterns include:
 - **Financial**: `"you should buy NVDA"`, `"put your savings into"`,
   `"guaranteed returns"`
 
-The rule passes automatically if the output already contains a disclaimer such
-as `"not medical advice"`, `"consult a doctor"`, or `"I am not your attorney"`.
+The heuristic rule passes if the output already contains a disclaimer such as
+`"not medical advice"`, `"consult a doctor"`, or `"I am not your attorney"`.
+That is only a false-positive reduction for this warning rule: a disclaimer does
+not make consequential advice grounded and does not satisfy a human-review gate.
 
 Default action: `WARN`, severity `HIGH`.
+
+These rules identify language patterns but do not validate sources or establish
+truth. Before releasing factual or consequential output, use the typed
+`EvidenceGroundingVerifier` to check evidence integrity and trust, semantic
+relations, citations, confidence disclosure, contradictions, and bound
+high-impact review. See
+[misinformation and unsafe overreliance](misinformation-overreliance.md).
 
 ```python
 from trustrail.rules.output import (

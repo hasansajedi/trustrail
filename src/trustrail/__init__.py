@@ -19,6 +19,7 @@ from trustrail.exceptions import (
     ArtifactVerificationError,
     ConfigurationError,
     DataPoisoningError,
+    GroundingVerificationError,
     GuardrailBlockedError,
     OutputHandlingError,
     ProviderError,
@@ -29,6 +30,7 @@ from trustrail.exceptions import (
     ToolAuthorizationError,
     VectorVerificationError,
 )
+from trustrail.grounding import EvidenceGroundingVerifier
 from trustrail.guard import Guard
 from trustrail.models.agency import (
     AuthorizedToolCall,
@@ -70,6 +72,24 @@ from trustrail.models.enums import (
     SensitiveDataMode,
     Severity,
     TrustLevel,
+)
+from trustrail.models.grounding import (
+    ClaimKind,
+    EvidenceRelation,
+    EvidenceRelationKind,
+    GroundingCitation,
+    GroundingClaim,
+    GroundingEvidence,
+    GroundingFinding,
+    GroundingPolicy,
+    GroundingRequest,
+    GroundingResult,
+    GroundingSignal,
+    GroundingSupportStatus,
+    GroundingVerificationCode,
+    HumanReviewDecision,
+    HumanReviewGrant,
+    ImpactDomain,
 )
 from trustrail.models.output_handling import (
     OutputHandlingCode,
@@ -185,6 +205,7 @@ __all__ = [
     "AuditSink",
     "AuthorizedToolCall",
     "AuthorizedVectorHit",
+    "ClaimKind",
     "ConfigurationError",
     "ContentSafetyProvider",
     "DataAssetKind",
@@ -198,7 +219,21 @@ __all__ = [
     "DataTransformation",
     "DigestAlgorithm",
     "Document",
+    "EvidenceGroundingVerifier",
+    "EvidenceRelation",
+    "EvidenceRelationKind",
     "FailMode",
+    "GroundingCitation",
+    "GroundingClaim",
+    "GroundingEvidence",
+    "GroundingFinding",
+    "GroundingPolicy",
+    "GroundingRequest",
+    "GroundingResult",
+    "GroundingSignal",
+    "GroundingSupportStatus",
+    "GroundingVerificationCode",
+    "GroundingVerificationError",
     "GroundingVerifier",
     # Core
     "Guard",
@@ -215,6 +250,9 @@ __all__ = [
     # Enums
     "GuardStage",
     "GuardrailBlockedError",
+    "HumanReviewDecision",
+    "HumanReviewGrant",
+    "ImpactDomain",
     "IngestionAuthorization",
     # Audit sinks
     "LoggingAuditSink",

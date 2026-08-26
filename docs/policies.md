@@ -71,3 +71,11 @@ Before `build_rag_context`, use `SecureVectorWorkflow` with an authenticated
 principal, authoritative document/resource grants, approved indexes and
 embedding models, and a protected index-entry catalog. See
 [vector and embedding security](security/vector-embedding-security.md).
+
+Text output policy can warn about misinformation patterns, but it cannot prove
+claims or citations. Before delivering factual output or using recommendations,
+run `EvidenceGroundingVerifier` with application-owned evidence, trusted
+relation assessors, confidence disclosure, and independent high-impact review.
+This typed verification is separate from `GuardStage` because the evidence
+catalog, assessor identity, and reviewer decision must not come from generated
+text. See [misinformation and unsafe overreliance](security/misinformation-overreliance.md).
