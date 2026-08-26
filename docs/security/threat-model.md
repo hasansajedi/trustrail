@@ -95,9 +95,19 @@ semantic and multilingual statements; human reviewers can make mistakes or
 suffer automation bias. See
 [misinformation and unsafe overreliance](misinformation-overreliance.md).
 
-### Denial of Service (OWASP LLM10)
-- Token bomb / large input attacks
-- Rate limiting
+### Unbounded Consumption (OWASP LLM10:2025)
+- Oversized or multibyte input and provider output beyond requested limits
+- Token flooding, recursive expansion, deep nesting, and compressed-data bombs
+- Concurrent operations, retries, tool loops, and sessions exceeding hard budgets
+- Slow cumulative exhaustion across requests or attacker-rotated session IDs
+- Reservation replay and abandoned operations retaining concurrency capacity
+- Resource-state exhaustion and accidental content retention in audit findings
+
+The built-in atomic ledger is process-local, token counts depend on trusted exact
+measurement, and leases do not constrain operating-system or remote-provider
+resources. Distributed quotas, billing controls, provider cancellation, identity
+abuse prevention, parser sandboxes, and infrastructure isolation remain required.
+See [bounded resource consumption](resource-consumption.md).
 
 ## SSRF
 - Private IP range access

@@ -19,6 +19,13 @@ normally choose a stage instead of invoking policies directly.
 Resource limits apply at every stage. Custom rules supplied through
 `extra_rules` also run at every stage.
 
+Text resource rules are inexpensive early warnings; they do not reserve model,
+tool, or decompression capacity. Wrap expensive work with
+`ResourceBudgetManager`, using authenticated principal/tenant/session identity
+and exact tokenizer counts, and validate actual output before consumption. Use
+`BoundedDecompressor` before parsing compressed input. See
+[bounded resource consumption](security/resource-consumption.md).
+
 Binary and metadata verification happens before these text stages. Use an
 `ArtifactVerifier` to admit the component, then pass its text or response through
 the appropriate `GuardStage`. Use `DataPoisoningVerifier` before data enters a

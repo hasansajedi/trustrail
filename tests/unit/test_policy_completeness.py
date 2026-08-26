@@ -6,9 +6,35 @@ from trustrail.models.enums import GuardAction, GuardStage
 from trustrail.policies.content_safety import ContentSafetyPolicy
 from trustrail.policies.output import OutputSafetyPolicy
 from trustrail.policies.prompt_injection import PromptInjectionPolicy
+from trustrail.policies.resource import ResourcePolicy
 from trustrail.policies.sensitive_data import SensitiveDataPolicy
 from trustrail.policies.supply_chain import SupplyChainPolicy
 from trustrail.policies.tools import ToolPolicy
+
+# ── ResourcePolicy ────────────────────────────────────────────────────────────
+
+
+class TestResourcePolicyCompleteness:
+    def test_includes_stateless_llm10_amplification_rules_by_default(self):
+        rules = ResourcePolicy().get_rules()
+        resource_rules = {rule.rule_id: rule for rule in rules}
+
+        assert {"RL-001", "RL-002", "RL-003", "RL-004", "RL-006", "RL-008", "RL-009"} <= set(
+            resource_rules
+        )
+        assert all(rule.owasp == ["LLM10:2025"] for rule in resource_rules.values())
+
+    def test_can_disable_expensive_amplification_heuristics(self):
+        policy = ResourcePolicy(
+            detect_repetitive_patterns=False,
+            detect_token_flooding=False,
+            detect_recursive_expansion=False,
+        )
+
+        assert {rule.rule_id for rule in policy.get_rules()}.isdisjoint(
+            {"RL-004", "RL-008", "RL-009"}
+        )
+
 
 # ── SensitiveDataPolicy ───────────────────────────────────────────────────────
 

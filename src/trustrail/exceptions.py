@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from trustrail.models.grounding import GroundingResult
     from trustrail.models.output_handling import OutputHandlingResult
     from trustrail.models.poisoning import DataPoisoningResult
+    from trustrail.models.resource import DecompressionResult, ResourceBudgetResult
     from trustrail.models.supply_chain import ArtifactVerificationResult
     from trustrail.models.system_prompt import (
         SystemPromptLeakageResult,
@@ -166,3 +167,11 @@ class ResourceLimitError(AegisRailError):
     """Raised when a resource limit (token count, length) is exceeded."""
 
     pass
+
+
+class ResourceBudgetError(ResourceLimitError):
+    """Raised when a typed resource reservation or decompression is denied."""
+
+    def __init__(self, result: ResourceBudgetResult | DecompressionResult) -> None:
+        super().__init__("Resource consumption budget exhausted")
+        self.result = result

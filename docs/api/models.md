@@ -15,6 +15,25 @@ serialized with `model_dump()` or `model_dump_json()`.
     options:
       members: true
 
+## Resource consumption budgets
+
+Resource models bind input and expected output to authenticated principal,
+tenant, session, request, and operation identity. `ResourceBudgetManager`
+atomically reserves concurrency, request, retry, tool-loop, duration, and token
+budgets; `BoundedDecompressor` rejects compressed amplification before parsing.
+
+::: trustrail.models.resource
+    options:
+      members: true
+
+::: trustrail.resource.ResourceBudgetManager
+    options:
+      members: true
+
+::: trustrail.resource.BoundedDecompressor
+    options:
+      members: true
+
 ## Tool authorization
 
 `ToolAuthorizationPolicy` inventories exact, least-privilege capabilities.

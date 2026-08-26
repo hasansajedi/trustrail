@@ -34,7 +34,7 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 - **Least-Privilege Tool Authorization** — Bind exact tools and arguments to identity, intent, ownership, scopes, approval, and execution budgets
 - **System Prompt Leakage Controls** — Validate classified prompt construction and block extraction attempts and generated prompt fragments
 - **Evidence-Backed Grounding** — Bind claims and citations to trusted evidence, expose uncertainty, and require review for high-impact advice
-- **Resource Limits** — Cap input length, token counts, and message depth
+- **Bounded Resource Consumption** — Reserve input/output tokens, concurrency, retries, tool loops, session budgets, and safe decompression
 - **Agent Session Tracking** — Monitor step counts, tool usage, and recursion depth
 - **Streaming Support** — Real-time cross-chunk pattern detection
 - **Audit & Observability** — Structured audit events, OpenTelemetry integration
