@@ -27,6 +27,7 @@ from trustrail.exceptions import (
     SystemPromptLeakageError,
     SystemPromptValidationError,
     ToolAuthorizationError,
+    VectorVerificationError,
 )
 from trustrail.guard import Guard
 from trustrail.models.agency import (
@@ -124,6 +125,20 @@ from trustrail.models.system_prompt import (
     SystemPromptVariable,
     ValidatedSystemPrompt,
 )
+from trustrail.models.vector import (
+    AuthorizedVectorHit,
+    VectorAccessPolicy,
+    VectorChunk,
+    VectorEmbedding,
+    VectorIndexEntry,
+    VectorPrincipal,
+    VectorRetrievalHit,
+    VectorRetrievalPolicy,
+    VectorRetrievalRequest,
+    VectorVerificationCode,
+    VectorVerificationFinding,
+    VectorVerificationResult,
+)
 from trustrail.output_handling import SafeOutputHandler, ValidatedToolCall
 from trustrail.poisoning import DataPoisoningVerifier, PoisoningDetector
 from trustrail.protocols import (
@@ -141,6 +156,7 @@ from trustrail.protocols import (
 )
 from trustrail.supply_chain import ArtifactVerifier
 from trustrail.system_prompt import SystemPromptLeakageDetector, SystemPromptValidator
+from trustrail.vector import SecureVectorWorkflow
 
 try:
     __version__ = version("trustrail")
@@ -168,6 +184,7 @@ __all__ = [
     "AuditEvent",
     "AuditSink",
     "AuthorizedToolCall",
+    "AuthorizedVectorHit",
     "ConfigurationError",
     "ContentSafetyProvider",
     "DataAssetKind",
@@ -231,6 +248,7 @@ __all__ = [
     "RuleConfig",
     "RulePhase",
     "SafeOutputHandler",
+    "SecureVectorWorkflow",
     "SensitiveDataMode",
     "SensitiveDataProvider",
     "Severity",
@@ -275,6 +293,18 @@ __all__ = [
     "TrustLevel",
     "ValidatedSystemPrompt",
     "ValidatedToolCall",
+    "VectorAccessPolicy",
+    "VectorChunk",
+    "VectorEmbedding",
+    "VectorIndexEntry",
+    "VectorPrincipal",
+    "VectorRetrievalHit",
+    "VectorRetrievalPolicy",
+    "VectorRetrievalRequest",
+    "VectorVerificationCode",
+    "VectorVerificationError",
+    "VectorVerificationFinding",
+    "VectorVerificationResult",
     # Version
     "__version__",
 ]

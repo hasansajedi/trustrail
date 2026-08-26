@@ -1,0 +1,68 @@
+[
+  {
+    "name": "authorized-retrieval",
+    "mutation": "none",
+    "expected_action": "allow",
+    "expected_code": null
+  },
+  {
+    "name": "cross-tenant-entry",
+    "mutation": "tenant",
+    "expected_action": "block",
+    "expected_code": "tenant_mismatch"
+  },
+  {
+    "name": "case-confused-user",
+    "mutation": "user-case",
+    "expected_action": "block",
+    "expected_code": "user_not_authorized"
+  },
+  {
+    "name": "missing-read-scope",
+    "mutation": "scope",
+    "expected_action": "block",
+    "expected_code": "scope_missing"
+  },
+  {
+    "name": "document-id-substitution",
+    "mutation": "document",
+    "expected_action": "block",
+    "expected_code": "document_not_authorized"
+  },
+  {
+    "name": "resource-id-substitution",
+    "mutation": "resource",
+    "expected_action": "block",
+    "expected_code": "resource_not_authorized"
+  },
+  {
+    "name": "content-after-indexing",
+    "mutation": "content",
+    "expected_action": "block",
+    "expected_code": "content_integrity_mismatch"
+  },
+  {
+    "name": "similarity-score-inflation",
+    "mutation": "score",
+    "expected_action": "block",
+    "expected_code": "similarity_mismatch"
+  },
+  {
+    "name": "rank-zero-copy-bypass",
+    "mutation": "rank-copy",
+    "expected_action": "block",
+    "expected_code": "rank_manipulation"
+  },
+  {
+    "name": "unknown-catalog-entry",
+    "mutation": "unknown",
+    "expected_action": "block",
+    "expected_code": "unknown_index_entry"
+  },
+  {
+    "name": "zero-width-duplicate-poisoning",
+    "mutation": "duplicate",
+    "expected_action": "block",
+    "expected_code": "duplicate_content"
+  }
+]

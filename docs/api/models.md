@@ -108,3 +108,17 @@ for bounded output comparison without including it in normal serialization.
 ::: trustrail.system_prompt.SystemPromptLeakageDetector
     options:
       members: true
+
+## Vector and embedding workflows
+
+The vector models carry source, trust, access, content, embedding, index, and
+namespace lineage. `SecureVectorWorkflow` verifies untrusted store hits against
+an authoritative catalog before RAG context assembly.
+
+::: trustrail.models.vector
+    options:
+      members: true
+
+::: trustrail.vector.SecureVectorWorkflow
+    options:
+      members: true

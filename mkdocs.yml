@@ -100,6 +100,7 @@ nav:
       - Data and model poisoning: security/data-model-poisoning.md
       - Excessive agency: security/excessive-agency.md
       - System prompt leakage: security/system-prompt-leakage.md
+      - Vector and embedding security: security/vector-embedding-security.md
       - Resource consumption: security/resource-consumption.md
       - Supply chain: security/supply-chain.md
       - OWASP mapping: owasp-mapping.md

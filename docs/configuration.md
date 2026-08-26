@@ -113,6 +113,34 @@ documented risk decision demonstrates that the value is safe to expose; changing
 a classification does not make prompt content confidential. See
 [system prompt leakage](security/system-prompt-leakage.md).
 
+## Vector retrieval policy
+
+Vector authorization uses a typed policy because authenticated identity,
+resource grants, approved indexes, and trusted embeddings are application-owned
+state rather than text guard configuration:
+
+```python
+from trustrail import SecureVectorWorkflow, VectorRetrievalPolicy
+
+vector_workflow = SecureVectorWorkflow(
+    VectorRetrievalPolicy(
+        allowed_index_ids=frozenset({"support-index-v3"}),
+        allowed_embedding_model_ids=frozenset({"embed-reviewed-v2"}),
+        max_hits=10,
+        max_catalog_entries=1_000,
+        max_embedding_dimensions=3_072,
+        similarity_tolerance=1e-5,
+        max_identical_content_hits=1,
+        require_sequential_ranks=True,
+    )
+)
+```
+
+Allowlists are required and empty policies are invalid. Tighten hit, dimension,
+duplicate, and tolerance limits for the deployed embedding model and vector
+store. See [vector and embedding security](security/vector-embedding-security.md)
+for the full request/catalog flow and residual risks.
+
 Validate with CLI:
 ```bash
 trustrail validate-config guardrails.yaml

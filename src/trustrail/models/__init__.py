@@ -79,6 +79,20 @@ from trustrail.models.system_prompt import (
     SystemPromptVariable,
     ValidatedSystemPrompt,
 )
+from trustrail.models.vector import (
+    AuthorizedVectorHit,
+    VectorAccessPolicy,
+    VectorChunk,
+    VectorEmbedding,
+    VectorIndexEntry,
+    VectorPrincipal,
+    VectorRetrievalHit,
+    VectorRetrievalPolicy,
+    VectorRetrievalRequest,
+    VectorVerificationCode,
+    VectorVerificationFinding,
+    VectorVerificationResult,
+)
 
 __all__ = [
     "ArtifactDigest",
@@ -92,6 +106,7 @@ __all__ = [
     "ArtifactVerificationPolicy",
     "ArtifactVerificationResult",
     "AuditEvent",
+    "AuthorizedVectorHit",
     "DataAssetKind",
     "DataIngestionRecord",
     "DataPoisoningPolicy",
@@ -150,4 +165,15 @@ __all__ = [
     "ToolResult",
     "TrustLevel",
     "ValidatedSystemPrompt",
+    "VectorAccessPolicy",
+    "VectorChunk",
+    "VectorEmbedding",
+    "VectorIndexEntry",
+    "VectorPrincipal",
+    "VectorRetrievalHit",
+    "VectorRetrievalPolicy",
+    "VectorRetrievalRequest",
+    "VectorVerificationCode",
+    "VectorVerificationFinding",
+    "VectorVerificationResult",
 ]

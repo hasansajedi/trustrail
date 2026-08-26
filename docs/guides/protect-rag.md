@@ -48,3 +48,10 @@ anomaly enforcement, call `DataPoisoningVerifier.require()` before indexing.
 Then call `build_rag_context()` after retrieval so the same document is scanned
 again at the model-context boundary. See
 [Data and model poisoning](../security/data-model-poisoning.md).
+
+When retrieval uses embeddings, do not trust result metadata or similarity
+scores from the vector store. Use `SecureVectorWorkflow.build_context()` with an
+authenticated request and a separately protected `VectorIndexEntry` catalog; it
+authorizes each result, checks full lineage, recomputes similarity, rejects
+duplicates, and then invokes the document scanner. See
+[Vector and embedding security](../security/vector-embedding-security.md).
