@@ -1,0 +1,9 @@
+[
+  {"name": "lookalike-tool", "mutation": "tool_name", "expected_code": "unknown_tool"},
+  {"name": "mutable-version-substitution", "mutation": "version", "expected_code": "tool_version_mismatch"},
+  {"name": "hidden-admin-argument", "mutation": "argument", "expected_code": "argument_not_allowed"},
+  {"name": "cross-user-resource", "mutation": "owner", "expected_code": "resource_owner_mismatch"},
+  {"name": "cross-tenant-resource", "mutation": "tenant", "expected_code": "resource_tenant_mismatch"},
+  {"name": "intent-confusion", "mutation": "intent", "expected_code": "tool_outside_intent"},
+  {"name": "scope-escalation", "mutation": "scope", "expected_code": "privilege_expansion"}
+]

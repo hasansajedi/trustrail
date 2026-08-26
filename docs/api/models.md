@@ -15,6 +15,25 @@ serialized with `model_dump()` or `model_dump_json()`.
     options:
       members: true
 
+## Tool authorization
+
+`ToolAuthorizationPolicy` inventories exact, least-privilege capabilities.
+`ToolAuthorizationRequest` binds an invocation to trusted identity, intent,
+ownership, scope, approval, and execution context. `ToolAuthorizer` returns a
+short-lived lease only when every check succeeds.
+
+::: trustrail.models.agency
+    options:
+      members: true
+
+::: trustrail.agency.ToolAuthorizer
+    options:
+      members: true
+
+::: trustrail.agency.ToolExecutionBudget
+    options:
+      members: true
+
 ## Context-aware output handling
 
 `OutputHandlingPolicy` defines fail-closed destination constraints.

@@ -1,4 +1,4 @@
-"""Plugin permission scope enforcement — OWASP LLM07."""
+"""Plugin permission scope enforcement — OWASP LLM06:2025."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ class PluginPermissionScopeRule(BaseRule):
     Each plugin should declare the set of operations it is permitted to perform
     (its ``scope``). This rule blocks any tool call whose name is not in the
     plugin's declared scope, preventing privilege escalation and out-of-scope
-    actions (OWASP LLM07).
+    actions (OWASP LLM06:2025).
 
     Usage::
 
@@ -42,7 +42,7 @@ class PluginPermissionScopeRule(BaseRule):
         "Validates plugin tool calls against declared permission scopes to prevent "
         "privilege escalation."
     )
-    owasp: ClassVar[list[str]] = ["LLM07"]
+    owasp: ClassVar[list[str]] = ["LLM06:2025"]
 
     def __init__(
         self,

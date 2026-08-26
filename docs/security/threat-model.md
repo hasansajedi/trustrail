@@ -38,9 +38,13 @@
 - Model-selected tools, arguments, generated code, or privileged effects reaching executors
 
 ### Excessive Agency (OWASP LLM06)
-- Unlimited tool calls
-- Runaway agent loops
-- Unauthorized operations
+- Unknown, substituted, over-broad, or open-ended tool functionality
+- Arguments outside an exact scalar contract and model-requested scope expansion
+- Cross-user or cross-tenant resource access through a confused deputy
+- Tool calls outside authenticated, short-lived user intent
+- High-impact actions without exact, out-of-band, single-use approval
+- Excessive chained actions, retries, parallel calls, or autonomous execution
+- Unlimited tool calls and runaway agent loops
 
 ### Overreliance (OWASP LLM09)
 - Hallucination detection (via grounding verifier)

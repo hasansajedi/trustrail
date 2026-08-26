@@ -194,7 +194,7 @@ class IdorDetectionRule(BaseRule):
     description: ClassVar[str] = (
         "Detects IDOR patterns (ID enumeration, admin paths) in tool arguments."
     )
-    owasp: ClassVar[list[str]] = ["LLM07"]
+    owasp: ClassVar[list[str]] = ["LLM06:2025"]
 
     def _check_arg(self, key: str, value: Any) -> str | None:
         if not _IDOR_SENSITIVE_KEYS_RE.match(key):

@@ -11,6 +11,7 @@ Quick start:
 
 from importlib.metadata import PackageNotFoundError, version
 
+from trustrail.agency import StaticToolApprovalVerifier, ToolAuthorizer, ToolExecutionBudget
 from trustrail.audit import LoggingAuditSink, MemoryAuditSink, NullAuditSink
 from trustrail.exceptions import (
     AegisRailError,
@@ -23,8 +24,25 @@ from trustrail.exceptions import (
     ProviderError,
     RateLimitError,
     ResourceLimitError,
+    ToolAuthorizationError,
 )
 from trustrail.guard import Guard
+from trustrail.models.agency import (
+    AuthorizedToolCall,
+    ToolApprovalGrant,
+    ToolArgumentConstraint,
+    ToolArgumentKind,
+    ToolAuthorizationCode,
+    ToolAuthorizationFinding,
+    ToolAuthorizationPolicy,
+    ToolAuthorizationRequest,
+    ToolAuthorizationResult,
+    ToolCapability,
+    ToolEffect,
+    ToolIntent,
+    ToolPrincipal,
+    ToolResource,
+)
 from trustrail.models.config import GuardConfig, GuardPolicy, RuleConfig
 from trustrail.models.core import (
     AuditEvent,
@@ -102,6 +120,7 @@ from trustrail.protocols import (
     SensitiveDataProvider,
     StateBackend,
     TokenCounter,
+    ToolApprovalVerifier,
 )
 from trustrail.supply_chain import ArtifactVerifier
 
@@ -130,6 +149,7 @@ __all__ = [
     # Data models
     "AuditEvent",
     "AuditSink",
+    "AuthorizedToolCall",
     "ConfigurationError",
     "ContentSafetyProvider",
     "DataAssetKind",
@@ -197,8 +217,26 @@ __all__ = [
     "SensitiveDataProvider",
     "Severity",
     "StateBackend",
+    "StaticToolApprovalVerifier",
     "TokenCounter",
+    "ToolApprovalGrant",
+    "ToolApprovalVerifier",
+    "ToolArgumentConstraint",
+    "ToolArgumentKind",
+    "ToolAuthorizationCode",
+    "ToolAuthorizationError",
+    "ToolAuthorizationFinding",
+    "ToolAuthorizationPolicy",
+    "ToolAuthorizationRequest",
+    "ToolAuthorizationResult",
+    "ToolAuthorizer",
     "ToolCall",
+    "ToolCapability",
+    "ToolEffect",
+    "ToolExecutionBudget",
+    "ToolIntent",
+    "ToolPrincipal",
+    "ToolResource",
     "ToolResult",
     "TrustLevel",
     "ValidatedToolCall",

@@ -1,4 +1,4 @@
-"""Tests for OWASP LLM08 excessive agency rules."""
+"""Tests for OWASP LLM06:2025 excessive agency rules."""
 
 from trustrail.models.core import GuardContext
 from trustrail.models.enums import GuardAction, GuardStage

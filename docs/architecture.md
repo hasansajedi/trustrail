@@ -19,9 +19,11 @@ User Input → System Prompt → LLM Request
 1. **Normalization** — Decode obfuscation (HTML entities, URL encoding, base64, homoglyphs)
 2. **Validate** — Check resource limits, format validity
 3. **Detect** — Pattern matching, heuristics
-4. **Policy** — Apply configured policies
-5. **Transform** — Redact/transform if needed
-6. **Audit** — Emit structured audit events
+4. **Policy** — Apply configured content policies
+5. **Authorize** — At tool boundaries, bind the exact request to trusted identity,
+   intent, ownership, scope, approval, and execution budget
+6. **Transform** — Redact/transform if needed
+7. **Audit** — Emit structured audit events
 
 ## Component Architecture
 
@@ -37,6 +39,16 @@ Guard
   │   └── AgentPolicy → Rules
   ├── AuditSink (LoggingAuditSink / MemoryAuditSink / OtelAuditSink)
   └── StateBackend (MemoryStateBackend / RedisStateBackend)
+```
+
+Tool execution is a separate complete-mediation boundary:
+
+```
+Model proposal → Guard TOOL_REQUEST scan → ToolAuthorizer → Downstream service
+                                             ├── Capability manifest
+                                             ├── Principal / intent / ownership
+                                             ├── Approval verifier
+                                             └── ToolExecutionBudget
 ```
 
 ## Fail Modes

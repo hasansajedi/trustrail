@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from trustrail.models.agency import ToolApprovalGrant
 
 from trustrail.models.core import (
     AuditEvent,
@@ -124,6 +127,15 @@ class ApprovalProvider(Protocol):
         reason: str = "",
     ) -> bool:
         """Request human approval. Returns True if approved."""
+        ...
+
+
+@runtime_checkable
+class ToolApprovalVerifier(Protocol):
+    """Authenticates out-of-band approvals before high-impact tool calls."""
+
+    def verify_approval(self, approval: ToolApprovalGrant) -> bool:
+        """Return whether the application issued the approval grant."""
         ...
 
 

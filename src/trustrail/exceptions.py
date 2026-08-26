@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from trustrail.models.agency import ToolAuthorizationResult
     from trustrail.models.output_handling import OutputHandlingResult
     from trustrail.models.poisoning import DataPoisoningResult
     from trustrail.models.supply_chain import ArtifactVerificationResult
@@ -67,6 +68,14 @@ class OutputHandlingError(AegisRailError):
 
     def __init__(self, result: OutputHandlingResult) -> None:
         super().__init__("Model output is unsafe for the requested destination")
+        self.result = result
+
+
+class ToolAuthorizationError(AegisRailError):
+    """Raised when a tool invocation is blocked or still needs approval."""
+
+    def __init__(self, result: ToolAuthorizationResult) -> None:
+        super().__init__("Tool invocation was not authorized")
         self.result = result
 
 
