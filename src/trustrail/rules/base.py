@@ -35,6 +35,25 @@ class BaseRule(ABC):
         """Evaluate value and return decision."""
         ...
 
+    def evaluate_stream(
+        self,
+        value: str,
+        context: GuardContext,
+        *,
+        chunk: str,
+        chunk_index: int,
+        total_chars: int,
+        total_bytes: int,
+    ) -> GuardDecision:
+        """Evaluate streaming content using bounded text and cumulative counters.
+
+        Rules that need whole-stream resource counters can override this hook.
+        Ordinary rules continue to evaluate the bounded look-behind window in
+        ``value`` so streaming memory use remains bounded.
+        """
+        del chunk, chunk_index, total_chars, total_bytes
+        return self.evaluate(value, context)
+
     def _allow(self) -> GuardDecision:
         return GuardDecision(action=GuardAction.ALLOW, rule_id=self.rule_id)
 
@@ -88,6 +107,29 @@ class BaseRule(ABC):
         """Evaluate with latency tracking."""
         start = time.perf_counter()
         decision = self.evaluate(value, context)
+        decision.latency_ms = (time.perf_counter() - start) * 1000
+        return decision
+
+    def timed_evaluate_stream(
+        self,
+        value: str,
+        context: GuardContext,
+        *,
+        chunk: str,
+        chunk_index: int,
+        total_chars: int,
+        total_bytes: int,
+    ) -> GuardDecision:
+        """Evaluate a stream chunk with latency tracking."""
+        start = time.perf_counter()
+        decision = self.evaluate_stream(
+            value,
+            context,
+            chunk=chunk,
+            chunk_index=chunk_index,
+            total_chars=total_chars,
+            total_bytes=total_bytes,
+        )
         decision.latency_ms = (time.perf_counter() - start) * 1000
         return decision
 

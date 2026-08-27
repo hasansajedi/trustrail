@@ -120,6 +120,7 @@ class GuardResult(BaseModel):
     score: RiskScore = Field(default_factory=RiskScore)
     value: str = ""
     transformed_value: str | None = None
+    input_length: int | None = Field(default=None, ge=0)
     stage: GuardStage = GuardStage.USER_INPUT
     context: GuardContext | None = None
     latency_ms: float = 0.0
@@ -231,7 +232,9 @@ class AuditEvent(BaseModel):
             session_id=ctx.session_id if ctx else None,
             user_id=ctx.user_id if ctx else None,
             tenant_id=ctx.tenant_id if ctx else None,
-            input_length=len(result.value),
+            input_length=(
+                result.input_length if result.input_length is not None else len(result.value)
+            ),
             tags=ctx.tags if ctx else [],
             memory_classification=memory_classification,
             memory_approval_outcome=(

@@ -140,6 +140,11 @@ class TestGuardResult:
         result = GuardResult(value="original")
         assert result.output_value == "original"
 
+    def test_input_length_can_report_more_than_retained_value(self):
+        result = GuardResult(value="suffix", input_length=10_000)
+
+        assert result.input_length == 10_000
+
 
 class TestAuditEvent:
     def test_from_result(self):
@@ -173,6 +178,13 @@ class TestAuditEvent:
         assert event.input_length == len("test text")
         # User content NOT stored
         assert not hasattr(event, "input_text")
+
+    def test_from_result_prefers_explicit_input_length(self):
+        result = GuardResult(value="retained suffix", input_length=50_000)
+
+        event = AuditEvent.from_result(result)
+
+        assert event.input_length == 50_000
 
 
 class TestGuardConfig:

@@ -8,7 +8,14 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 
 from trustrail.models.core import GuardContext, GuardDecision, GuardFinding, GuardResult, RiskScore
-from trustrail.models.enums import GuardAction, RuleCategory, RulePhase, SensitiveDataMode
+from trustrail.models.enums import (
+    FailMode,
+    GuardAction,
+    RuleCategory,
+    RulePhase,
+    SensitiveDataMode,
+    Severity,
+)
 from trustrail.rules.base import BaseRule
 
 
@@ -56,15 +63,25 @@ class StreamScanner:
         buffer_size: int = 4096,
         chunk_overlap: int = 256,
         sensitive_data_mode: SensitiveDataMode = SensitiveDataMode.DEFAULT,
+        fail_mode: FailMode = FailMode.CLOSED,
+        block_at: int = 80,
+        warn_at: int = 40,
     ) -> None:
+        thresholds = RiskScore(block_at=block_at, warn_at=warn_at)
         self._rules = rules
         self._context = context
         self._buffer_size = buffer_size
         self._chunk_overlap = chunk_overlap
         self._sensitive_data_mode = sensitive_data_mode
+        self._fail_mode = fail_mode
+        self._block_at = thresholds.block_at
+        self._warn_at = thresholds.warn_at
         # Bounded deque for look-behind buffer
         self._buffer: deque[str] = deque(maxlen=buffer_size)
         self._total_chars = 0
+        self._total_bytes = 0
+        self._chunk_count = 0
+        self._rules_evaluated = 0
         self._findings: list[GuardFinding] = []
         self._blocked = False
         self._requires_approval = False
@@ -80,6 +97,16 @@ class StreamScanner:
     def is_blocked(self) -> bool:
         return self._blocked
 
+    @property
+    def total_chars(self) -> int:
+        """Return the cumulative number of original characters scanned."""
+        return self._total_chars
+
+    @property
+    def total_bytes(self) -> int:
+        """Return the cumulative UTF-8 byte count of original chunks scanned."""
+        return self._total_bytes
+
     def _get_buffer_text(self) -> str:
         return "".join(self._buffer)
 
@@ -93,6 +120,9 @@ class StreamScanner:
                 safe_chunk="",
             )
 
+        self._chunk_count += 1
+        self._total_chars += len(chunk)
+        self._total_bytes += len(chunk.encode("utf-8"))
         safe_chunk = chunk
         new_findings: list[GuardFinding] = []
         redacted_chunk = False
@@ -105,7 +135,15 @@ class StreamScanner:
             if not rule.enabled or rule.phase != RulePhase.NORMALIZE:
                 continue
             try:
-                decision = rule.evaluate(safe_chunk, self._context)
+                self._rules_evaluated += 1
+                decision = rule.timed_evaluate_stream(
+                    safe_chunk,
+                    self._context,
+                    chunk=safe_chunk,
+                    chunk_index=self._chunk_count,
+                    total_chars=self._total_chars,
+                    total_bytes=self._total_bytes,
+                )
                 if decision.finding is not None:
                     new_findings.append(decision.finding)
                 if (
@@ -124,8 +162,17 @@ class StreamScanner:
                     )
                 if decision.action == GuardAction.REQUIRE_APPROVAL:
                     self._requires_approval = True
-            except Exception:  # noqa: S110
-                pass
+            except Exception as exc:
+                if self._fail_mode == FailMode.CLOSED:
+                    new_findings.append(self._rule_failure_finding(rule, exc))
+                    self._blocked = True
+                    self._findings.extend(new_findings)
+                    return StreamResult(
+                        chunk=chunk,
+                        findings=new_findings,
+                        action=GuardAction.BLOCK,
+                        safe_chunk="",
+                    )
 
         # Evaluate detection rules using sanitized look-behind plus this chunk.
         # Only emit replacements that preserve the already-emitted prefix. A
@@ -138,7 +185,15 @@ class StreamScanner:
                 continue
             try:
                 eval_text = lookbehind + safe_chunk
-                decision = rule.evaluate(eval_text, self._context)
+                self._rules_evaluated += 1
+                decision = rule.timed_evaluate_stream(
+                    eval_text,
+                    self._context,
+                    chunk=safe_chunk,
+                    chunk_index=self._chunk_count,
+                    total_chars=self._total_chars,
+                    total_bytes=self._total_bytes,
+                )
                 policy_handled = self._apply_sensitive_data_mode(decision)
                 if decision.finding is not None:
                     new_findings.append(decision.finding)
@@ -174,21 +229,21 @@ class StreamScanner:
                     warned_chunk = True
                 if decision.action == GuardAction.REQUIRE_APPROVAL:
                     self._requires_approval = True
-            except Exception:  # noqa: S110
-                pass
+            except Exception as exc:
+                if self._fail_mode == FailMode.CLOSED:
+                    new_findings.append(self._rule_failure_finding(rule, exc))
+                    self._blocked = True
+                    self._findings.extend(new_findings)
+                    return StreamResult(
+                        chunk=chunk,
+                        findings=new_findings,
+                        action=GuardAction.BLOCK,
+                        safe_chunk="",
+                    )
 
-        # Buffer only content that is safe to emit downstream.
-        for ch in safe_chunk:
-            self._buffer.append(ch)
-        self._total_chars += len(chunk)
         self._findings.extend(new_findings)
 
-        actionable_findings = [
-            finding
-            for finding in self._findings
-            if id(finding) not in self._policy_handled_finding_ids
-        ]
-        actionable_score = RiskScore.from_findings(actionable_findings)
+        actionable_score = self._actionable_score()
         if actionable_score.should_block:
             self._blocked = True
             return StreamResult(
@@ -197,6 +252,12 @@ class StreamScanner:
                 action=GuardAction.BLOCK,
                 safe_chunk="",
             )
+
+        # Buffer only content that is safe to emit downstream. This happens
+        # after score-based blocking so a rejected current chunk is not
+        # represented as safe retained output.
+        for ch in safe_chunk:
+            self._buffer.append(ch)
 
         if self._requires_approval:
             return StreamResult(
@@ -215,6 +276,27 @@ class StreamScanner:
                 else (GuardAction.REDACT if redacted_chunk else GuardAction.ALLOW)
             ),
             safe_chunk=safe_chunk,
+        )
+
+    def _rule_failure_finding(self, rule: BaseRule, exc: Exception) -> GuardFinding:
+        return GuardFinding(
+            rule_id=rule.rule_id,
+            rule_name=rule.rule_name,
+            category=rule.category,
+            severity=Severity.HIGH,
+            message=f"Rule evaluation failed (fail-closed): {type(exc).__name__}",
+        )
+
+    def _actionable_score(self) -> RiskScore:
+        actionable_findings = [
+            finding
+            for finding in self._findings
+            if id(finding) not in self._policy_handled_finding_ids
+        ]
+        return RiskScore.from_findings(
+            actionable_findings,
+            block_at=self._block_at,
+            warn_at=self._warn_at,
         )
 
     def _apply_sensitive_data_mode(self, decision: GuardDecision) -> bool:
@@ -253,13 +335,12 @@ class StreamScanner:
 
     def finalize(self) -> GuardResult:
         """Return the final guard result after stream completion."""
-        score = RiskScore.from_findings(self._findings)
-        actionable_findings = [
-            finding
-            for finding in self._findings
-            if id(finding) not in self._policy_handled_finding_ids
-        ]
-        actionable_score = RiskScore.from_findings(actionable_findings)
+        score = RiskScore.from_findings(
+            self._findings,
+            block_at=self._block_at,
+            warn_at=self._warn_at,
+        )
+        actionable_score = self._actionable_score()
         action = (
             GuardAction.BLOCK
             if (self._blocked or actionable_score.should_block)
@@ -278,15 +359,19 @@ class StreamScanner:
             findings=self._findings,
             score=score,
             value=self._get_buffer_text(),
+            input_length=self._total_chars,
             stage=self._context.stage,
             context=self._context,
-            rules_evaluated=len(self._rules),
+            rules_evaluated=self._rules_evaluated,
         )
 
     def reset(self) -> None:
         """Reset scanner state for reuse."""
         self._buffer.clear()
         self._total_chars = 0
+        self._total_bytes = 0
+        self._chunk_count = 0
+        self._rules_evaluated = 0
         self._findings.clear()
         self._blocked = False
         self._requires_approval = False
