@@ -36,7 +36,23 @@ class InputLengthRule(BaseRule):
         self.max_bytes = max_bytes
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        char_count = len(value)
+        return self._evaluate_counts(len(value), len(value.encode("utf-8")))
+
+    def evaluate_stream(
+        self,
+        value: str,
+        context: GuardContext,
+        *,
+        chunk: str,
+        chunk_index: int,
+        total_chars: int,
+        total_bytes: int,
+    ) -> GuardDecision:
+        """Evaluate cumulative stream length without retaining the full value."""
+        del value, context, chunk, chunk_index
+        return self._evaluate_counts(total_chars, total_bytes)
+
+    def _evaluate_counts(self, char_count: int, byte_count: int) -> GuardDecision:
         if char_count > self.max_chars:
             return self._block(
                 f"Input too long: {char_count} chars exceeds limit of {self.max_chars}",
@@ -45,15 +61,13 @@ class InputLengthRule(BaseRule):
                 limit=self.max_chars,
             )
 
-        if self.max_bytes is not None:
-            byte_count = len(value.encode("utf-8"))
-            if byte_count > self.max_bytes:
-                return self._block(
-                    f"Input too large: {byte_count} bytes exceeds limit of {self.max_bytes}",
-                    severity=Severity.MEDIUM,
-                    byte_count=byte_count,
-                    limit=self.max_bytes,
-                )
+        if self.max_bytes is not None and byte_count > self.max_bytes:
+            return self._block(
+                f"Input too large: {byte_count} bytes exceeds limit of {self.max_bytes}",
+                severity=Severity.MEDIUM,
+                byte_count=byte_count,
+                limit=self.max_bytes,
+            )
 
         return self._allow()
 
@@ -89,7 +103,24 @@ class TokenEstimateRule(BaseRule):
         return max(1, int(len(text) / self._CHARS_PER_TOKEN))
 
     def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
-        estimated = self._estimate_tokens(value)
+        return self._evaluate_char_count(len(value))
+
+    def evaluate_stream(
+        self,
+        value: str,
+        context: GuardContext,
+        *,
+        chunk: str,
+        chunk_index: int,
+        total_chars: int,
+        total_bytes: int,
+    ) -> GuardDecision:
+        """Evaluate the cumulative stream token estimate from its char count."""
+        del value, context, chunk, chunk_index, total_bytes
+        return self._evaluate_char_count(total_chars)
+
+    def _evaluate_char_count(self, char_count: int) -> GuardDecision:
+        estimated = max(1, int(char_count / self._CHARS_PER_TOKEN))
         if estimated > self.max_tokens:
             return self._block(
                 f"Estimated token count {estimated} exceeds limit of {self.max_tokens}",
@@ -243,6 +274,20 @@ class CumulativeTokenBudgetRule(BaseRule):
                 limit=self.session_budget_tokens,
             )
         return self._allow()
+
+    def evaluate_stream(
+        self,
+        value: str,
+        context: GuardContext,
+        *,
+        chunk: str,
+        chunk_index: int,
+        total_chars: int,
+        total_bytes: int,
+    ) -> GuardDecision:
+        """Count each new chunk once instead of recounting the overlap window."""
+        del value, chunk_index, total_chars, total_bytes
+        return self.evaluate(chunk, context)
 
 
 @registry.register

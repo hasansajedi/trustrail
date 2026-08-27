@@ -356,6 +356,7 @@ class Guard:
 
             except Exception as exc:
                 if self._config.fail_mode == FailMode.CLOSED:
+                    rule_blocked = True
                     findings.append(
                         GuardFinding(
                             rule_id=rule.rule_id,
@@ -390,6 +391,7 @@ class Guard:
             score=score,
             value=value,
             transformed_value=transformed_value,
+            input_length=len(value),
             stage=stage,
             context=context,
             latency_ms=latency_ms,
@@ -888,6 +890,9 @@ class Guard:
             rules=rules,
             context=ctx,
             sensitive_data_mode=self._config.sensitive_data_mode,
+            fail_mode=self._config.fail_mode,
+            block_at=self._config.block_at,
+            warn_at=self._config.warn_at,
         )
 
     # ── Session context managers ──────────────────────────────────────────────
