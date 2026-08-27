@@ -527,16 +527,8 @@ class Guard:
         stage: GuardStage = GuardStage.RAG_DOCUMENT,
         context: GuardContext | None = None,
     ) -> GuardResult:
-        """Check a Document object."""
-        ctx = context or GuardContext(
-            stage=stage,
-            trust_level=document.trust_level,
-            metadata={
-                "source": document.source,
-                "source_url": document.source_url,
-                **document.metadata,
-            },
-        )
+        """Check a document with authoritative provenance and caller identity."""
+        ctx = self._document_context(document, stage=stage, context=context)
         return self.check(document.content, stage, context=ctx)
 
     def check_prompt_segments(self, segments: list[PromptSegment]) -> PromptScanResult:
@@ -653,12 +645,13 @@ class Guard:
         self,
         documents: list[Document],
         *,
+        context: GuardContext | None = None,
         require_provenance: bool = True,
     ) -> RAGContextEnvelope:
-        """Scan documents and assemble a provenance-labeled RAG data envelope."""
+        """Scan documents with request context and assemble a labeled envelope."""
         safe_documents: list[Document] = []
         for document in documents:
-            result = self.check_document(document)
+            result = self.check_document(document, context=context)
             if result.is_blocked:
                 raise GuardrailBlockedError(
                     "Retrieved document blocked before RAG context assembly",
@@ -672,17 +665,25 @@ class Guard:
             require_provenance=require_provenance,
         )
 
-    def check_rag_context(self, envelope: RAGContextEnvelope) -> GuardResult:
-        """Check a structured RAG envelope before passing it to a model."""
+    def check_rag_context(
+        self,
+        envelope: RAGContextEnvelope,
+        context: GuardContext | None = None,
+    ) -> GuardResult:
+        """Check an envelope using its provenance and caller correlation context."""
         return self.check(
             envelope.render(),
             GuardStage.RAG_CONTEXT,
-            context=envelope.guard_context(),
+            context=envelope.guard_context(context),
         )
 
-    def protect_rag_context(self, envelope: RAGContextEnvelope) -> str:
-        """Return rendered RAG data or raise when its labels/content are unsafe."""
-        result = self.check_rag_context(envelope)
+    def protect_rag_context(
+        self,
+        envelope: RAGContextEnvelope,
+        context: GuardContext | None = None,
+    ) -> str:
+        """Return safe RAG data while preserving caller audit correlation."""
+        result = self.check_rag_context(envelope, context=context)
         if result.is_blocked:
             raise GuardrailBlockedError(
                 "RAG context blocked by guardrail",
@@ -1101,6 +1102,36 @@ class Guard:
             stage=stage,
             trust_level=trust_level,
             metadata=metadata or {},
+        )
+
+    def _document_context(
+        self,
+        document: Document,
+        *,
+        stage: GuardStage,
+        context: GuardContext | None,
+    ) -> GuardContext:
+        """Merge caller correlation with immutable document provenance.
+
+        Caller metadata wins ordinary flat-key collisions. Reserved document
+        fields and the complete ``document_metadata`` namespace are always
+        derived from the Document object.
+        """
+        base = context or GuardContext()
+        metadata: dict[str, Any] = {
+            **document.metadata,
+            **base.metadata,
+            "document_id": document.id,
+            "source": document.source,
+            "source_url": document.source_url,
+            "document_metadata": dict(document.metadata),
+        }
+        return base.model_copy(
+            update={
+                "stage": stage,
+                "trust_level": document.trust_level,
+                "metadata": metadata,
+            }
         )
 
     def _memory_write_context(
