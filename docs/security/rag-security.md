@@ -52,9 +52,27 @@ trust level, and an integrity digest. `protect_rag_context` verifies that struct
 and scans its content again before it reaches the model:
 
 ```python
-envelope = guard.build_rag_context(safe_documents)
-safe_context = guard.protect_rag_context(envelope)
+from trustrail import GuardContext, GuardStage
+
+request_context = GuardContext(
+    request_id=request.id,
+    session_id=session.id,
+    user_id=authenticated_user.id,
+    tenant_id=authenticated_user.tenant_id,
+    stage=GuardStage.RAG_DOCUMENT,
+    metadata={"trace_id": trace_id},
+)
+envelope = guard.build_rag_context(safe_documents, context=request_context)
+safe_context = guard.protect_rag_context(envelope, context=request_context)
 ```
+
+Derive these identity fields from authenticated application state, not retrieved
+content. The caller context is copied into document and envelope audit events but
+is not rendered into the prompt. Document ID, source, source URL, and trust level
+always come from the `Document`; neither caller metadata nor untrusted document
+metadata can elevate or replace them. Caller metadata wins other flat-key
+collisions, while the original document metadata is retained under the reserved
+`document_metadata` namespace for inspection by rules.
 
 `RAG-004` blocks raw or tampered context at `GuardStage.RAG_CONTEXT` by default.
 For a migration period only, applications can set

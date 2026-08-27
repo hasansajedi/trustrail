@@ -140,8 +140,8 @@ class RAGContextEnvelope(BaseModel):
         """Render a machine-readable prompt value without delimiter injection."""
         return self.model_dump_json()
 
-    def guard_context(self) -> GuardContext:
-        """Create privacy-safe evaluation metadata for the assembled context."""
+    def guard_context(self, context: GuardContext | None = None) -> GuardContext:
+        """Merge caller correlation with authoritative envelope provenance."""
         trust_counts = Counter(segment.provenance.trust_level.value for segment in self.segments)
         trust_order = {
             TrustLevel.UNTRUSTED: 0,
@@ -152,7 +152,7 @@ class RAGContextEnvelope(BaseModel):
             (segment.provenance.trust_level for segment in self.segments),
             key=trust_order.__getitem__,
         )
-        metadata: dict[str, Any] = {
+        envelope_metadata: dict[str, Any] = {
             "rag_context_envelope": {
                 "channel": self.channel,
                 "document_count": len(self.segments),
@@ -160,8 +160,11 @@ class RAGContextEnvelope(BaseModel):
                 "trust_counts": dict(trust_counts),
             }
         }
-        return GuardContext(
-            stage=GuardStage.RAG_CONTEXT,
-            trust_level=minimum_trust,
-            metadata=metadata,
+        base = context or GuardContext()
+        return base.model_copy(
+            update={
+                "stage": GuardStage.RAG_CONTEXT,
+                "trust_level": minimum_trust,
+                "metadata": {**base.metadata, **envelope_metadata},
+            }
         )

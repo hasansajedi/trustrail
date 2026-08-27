@@ -109,6 +109,36 @@ class TestRAGContextEnvelope:
         assert "Paris" not in str(metadata)
         assert "example.test" not in str(metadata)
 
+    def test_guard_context_preserves_caller_correlation_without_trust_elevation(self):
+        envelope = RAGContextEnvelope.from_documents([_document()])
+        caller = GuardContext(
+            request_id="request-1",
+            session_id="session-1",
+            user_id="user-1",
+            tenant_id="tenant-1",
+            stage=GuardStage.USER_INPUT,
+            trust_level=TrustLevel.TRUSTED,
+            metadata={
+                "trace_id": "trace-1",
+                "rag_context_envelope": {"forged": True},
+            },
+            tags=["rag"],
+        )
+
+        context = envelope.guard_context(caller)
+
+        assert context.request_id == caller.request_id
+        assert context.session_id == caller.session_id
+        assert context.user_id == caller.user_id
+        assert context.tenant_id == caller.tenant_id
+        assert context.tags == caller.tags
+        assert context.timestamp == caller.timestamp
+        assert context.stage == GuardStage.RAG_CONTEXT
+        assert context.trust_level == TrustLevel.SEMI_TRUSTED
+        assert context.metadata["trace_id"] == "trace-1"
+        assert "forged" not in context.metadata["rag_context_envelope"]
+        assert caller.metadata["rag_context_envelope"] == {"forged": True}
+
 
 class TestRAGContextLabelRule:
     def setup_method(self):
