@@ -51,6 +51,46 @@ result = await guard.acheck(text, GuardStage.USER_INPUT)
 safe_text = await guard.aprotect(text, GuardStage.LLM_RESPONSE)
 ```
 
+## Protecting conversations
+
+`protect_messages()` validates the entire conversation and preserves message
+order and tool-call relationships. It raises immediately if any entry is
+blocked or requires approval; it never returns a shortened conversation.
+
+```python
+from trustrail import Message
+
+messages = [
+    Message(role="system", content="You are a concise assistant."),
+    Message(role="user", content=user_input),
+    Message(
+        role="tool",
+        content=tool_result,
+        name="search",
+        tool_call_id="call-123",
+    ),
+]
+
+safe_messages = guard.protect_messages(messages)
+```
+
+Built-in roles use fixed boundaries: `system` and `developer` use
+`SYSTEM_PROMPT`, `user` uses `USER_INPUT`, `assistant` uses `LLM_RESPONSE`, and
+`tool` uses `TOOL_RESPONSE`. Unknown roles are rejected unless the caller
+provides an explicit mapping:
+
+```python
+safe_messages = guard.protect_messages(
+    messages,
+    role_stages={"function": GuardStage.TOOL_RESPONSE},
+)
+```
+
+If intentionally dropping unsafe entries is part of an application-reviewed
+policy, call `filter_messages()` explicitly. Filtering can orphan tool results
+or change prompt meaning, so never substitute it for atomic protection by
+default.
+
 ## Profiles
 
 ```python

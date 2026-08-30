@@ -114,6 +114,21 @@ _PROMPT_SOURCE_STAGES: dict[PromptSource, GuardStage] = {
     PromptSource.MULTIMODAL: GuardStage.EXTERNAL_CONTENT,
 }
 
+_MESSAGE_ROLE_STAGES: dict[str, GuardStage] = {
+    "system": GuardStage.SYSTEM_PROMPT,
+    "developer": GuardStage.SYSTEM_PROMPT,
+    "user": GuardStage.USER_INPUT,
+    "assistant": GuardStage.LLM_RESPONSE,
+    "tool": GuardStage.TOOL_RESPONSE,
+}
+
+_SAFE_MESSAGE_ACTIONS = {
+    GuardAction.ALLOW,
+    GuardAction.WARN,
+    GuardAction.REDACT,
+    GuardAction.TRANSFORM,
+}
+
 
 @dataclass
 class _RuleOverride:
@@ -1026,31 +1041,144 @@ class Guard:
         self,
         messages: list[Message],
         context: GuardContext | None = None,
+        *,
+        role_stages: Mapping[str, GuardStage] | None = None,
     ) -> list[Message]:
-        """Check all messages in a conversation. Returns safe messages."""
-        safe = []
-        for msg in messages:
-            stage = (
-                GuardStage.USER_INPUT
-                if msg.role == "user"
-                else GuardStage.SYSTEM_PROMPT
-                if msg.role == "system"
-                else GuardStage.LLM_RESPONSE
+        """Return an order-preserving safe conversation or reject it atomically.
+
+        Supported roles have fixed security boundaries. Unknown roles require an
+        explicit ``role_stages`` entry. No partial list is returned when a
+        message is blocked or requires approval.
+        """
+        protected: list[Message] = []
+        base_context = context or GuardContext()
+        for index, message in enumerate(messages):
+            stage = self._message_stage(message.role, index=index, role_stages=role_stages)
+            result = self.check(
+                message.content,
+                stage,
+                context=self._message_context(
+                    message,
+                    index=index,
+                    message_count=len(messages),
+                    stage=stage,
+                    base_context=base_context,
+                ),
             )
-            ctx = context or self._make_context(stage, metadata={"message_count": len(messages)})
-            result = self.check(msg.content, stage, context=ctx)
-            if not result.is_blocked:
-                # Update content if transformed
-                if result.transformed_value is not None:
-                    msg = Message(
-                        role=msg.role,
-                        content=result.output_value,
-                        name=msg.name,
-                        tool_call_id=msg.tool_call_id,
-                        metadata=msg.metadata,
-                    )
-                safe.append(msg)
-        return safe
+            if result.action == GuardAction.REQUIRE_APPROVAL:
+                raise ApprovalRequiredError(
+                    f"Conversation message at index {index} with role "
+                    f"'{message.role}' requires approval",
+                    stage=stage,
+                    request_id=result.context.request_id if result.context else None,
+                    message_index=index,
+                    message_role=message.role,
+                    tool_call_id=message.tool_call_id,
+                    findings=result.findings,
+                )
+            if result.action not in _SAFE_MESSAGE_ACTIONS:
+                raise GuardrailBlockedError(
+                    f"Conversation message at index {index} with role '{message.role}' blocked",
+                    stage=stage,
+                    findings=result.findings,
+                    score=result.score.value,
+                    message_index=index,
+                    message_role=message.role,
+                    tool_call_id=message.tool_call_id,
+                    action=result.action.value,
+                )
+            protected.append(self._transformed_message(message, result))
+        return protected
+
+    def filter_messages(
+        self,
+        messages: list[Message],
+        context: GuardContext | None = None,
+        *,
+        role_stages: Mapping[str, GuardStage] | None = None,
+    ) -> list[Message]:
+        """Explicitly omit rejected messages and return transformed safe entries.
+
+        Filtering can break conversation semantics and tool-call relationships;
+        use ``protect_messages`` unless partial-conversation behavior is an
+        intentional, reviewed application policy.
+        """
+        filtered: list[Message] = []
+        base_context = context or GuardContext()
+        for index, message in enumerate(messages):
+            stage = self._message_stage(message.role, index=index, role_stages=role_stages)
+            result = self.check(
+                message.content,
+                stage,
+                context=self._message_context(
+                    message,
+                    index=index,
+                    message_count=len(messages),
+                    stage=stage,
+                    base_context=base_context,
+                ),
+            )
+            if result.action in _SAFE_MESSAGE_ACTIONS:
+                filtered.append(self._transformed_message(message, result))
+        return filtered
+
+    def _message_stage(
+        self,
+        role: str,
+        *,
+        index: int,
+        role_stages: Mapping[str, GuardStage] | None,
+    ) -> GuardStage:
+        built_in = _MESSAGE_ROLE_STAGES.get(role)
+        supplied = role_stages.get(role) if role_stages is not None else None
+        supplied_stage: GuardStage | None = None
+        if supplied is not None:
+            try:
+                supplied_stage = GuardStage(supplied)
+            except ValueError as exc:
+                raise ConfigurationError(
+                    f"Invalid guard stage for message role '{role}': {supplied!r}"
+                ) from exc
+        if built_in is not None:
+            if supplied_stage is not None and supplied_stage != built_in:
+                raise ConfigurationError(
+                    f"Built-in message role '{role}' must map to stage '{built_in.value}'"
+                )
+            return built_in
+        if supplied_stage is None:
+            raise ConfigurationError(
+                f"Unknown message role '{role}' at index {index}; provide an explicit "
+                "role_stages mapping"
+            )
+        return supplied_stage
+
+    def _message_context(
+        self,
+        message: Message,
+        *,
+        index: int,
+        message_count: int,
+        stage: GuardStage,
+        base_context: GuardContext,
+    ) -> GuardContext:
+        metadata: dict[str, Any] = {
+            **base_context.metadata,
+            **message.metadata,
+            "message_metadata": dict(message.metadata),
+            "message_count": message_count,
+            "message_index": index,
+            "message_role": message.role,
+        }
+        if message.name is not None:
+            metadata["message_name"] = message.name
+        if message.tool_call_id is not None:
+            metadata["tool_call_id"] = message.tool_call_id
+        return base_context.model_copy(update={"stage": stage, "metadata": metadata})
+
+    def _transformed_message(self, message: Message, result: GuardResult) -> Message:
+        if result.output_value == message.content:
+            return message
+        return message.model_copy(update={"content": result.output_value})
 
     def validate_output(
         self,

@@ -7,8 +7,17 @@ from __future__ import annotations
 
 from typing import Any
 
+from trustrail.exceptions import ConfigurationError
 from trustrail.models.core import GuardResult, Message
 from trustrail.models.enums import GuardStage
+
+_OPENAI_ROLE_STAGES = {
+    "system": GuardStage.SYSTEM_PROMPT,
+    "developer": GuardStage.SYSTEM_PROMPT,
+    "user": GuardStage.USER_INPUT,
+    "assistant": GuardStage.LLM_RESPONSE,
+    "tool": GuardStage.TOOL_RESPONSE,
+}
 
 
 def to_guard_messages(openai_messages: list[dict[str, Any]]) -> list[Message]:
@@ -55,14 +64,10 @@ async def check_openai_messages(
     """Check all OpenAI messages and return results."""
     guard_messages = to_guard_messages(messages)
     results = []
-    for msg in guard_messages:
-        stage = (
-            GuardStage.USER_INPUT
-            if msg.role == "user"
-            else GuardStage.SYSTEM_PROMPT
-            if msg.role == "system"
-            else GuardStage.LLM_RESPONSE
-        )
+    for index, msg in enumerate(guard_messages):
+        stage = _OPENAI_ROLE_STAGES.get(msg.role)
+        if stage is None:
+            raise ConfigurationError(f"Unknown OpenAI message role '{msg.role}' at index {index}")
         result = await guard.acheck(msg.content, stage)
         results.append(result)
     return results
@@ -72,9 +77,19 @@ async def protect_openai_messages(
     messages: list[dict[str, Any]],
     guard: Any,  # Guard instance
 ) -> list[dict[str, Any]]:
-    """Check and filter OpenAI messages, removing blocked ones."""
+    """Protect an OpenAI conversation atomically, raising on any rejection."""
     guard_messages = to_guard_messages(messages)
     safe_messages = guard.protect_messages(guard_messages)
+    return from_guard_messages(safe_messages)
+
+
+async def filter_openai_messages(
+    messages: list[dict[str, Any]],
+    guard: Any,
+) -> list[dict[str, Any]]:
+    """Explicitly remove rejected OpenAI messages and return safe entries."""
+    guard_messages = to_guard_messages(messages)
+    safe_messages = guard.filter_messages(guard_messages)
     return from_guard_messages(safe_messages)
 
 
