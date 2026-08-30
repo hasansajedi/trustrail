@@ -108,6 +108,9 @@ class GuardDecision(BaseModel):
     transformed_value: str | None = None
     rule_id: str = ""
     latency_ms: float = 0.0
+    # Runtime rule actions such as an explicit ALLOW/WARN override have already
+    # handled this finding and must not be promoted again by aggregate scoring.
+    suppress_risk: bool = False
 
 
 class GuardResult(BaseModel):
@@ -200,7 +203,12 @@ class AuditEvent(BaseModel):
     extra: dict[str, Any] = Field(default_factory=dict)
 
     @classmethod
-    def from_result(cls, result: GuardResult) -> AuditEvent:
+    def from_result(
+        cls,
+        result: GuardResult,
+        *,
+        include_metadata: bool = True,
+    ) -> AuditEvent:
         """Create an AuditEvent from a GuardResult (no sensitive content)."""
         ctx = result.context
         memory_finding = next(
@@ -228,14 +236,14 @@ class AuditEvent(BaseModel):
             finding_severities=[f.severity.value for f in result.findings],
             rules_evaluated=result.rules_evaluated,
             latency_ms=result.latency_ms,
-            request_id=ctx.request_id if ctx else None,
-            session_id=ctx.session_id if ctx else None,
-            user_id=ctx.user_id if ctx else None,
-            tenant_id=ctx.tenant_id if ctx else None,
+            request_id=ctx.request_id if ctx and include_metadata else None,
+            session_id=ctx.session_id if ctx and include_metadata else None,
+            user_id=ctx.user_id if ctx and include_metadata else None,
+            tenant_id=ctx.tenant_id if ctx and include_metadata else None,
             input_length=(
                 result.input_length if result.input_length is not None else len(result.value)
             ),
-            tags=ctx.tags if ctx else [],
+            tags=ctx.tags if ctx and include_metadata else [],
             memory_classification=memory_classification,
             memory_approval_outcome=(
                 "required" if result.action == GuardAction.REQUIRE_APPROVAL else None

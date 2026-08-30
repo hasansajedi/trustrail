@@ -36,7 +36,7 @@ class GuardPolicy(BaseModel):
     enabled: bool = True
     fail_mode: FailMode = FailMode.CLOSED
     rules: dict[str, RuleConfig] = Field(default_factory=dict)
-    # Default action if no specific rule matches
+    # Default action for findings without a per-rule action override
     default_action: GuardAction = GuardAction.ALLOW
     params: dict[str, Any] = Field(default_factory=dict)
 
@@ -61,6 +61,7 @@ class GuardConfig(BaseModel):
 
     # Audit settings
     audit_enabled: bool = True
+    # Include context identity/correlation fields and tags in audit events
     audit_include_metadata: bool = True
 
     # DEFAULT preserves each detector's secure native action. REDACT, BLOCK,
@@ -84,7 +85,7 @@ class GuardConfig(BaseModel):
     max_prompt_segments: int = Field(default=64, ge=1, le=1_000)
     prompt_boundary_window: int = Field(default=512, ge=32, le=10_000)
 
-    # Enable/disable entire categories
+    # Enable/disable entire categories; the denylist wins over the allowlist
     enabled_categories: list[RuleCategory] | None = None  # None = all
     disabled_categories: list[RuleCategory] = Field(default_factory=list)
 
