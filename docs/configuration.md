@@ -33,6 +33,80 @@ config = GuardConfig(
 guard = Guard(config=config)
 ```
 
+## Policy and rule controls
+
+`GuardConfig` validates policy and rule IDs when `Guard` is constructed, so a
+misspelled ID or unsupported `params` key raises `ConfigurationError` before any
+request is scanned. The built-in policy IDs are `prompt_injection`,
+`sensitive_data`, `supply_chain`, `output_safety`, `content_safety`, `resource`,
+`rag`, `memory`, `tools`, and `agent`.
+
+```python
+from trustrail import (
+    FailMode,
+    Guard,
+    GuardAction,
+    GuardConfig,
+    GuardPolicy,
+    RuleCategory,
+    RuleConfig,
+    Severity,
+)
+
+guard = Guard(
+    GuardConfig(
+        policies={
+            "resource": GuardPolicy(
+                fail_mode=FailMode.CLOSED,
+                default_action=GuardAction.BLOCK,
+                params={"max_chars": 20_000, "max_tokens": 4_096},
+                rules={
+                    "RL-001": RuleConfig(
+                        action=GuardAction.WARN,
+                        severity_override=Severity.LOW,
+                        threshold=0.8,
+                        params={"max_bytes": 80_000},
+                    )
+                },
+            )
+        },
+        # Global rule overrides have the highest precedence.
+        rule_overrides={"RL-001": RuleConfig(action=GuardAction.BLOCK)},
+        enabled_categories=[RuleCategory.RESOURCE, RuleCategory.PROMPT_INJECTION],
+        disabled_categories=[RuleCategory.PROMPT_INJECTION],
+    )
+)
+```
+
+Configuration precedence is deterministic:
+
+1. A policy must be enabled.
+2. `enabled_categories`, when present, acts as an allowlist.
+3. `disabled_categories` is applied next and always wins, including when the
+   same category is allowlisted.
+4. A policy `default_action` applies to its detected findings.
+5. A policy-local `rules[rule_id]` override replaces explicitly supplied fields.
+6. A global `rule_overrides[rule_id]` replaces explicitly supplied policy-rule
+   fields and has the highest precedence.
+
+Rule `enabled`, `action`, `severity_override`, `threshold`, and validated
+rule-specific `params` are applied during evaluation. A confidence below
+`threshold` is ignored. `REDACT` or `TRANSFORM` fails closed when a detector
+cannot produce replacement text. Stateful rules are constructed once per
+`Guard`, so session counters persist across calls; create separate guards when
+independent state is required.
+
+`timeout_seconds` bounds both `check()` and `acheck()`. A timeout returns
+`BLOCK` in closed mode and an allowed `WARN` result in open mode, with a
+content-free `SYS-001` finding. Python cannot forcibly stop arbitrary synchronous
+rule code, so a timed-out custom rule may finish in its isolated daemon thread;
+custom rules should still implement their own I/O deadlines and cancellation.
+
+When `audit_include_metadata=False`, audit events omit request, session, user,
+tenant, and tag fields. Finding summaries, timing, stage, action, score, and
+input length remain available. Arbitrary `GuardContext.metadata` values are
+never copied to audit events.
+
 ## Risk Scoring
 
 - CRITICAL finding → score = 100 (always block)

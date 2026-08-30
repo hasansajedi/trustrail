@@ -7,17 +7,28 @@ from __future__ import annotations
 
 import asyncio
 import functools
+import inspect
+import queue
+import threading
 import time
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Any, Literal, TypeVar
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, get_type_hints
+
+from pydantic import TypeAdapter, ValidationError
 
 if TYPE_CHECKING:
     from trustrail.agents.session import AgentSession
 
 from trustrail.audit import AuditEvent, LoggingAuditSink, NullAuditSink
-from trustrail.exceptions import ApprovalRequiredError, GuardrailBlockedError, ResourceLimitError
-from trustrail.models.config import GuardConfig
+from trustrail.exceptions import (
+    ApprovalRequiredError,
+    ConfigurationError,
+    GuardrailBlockedError,
+    ResourceLimitError,
+)
+from trustrail.models.config import GuardConfig, GuardPolicy, RuleConfig
 from trustrail.models.core import (
     Document,
     GuardContext,
@@ -45,6 +56,7 @@ from trustrail.models.prompt import (
 from trustrail.models.rag import RAGContextEnvelope
 from trustrail.models.sensitive_data import ProtectedData
 from trustrail.policies.agent import AgentPolicy
+from trustrail.policies.base import BasePolicy
 from trustrail.policies.content_safety import ContentSafetyPolicy
 from trustrail.policies.memory import MemoryPolicy
 from trustrail.policies.output import OutputSafetyPolicy
@@ -91,6 +103,17 @@ _PROMPT_SOURCE_STAGES: dict[PromptSource, GuardStage] = {
 }
 
 
+@dataclass
+class _RuleOverride:
+    """Merged policy and rule controls for one runtime rule instance."""
+
+    enabled: bool | None = None
+    action: GuardAction | None = None
+    severity: Severity | None = None
+    threshold: float | None = None
+    params: dict[str, Any] = field(default_factory=dict)
+
+
 class GuardSession:
     """Async context manager for a guard session."""
 
@@ -130,7 +153,12 @@ class Guard:
         self._extra_rules = extra_rules if extra_rules is not None else []
         self._approval_provider = approval_provider
         self._alert_callbacks: list[_AlertCallback] = []
+        self._policy_fail_modes: dict[str, FailMode] = {}
         self._policies = self._build_policies()
+        self._policy_rules: dict[str, tuple[BaseRule, ...]] = {}
+        self._standalone_rules: tuple[BaseRule, ...] = ()
+        self._configured_extra_rules: tuple[BaseRule, ...] = ()
+        self._build_rule_cache()
 
     # ── Factory methods ───────────────────────────────────────────────────────
 
@@ -181,22 +209,249 @@ class Guard:
 
     # ── Policy building ───────────────────────────────────────────────────────
 
-    def _build_policies(self) -> dict[str, Any]:
+    def _build_policies(self) -> dict[str, BasePolicy]:
         cfg = self._config
-        return {
-            "prompt_injection": PromptInjectionPolicy(),
-            "sensitive_data": SensitiveDataPolicy(),
-            "supply_chain": SupplyChainPolicy(),
-            "output_safety": OutputSafetyPolicy(),
-            "content_safety": ContentSafetyPolicy(),
-            "resource": ResourcePolicy(
-                max_chars=cfg.max_text_length,
-            ),
-            "rag": RAGPolicy(require_context_labels=cfg.require_rag_context_labels),
-            "memory": MemoryPolicy(require_approval=cfg.require_memory_write_approval),
-            "tools": ToolPolicy(),
-            "agent": AgentPolicy(),
+        definitions: dict[str, tuple[type[BasePolicy], dict[str, Any]]] = {
+            "prompt_injection": (PromptInjectionPolicy, {}),
+            "sensitive_data": (SensitiveDataPolicy, {}),
+            "supply_chain": (SupplyChainPolicy, {}),
+            "output_safety": (OutputSafetyPolicy, {}),
+            "content_safety": (ContentSafetyPolicy, {}),
+            "resource": (ResourcePolicy, {"max_chars": cfg.max_text_length}),
+            "rag": (RAGPolicy, {"require_context_labels": cfg.require_rag_context_labels}),
+            "memory": (MemoryPolicy, {"require_approval": cfg.require_memory_write_approval}),
+            "tools": (ToolPolicy, {}),
+            "agent": (AgentPolicy, {}),
         }
+        unknown = sorted(set(cfg.policies) - set(definitions))
+        if unknown:
+            raise ConfigurationError(
+                f"Unknown policy ID(s): {', '.join(unknown)}. "
+                f"Valid policy IDs: {', '.join(definitions)}"
+            )
+
+        policies: dict[str, BasePolicy] = {}
+        for policy_id, (policy_type, defaults) in definitions.items():
+            policy_config = cfg.policies.get(policy_id, GuardPolicy())
+            params = self._validate_params(
+                policy_type.__init__,
+                policy_config.params,
+                label=f"policy '{policy_id}'",
+                excluded={"enabled"},
+            )
+            kwargs = {**defaults, **params, "enabled": policy_config.enabled}
+            try:
+                policies[policy_id] = policy_type(**kwargs)
+            except Exception as exc:
+                raise ConfigurationError(
+                    f"Invalid parameters for policy '{policy_id}': {exc}"
+                ) from exc
+            self._policy_fail_modes[policy_id] = (
+                policy_config.fail_mode
+                if "fail_mode" in policy_config.model_fields_set
+                else cfg.fail_mode
+            )
+        return policies
+
+    def _validate_params(
+        self,
+        target: Callable[..., Any],
+        params: dict[str, Any],
+        *,
+        label: str,
+        excluded: set[str] | None = None,
+    ) -> dict[str, Any]:
+        """Reject unsupported parameters and validate annotated values."""
+        signature = inspect.signature(target)
+        excluded = excluded or set()
+        allowed = {
+            name
+            for name, parameter in signature.parameters.items()
+            if name not in {"self", *excluded}
+            and parameter.kind
+            not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
+        }
+        unsupported = sorted(set(params) - allowed)
+        if unsupported:
+            raise ConfigurationError(
+                f"Unsupported parameter(s) for {label}: {', '.join(unsupported)}. "
+                f"Supported parameters: {', '.join(sorted(allowed)) or 'none'}"
+            )
+
+        try:
+            hints = get_type_hints(target)
+        except (NameError, TypeError):
+            hints = {}
+        validated: dict[str, Any] = {}
+        for name, value in params.items():
+            annotation = hints.get(name, signature.parameters[name].annotation)
+            if annotation is inspect.Parameter.empty:
+                validated[name] = value
+                continue
+            try:
+                validated[name] = TypeAdapter(annotation).validate_python(value)
+            except ValidationError as exc:
+                raise ConfigurationError(
+                    f"Invalid value for {label} parameter '{name}': {value!r}"
+                ) from exc
+        return validated
+
+    def _merge_rule_override(
+        self,
+        policy_config: GuardPolicy | None,
+        rule_id: str,
+    ) -> _RuleOverride:
+        merged = _RuleOverride()
+        if policy_config is not None and "default_action" in policy_config.model_fields_set:
+            merged.action = policy_config.default_action
+        configs: list[RuleConfig] = []
+        if policy_config is not None and rule_id in policy_config.rules:
+            configs.append(policy_config.rules[rule_id])
+        if rule_id in self._config.rule_overrides:
+            configs.append(self._config.rule_overrides[rule_id])
+        for rule_config in configs:
+            fields = rule_config.model_fields_set
+            if "enabled" in fields:
+                merged.enabled = rule_config.enabled
+            if "action" in fields:
+                merged.action = rule_config.action
+            if "severity_override" in fields:
+                merged.severity = rule_config.severity_override
+            if "threshold" in fields:
+                merged.threshold = rule_config.threshold
+            if "params" in fields:
+                merged.params.update(rule_config.params)
+        return merged
+
+    def _rebuild_rule(
+        self,
+        rule: BaseRule,
+        params: dict[str, Any],
+    ) -> BaseRule:
+        if not params:
+            return rule
+        constructor = type(rule).__init__
+        validated = self._validate_params(
+            constructor,
+            params,
+            label=f"rule '{rule.rule_id}'",
+            excluded={"enabled"},
+        )
+        signature = inspect.signature(constructor)
+        kwargs: dict[str, Any] = {}
+        if "enabled" in signature.parameters:
+            kwargs["enabled"] = rule.enabled
+        for name, parameter in signature.parameters.items():
+            if name in {"self", "enabled"} or name in validated:
+                continue
+            if hasattr(rule, name):
+                kwargs[name] = getattr(rule, name)
+            elif parameter.default is inspect.Parameter.empty:
+                raise ConfigurationError(
+                    f"Rule '{rule.rule_id}' parameter '{name}' cannot be overridden safely"
+                )
+        kwargs.update(validated)
+        try:
+            return type(rule)(**kwargs)
+        except Exception as exc:
+            raise ConfigurationError(
+                f"Invalid parameters for rule '{rule.rule_id}': {exc}"
+            ) from exc
+
+    def _configure_rule(
+        self,
+        rule: BaseRule,
+        *,
+        policy_id: str | None = None,
+    ) -> BaseRule:
+        policy_config = self._config.policies.get(policy_id) if policy_id else None
+        override = self._merge_rule_override(policy_config, rule.rule_id)
+        rule = self._rebuild_rule(rule, override.params)
+        if override.enabled is not None:
+            rule.enabled = override.enabled
+        rule.configure(
+            action=override.action,
+            severity=override.severity,
+            threshold=override.threshold,
+            fail_mode=(
+                self._policy_fail_modes[policy_id]
+                if policy_id is not None
+                else self._config.fail_mode
+            ),
+        )
+        return rule
+
+    def _category_enabled(self, category: RuleCategory) -> bool:
+        enabled = self._config.enabled_categories
+        if enabled is not None and category not in enabled:
+            return False
+        return category not in self._config.disabled_categories
+
+    def _build_rule_cache(self) -> None:
+        """Build and configure every reusable rule instance exactly once."""
+        known_rule_ids: set[str] = set()
+        for policy_id, policy in self._policies.items():
+            policy_config = self._config.policies.get(policy_id)
+            raw_rules = policy.get_rules()
+            policy_rule_ids = {rule.rule_id for rule in raw_rules}
+            if policy_config is not None:
+                unknown = sorted(set(policy_config.rules) - policy_rule_ids)
+                if unknown:
+                    raise ConfigurationError(
+                        f"Unknown or inactive rule ID(s) for policy '{policy_id}': "
+                        f"{', '.join(unknown)}. Active rule IDs: "
+                        f"{', '.join(sorted(policy_rule_ids)) or 'none'}"
+                    )
+            configured = tuple(
+                self._configure_rule(rule, policy_id=policy_id) for rule in raw_rules
+            )
+            self._policy_rules[policy_id] = tuple(
+                rule
+                for rule in configured
+                if policy.enabled and self._category_enabled(rule.category)
+            )
+            known_rule_ids.update(rule.rule_id for rule in configured)
+
+        standalone: list[BaseRule] = []
+        if self._config.strip_invisible_unicode:
+            standalone.append(InvisibleUnicodeRule())
+        from trustrail.rules.url import (
+            EmbeddedCredentialRule,
+            MetadataServiceRule,
+            PrivateIpRule,
+            SchemeValidationRule,
+        )
+
+        standalone.extend(
+            [
+                SchemeValidationRule(),
+                PrivateIpRule(),
+                MetadataServiceRule(),
+                EmbeddedCredentialRule(),
+            ]
+        )
+        configured_standalone = tuple(self._configure_rule(rule) for rule in standalone)
+        self._standalone_rules = tuple(
+            rule for rule in configured_standalone if self._category_enabled(rule.category)
+        )
+        known_rule_ids.update(rule.rule_id for rule in configured_standalone)
+        configured_extra = tuple(self._configure_rule(rule) for rule in self._extra_rules)
+        self._configured_extra_rules = tuple(
+            rule for rule in configured_extra if self._category_enabled(rule.category)
+        )
+        known_rule_ids.update(rule.rule_id for rule in configured_extra)
+        # SD-017 is constructed per request because its protected values are
+        # caller supplied; its runtime controls are still validated here.
+        known_rule_ids.add("SD-017")
+        unknown_global = sorted(set(self._config.rule_overrides) - known_rule_ids)
+        if unknown_global:
+            raise ConfigurationError(
+                f"Unknown or inactive rule ID(s): {', '.join(unknown_global)}. "
+                f"Active rule IDs: {', '.join(sorted(known_rule_ids))}"
+            )
+        dynamic_override = self._config.rule_overrides.get("SD-017")
+        if dynamic_override and dynamic_override.params:
+            raise ConfigurationError("Rule 'SD-017' does not support configurable parameters")
 
     # ── Core evaluation ───────────────────────────────────────────────────────
 
@@ -206,91 +461,75 @@ class Guard:
         protected_data: list[ProtectedData] | None = None,
     ) -> list[BaseRule]:
         """Return the rules applicable to a given pipeline stage."""
-        rules: list[BaseRule] = []
+        rules = list(self._policy_rules["resource"])
+        invisible_rules = [rule for rule in self._standalone_rules if rule.rule_id == "PI-016"]
+        rules.extend(invisible_rules)
 
-        # Resource limits apply everywhere
-        resource_policy = self._policies["resource"]
-        rules.extend(resource_policy.get_rules())
-
-        # Sanitize invisible instruction/exfiltration channels at every text
-        # boundary before stage-specific detection rules evaluate the value.
-        if self._config.strip_invisible_unicode:
-            rules.append(InvisibleUnicodeRule())
+        def add_policy(policy_id: str) -> None:
+            rules.extend(self._policy_rules[policy_id])
 
         if stage in (
             GuardStage.USER_INPUT,
             GuardStage.LLM_REQUEST,
         ):
-            rules.extend(self._policies["prompt_injection"].get_rules())
-            rules.extend(self._policies["sensitive_data"].get_rules())
-            # Also check URLs in user input for SSRF
-            from trustrail.rules.url import (
-                EmbeddedCredentialRule,
-                MetadataServiceRule,
-                PrivateIpRule,
-                SchemeValidationRule,
-            )
-
+            add_policy("prompt_injection")
+            add_policy("sensitive_data")
             rules.extend(
-                [
-                    SchemeValidationRule(),
-                    PrivateIpRule(),
-                    MetadataServiceRule(),
-                    EmbeddedCredentialRule(),
-                ]
+                rule for rule in self._standalone_rules if rule.category == RuleCategory.URL_SSRF
             )
 
         elif stage in (GuardStage.SYSTEM_PROMPT,):
-            rules.extend(self._policies["sensitive_data"].get_rules())
+            add_policy("sensitive_data")
 
         elif stage in (
             GuardStage.LLM_RESPONSE,
             GuardStage.FINAL_OUTPUT,
             GuardStage.STREAM,
         ):
-            rules.extend(self._policies["output_safety"].get_rules())
-            rules.extend(self._policies["content_safety"].get_rules())
-            rules.extend(self._policies["sensitive_data"].get_rules())
+            add_policy("output_safety")
+            add_policy("content_safety")
+            add_policy("sensitive_data")
 
         elif stage in (
             GuardStage.RAG_DOCUMENT,
             GuardStage.EXTERNAL_CONTENT,
             GuardStage.RAG_CONTEXT,
         ):
-            rules.extend(self._policies["prompt_injection"].get_rules())
-            rules.extend(self._policies["rag"].get_rules())
-            rules.extend(self._policies["supply_chain"].get_rules())
-            rules.extend(self._policies["sensitive_data"].get_rules())
+            add_policy("prompt_injection")
+            add_policy("rag")
+            add_policy("supply_chain")
+            add_policy("sensitive_data")
 
         elif stage in (GuardStage.TOOL_REQUEST,):
-            rules.extend(self._policies["tools"].get_rules())
-            rules.extend(self._policies["prompt_injection"].get_rules())
-            rules.extend(self._policies["sensitive_data"].get_rules())
+            add_policy("tools")
+            add_policy("prompt_injection")
+            add_policy("sensitive_data")
 
         elif stage in (GuardStage.TOOL_RESPONSE,):
-            rules.extend(self._policies["supply_chain"].get_rules())
-            rules.extend(self._policies["prompt_injection"].get_rules())
-            rules.extend(self._policies["output_safety"].get_rules())
-            rules.extend(self._policies["sensitive_data"].get_rules())
+            add_policy("supply_chain")
+            add_policy("prompt_injection")
+            add_policy("output_safety")
+            add_policy("sensitive_data")
 
         elif stage in (GuardStage.AGENT_ACTION,):
-            rules.extend(self._policies["agent"].get_rules())
-            rules.extend(self._policies["prompt_injection"].get_rules())
-            rules.extend(self._policies["sensitive_data"].get_rules())
+            add_policy("agent")
+            add_policy("prompt_injection")
+            add_policy("sensitive_data")
 
         elif stage == GuardStage.MEMORY_READ:
-            rules.extend(self._policies["prompt_injection"].get_rules())
-            rules.extend(self._policies["sensitive_data"].get_rules())
+            add_policy("prompt_injection")
+            add_policy("sensitive_data")
 
         elif stage == GuardStage.MEMORY_WRITE:
-            rules.extend(self._policies["prompt_injection"].get_rules())
-            rules.extend(self._policies["sensitive_data"].get_rules())
-            rules.extend(self._policies["memory"].get_rules())
+            add_policy("prompt_injection")
+            add_policy("sensitive_data")
+            add_policy("memory")
 
-        # Add extra rules always
-        rules.extend(self._extra_rules)
+        rules.extend(self._configured_extra_rules)
         if protected_data:
-            rules.append(ProtectedDataDisclosureRule(protected_data))
+            dynamic_rule = self._configure_rule(ProtectedDataDisclosureRule(protected_data))
+            if self._category_enabled(dynamic_rule.category):
+                rules.append(dynamic_rule)
 
         return rules
 
@@ -307,32 +546,21 @@ class Guard:
         transformed_value: str | None = None
         current_value = value
         start = time.perf_counter()
-        rule_blocked = False  # Track if any rule explicitly requested BLOCK
-        rule_warned = False  # Track if any rule explicitly requested WARN
-        rule_redacted = False
-        rule_requires_approval = False
-        policy_handled_finding_ids: set[int] = set()
+        requested_actions: set[GuardAction] = set()
+        handled_finding_ids: set[int] = set()
 
         for rule in rules:
             if not rule.enabled:
                 continue
             try:
                 decision = rule.timed_evaluate(current_value, context)
-                policy_handled = self._apply_sensitive_data_mode(decision)
+                policy_handled = decision.suppress_risk or self._apply_sensitive_data_mode(decision)
                 if decision.finding is not None:
                     findings.append(decision.finding)
                     if policy_handled:
-                        policy_handled_finding_ids.add(id(decision.finding))
-
-                # Track explicit BLOCK decisions from rules
-                if decision.action == GuardAction.BLOCK:
-                    rule_blocked = True
-                elif decision.action == GuardAction.WARN:
-                    rule_warned = True
-                elif decision.action == GuardAction.REDACT:
-                    rule_redacted = True
-                elif decision.action == GuardAction.REQUIRE_APPROVAL:
-                    rule_requires_approval = True
+                        handled_finding_ids.add(id(decision.finding))
+                if decision.action != GuardAction.TRANSFORM or decision.suppress_risk:
+                    requested_actions.add(decision.action)
 
                 # Apply transformations
                 if (
@@ -355,8 +583,8 @@ class Guard:
                     break
 
             except Exception as exc:
-                if self._config.fail_mode == FailMode.CLOSED:
-                    rule_blocked = True
+                if (rule.fail_mode or self._config.fail_mode) == FailMode.CLOSED:
+                    requested_actions.add(GuardAction.BLOCK)
                     findings.append(
                         GuardFinding(
                             rule_id=rule.rule_id,
@@ -378,11 +606,8 @@ class Guard:
         action = self._determine_action(
             score,
             findings,
-            rule_blocked,
-            rule_warned,
-            rule_redacted,
-            rule_requires_approval,
-            policy_handled_finding_ids,
+            requested_actions,
+            handled_finding_ids,
         )
 
         return GuardResult(
@@ -402,14 +627,12 @@ class Guard:
         self,
         score: RiskScore,
         findings: list[GuardFinding],
-        rule_blocked: bool = False,
-        rule_warned: bool = False,
-        rule_redacted: bool = False,
-        rule_requires_approval: bool = False,
-        policy_handled_finding_ids: set[int] | None = None,
+        requested_actions: set[GuardAction] | None = None,
+        handled_finding_ids: set[int] | None = None,
     ) -> GuardAction:
         """Determine final action from score, findings, and rule decisions."""
-        handled_ids = policy_handled_finding_ids or set()
+        handled_ids = handled_finding_ids or set()
+        actions = requested_actions or set()
         actionable_findings = [finding for finding in findings if id(finding) not in handled_ids]
 
         # Check for critical findings — always block
@@ -418,7 +641,7 @@ class Guard:
                 return GuardAction.BLOCK
 
         # If any rule explicitly requested BLOCK, honor it
-        if rule_blocked:
+        if GuardAction.BLOCK in actions:
             return GuardAction.BLOCK
 
         actionable_score = RiskScore.from_findings(
@@ -429,10 +652,16 @@ class Guard:
         if actionable_score.should_block:
             return GuardAction.BLOCK
 
-        if rule_requires_approval:
+        if GuardAction.QUARANTINE in actions:
+            return GuardAction.QUARANTINE
+
+        if GuardAction.REQUIRE_APPROVAL in actions:
             return GuardAction.REQUIRE_APPROVAL
 
-        if actionable_score.should_warn or rule_warned:
+        if GuardAction.RETRY in actions:
+            return GuardAction.RETRY
+
+        if actionable_score.should_warn or GuardAction.WARN in actions:
             return GuardAction.WARN
 
         # Check if any HIGH finding warrants a warning
@@ -440,8 +669,11 @@ class Guard:
             if f.severity == Severity.HIGH:
                 return GuardAction.WARN
 
-        if rule_redacted:
+        if GuardAction.REDACT in actions:
             return GuardAction.REDACT
+
+        if GuardAction.TRANSFORM in actions:
+            return GuardAction.TRANSFORM
 
         return GuardAction.ALLOW
 
@@ -471,6 +703,72 @@ class Guard:
         decision.transformed_value = None
         return True
 
+    def _timeout_result(
+        self,
+        value: str,
+        stage: GuardStage,
+        context: GuardContext,
+        started_at: float,
+    ) -> GuardResult:
+        fail_closed = self._config.fail_mode == FailMode.CLOSED
+        finding = GuardFinding(
+            rule_id="SYS-001",
+            rule_name="Evaluation timeout",
+            category=RuleCategory.RESOURCE,
+            severity=Severity.HIGH,
+            message=(
+                "Guard evaluation timed out (fail-closed)"
+                if fail_closed
+                else "Guard evaluation timed out (fail-open)"
+            ),
+            metadata={"timeout_seconds": self._config.timeout_seconds},
+        )
+        return GuardResult(
+            action=GuardAction.BLOCK if fail_closed else GuardAction.WARN,
+            findings=[finding],
+            score=RiskScore.from_findings(
+                [finding],
+                block_at=self._config.block_at,
+                warn_at=self._config.warn_at,
+            ),
+            value=value,
+            input_length=len(value),
+            stage=stage,
+            context=context,
+            latency_ms=(time.perf_counter() - started_at) * 1000,
+        )
+
+    def _evaluate_with_timeout(
+        self,
+        value: str,
+        stage: GuardStage,
+        context: GuardContext,
+        protected_data: list[ProtectedData] | None = None,
+    ) -> GuardResult:
+        """Run one complete evaluation with a hard caller-facing deadline."""
+        started_at = time.perf_counter()
+        outcomes: queue.Queue[tuple[bool, GuardResult | BaseException]] = queue.Queue(maxsize=1)
+
+        def evaluate() -> None:
+            try:
+                outcomes.put((True, self._evaluate_rules(value, stage, context, protected_data)))
+            except BaseException as exc:  # propagate unexpected engine failures
+                outcomes.put((False, exc))
+
+        worker = threading.Thread(target=evaluate, name="trustrail-evaluation", daemon=True)
+        worker.start()
+        try:
+            succeeded, outcome = outcomes.get(timeout=self._config.timeout_seconds)
+        except queue.Empty:
+            return self._timeout_result(value, stage, context, started_at)
+        if succeeded:
+            if not isinstance(outcome, GuardResult):
+                raise RuntimeError("Invalid guard evaluation result")
+            return outcome
+        if isinstance(outcome, BaseException):
+            raise outcome
+        raise RuntimeError("Invalid guard evaluation failure")
+
     # ── Public synchronous API ────────────────────────────────────────────────
 
     def check(
@@ -483,7 +781,7 @@ class Guard:
     ) -> GuardResult:
         """Check a value at the given stage. Returns GuardResult."""
         ctx = context or self._make_context(stage, **kwargs)
-        result = self._evaluate_rules(value, stage, ctx, protected_data)
+        result = self._evaluate_with_timeout(value, stage, ctx, protected_data)
         self._fire_alerts(result)
         if self._config.audit_enabled:
             self._emit_audit_sync(result)
@@ -755,7 +1053,7 @@ class Guard:
         """Async check. Runs synchronous rules in a thread pool."""
         ctx = context or self._make_context(stage, **kwargs)
         result = await asyncio.to_thread(
-            self._evaluate_rules,
+            self._evaluate_with_timeout,
             value,
             stage,
             ctx,
@@ -1156,7 +1454,10 @@ class Guard:
     async def _emit_audit(self, result: GuardResult) -> None:
         import contextlib
 
-        event = AuditEvent.from_result(result)
+        event = AuditEvent.from_result(
+            result,
+            include_metadata=self._config.audit_include_metadata,
+        )
         with contextlib.suppress(Exception):
             await self._audit_sink.emit(event)
 
@@ -1172,7 +1473,10 @@ class Guard:
             return
         import contextlib
 
-        event = AuditEvent.from_result(result.model_copy(update={"action": action}))
+        event = AuditEvent.from_result(
+            result.model_copy(update={"action": action}),
+            include_metadata=self._config.audit_include_metadata,
+        )
         event.memory_approval_outcome = outcome
         with contextlib.suppress(Exception):
             await self._audit_sink.emit(event)
@@ -1180,7 +1484,10 @@ class Guard:
     def _emit_audit_sync(self, result: GuardResult) -> None:
         import contextlib
 
-        event = AuditEvent.from_result(result)
+        event = AuditEvent.from_result(
+            result,
+            include_metadata=self._config.audit_include_metadata,
+        )
         with contextlib.suppress(Exception):
             try:
                 loop = asyncio.get_running_loop()

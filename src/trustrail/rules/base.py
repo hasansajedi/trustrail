@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from typing import ClassVar
 
 from trustrail.models.core import GuardContext, GuardDecision, GuardFinding
-from trustrail.models.enums import GuardAction, RuleCategory, RulePhase, Severity
+from trustrail.models.enums import FailMode, GuardAction, RuleCategory, RulePhase, Severity
 
 
 class BaseRule(ABC):
@@ -25,6 +25,58 @@ class BaseRule(ABC):
 
     def __init__(self, enabled: bool = True) -> None:
         self.enabled = enabled
+        self._configured_action: GuardAction | None = None
+        self._configured_severity: Severity | None = None
+        self._configured_threshold: float | None = None
+        self._configured_fail_mode: FailMode | None = None
+
+    @property
+    def fail_mode(self) -> FailMode | None:
+        """Return the effective failure behavior assigned by the Guard."""
+        return self._configured_fail_mode
+
+    def configure(
+        self,
+        *,
+        action: GuardAction | None = None,
+        severity: Severity | None = None,
+        threshold: float | None = None,
+        fail_mode: FailMode | None = None,
+    ) -> None:
+        """Apply validated runtime controls without changing detector logic."""
+        self._configured_action = action
+        self._configured_severity = severity
+        self._configured_threshold = threshold
+        self._configured_fail_mode = fail_mode
+
+    def _apply_runtime_config(self, decision: GuardDecision) -> GuardDecision:
+        finding = decision.finding
+        if finding is None:
+            return decision
+
+        if (
+            self._configured_threshold is not None
+            and finding.confidence < self._configured_threshold
+        ):
+            return self._allow()
+
+        if self._configured_severity is not None:
+            finding.severity = self._configured_severity
+
+        if self._configured_action is not None:
+            decision.action = self._configured_action
+            decision.suppress_risk = True
+            if decision.action == GuardAction.ALLOW:
+                decision.transformed_value = None
+            elif (
+                decision.action in (GuardAction.REDACT, GuardAction.TRANSFORM)
+                and decision.transformed_value is None
+            ):
+                # A requested transformation that cannot produce safe output
+                # fails closed instead of forwarding the original content.
+                decision.action = GuardAction.BLOCK
+                decision.suppress_risk = False
+        return decision
 
     @property
     def id(self) -> str:
@@ -106,7 +158,7 @@ class BaseRule(ABC):
     def timed_evaluate(self, value: str, context: GuardContext) -> GuardDecision:
         """Evaluate with latency tracking."""
         start = time.perf_counter()
-        decision = self.evaluate(value, context)
+        decision = self._apply_runtime_config(self.evaluate(value, context))
         decision.latency_ms = (time.perf_counter() - start) * 1000
         return decision
 
@@ -122,13 +174,15 @@ class BaseRule(ABC):
     ) -> GuardDecision:
         """Evaluate a stream chunk with latency tracking."""
         start = time.perf_counter()
-        decision = self.evaluate_stream(
-            value,
-            context,
-            chunk=chunk,
-            chunk_index=chunk_index,
-            total_chars=total_chars,
-            total_bytes=total_bytes,
+        decision = self._apply_runtime_config(
+            self.evaluate_stream(
+                value,
+                context,
+                chunk=chunk,
+                chunk_index=chunk_index,
+                total_chars=total_chars,
+                total_bytes=total_bytes,
+            )
         )
         decision.latency_ms = (time.perf_counter() - start) * 1000
         return decision

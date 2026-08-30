@@ -48,6 +48,15 @@ class StreamResult:
     def requires_approval(self) -> bool:
         return self.action == GuardAction.REQUIRE_APPROVAL
 
+    @property
+    def is_terminal(self) -> bool:
+        return self.action in (
+            GuardAction.BLOCK,
+            GuardAction.QUARANTINE,
+            GuardAction.RETRY,
+            GuardAction.REQUIRE_APPROVAL,
+        )
+
 
 class StreamScanner:
     """Real-time streaming content scanner.
@@ -84,8 +93,10 @@ class StreamScanner:
         self._rules_evaluated = 0
         self._findings: list[GuardFinding] = []
         self._blocked = False
+        self._terminal_action: GuardAction | None = None
         self._requires_approval = False
         self._redacted = False
+        self._transformed = False
         self._warned = False
         self._policy_handled_finding_ids: set[int] = set()
 
@@ -112,11 +123,11 @@ class StreamScanner:
 
     def process_chunk(self, chunk: str) -> StreamResult:
         """Process a single chunk synchronously."""
-        if self._blocked:
+        if self._terminal_action is not None:
             return StreamResult(
                 chunk=chunk,
                 findings=self._findings,
-                action=GuardAction.BLOCK,
+                action=self._terminal_action,
                 safe_chunk="",
             )
 
@@ -126,6 +137,7 @@ class StreamScanner:
         safe_chunk = chunk
         new_findings: list[GuardFinding] = []
         redacted_chunk = False
+        transformed_chunk = False
         warned_chunk = False
 
         # Apply normalization rules to each chunk before buffering or running
@@ -146,26 +158,37 @@ class StreamScanner:
                 )
                 if decision.finding is not None:
                     new_findings.append(decision.finding)
+                    if decision.suppress_risk:
+                        self._policy_handled_finding_ids.add(id(decision.finding))
                 if (
                     decision.action in (GuardAction.REDACT, GuardAction.TRANSFORM)
                     and decision.transformed_value is not None
                 ):
                     safe_chunk = decision.transformed_value
-                if decision.action == GuardAction.BLOCK:
-                    self._blocked = True
+                    if decision.action == GuardAction.TRANSFORM and decision.suppress_risk:
+                        self._transformed = True
+                        transformed_chunk = True
+                if decision.action in (
+                    GuardAction.BLOCK,
+                    GuardAction.QUARANTINE,
+                    GuardAction.RETRY,
+                ):
+                    self._blocked = decision.action == GuardAction.BLOCK
+                    self._terminal_action = decision.action
                     self._findings.extend(new_findings)
                     return StreamResult(
                         chunk=chunk,
                         findings=new_findings,
-                        action=GuardAction.BLOCK,
+                        action=decision.action,
                         safe_chunk="",
                     )
                 if decision.action == GuardAction.REQUIRE_APPROVAL:
                     self._requires_approval = True
             except Exception as exc:
-                if self._fail_mode == FailMode.CLOSED:
+                if (rule.fail_mode or self._fail_mode) == FailMode.CLOSED:
                     new_findings.append(self._rule_failure_finding(rule, exc))
                     self._blocked = True
+                    self._terminal_action = GuardAction.BLOCK
                     self._findings.extend(new_findings)
                     return StreamResult(
                         chunk=chunk,
@@ -194,18 +217,23 @@ class StreamScanner:
                     total_chars=self._total_chars,
                     total_bytes=self._total_bytes,
                 )
-                policy_handled = self._apply_sensitive_data_mode(decision)
+                policy_handled = decision.suppress_risk or self._apply_sensitive_data_mode(decision)
                 if decision.finding is not None:
                     new_findings.append(decision.finding)
                     if policy_handled:
                         self._policy_handled_finding_ids.add(id(decision.finding))
-                if decision.action == GuardAction.BLOCK:
-                    self._blocked = True
+                if decision.action in (
+                    GuardAction.BLOCK,
+                    GuardAction.QUARANTINE,
+                    GuardAction.RETRY,
+                ):
+                    self._blocked = decision.action == GuardAction.BLOCK
+                    self._terminal_action = decision.action
                     self._findings.extend(new_findings)
                     return StreamResult(
                         chunk=chunk,
                         findings=new_findings,
-                        action=GuardAction.BLOCK,
+                        action=decision.action,
                         safe_chunk="",
                     )
                 if (
@@ -214,6 +242,7 @@ class StreamScanner:
                 ):
                     if not decision.transformed_value.startswith(lookbehind):
                         self._blocked = True
+                        self._terminal_action = GuardAction.BLOCK
                         self._findings.extend(new_findings)
                         return StreamResult(
                             chunk=chunk,
@@ -222,17 +251,22 @@ class StreamScanner:
                             safe_chunk="",
                         )
                     safe_chunk = decision.transformed_value[len(lookbehind) :]
-                    self._redacted = True
-                    redacted_chunk = True
+                    if decision.action == GuardAction.TRANSFORM and decision.suppress_risk:
+                        self._transformed = True
+                        transformed_chunk = True
+                    else:
+                        self._redacted = True
+                        redacted_chunk = True
                 if decision.action == GuardAction.WARN:
                     self._warned = True
                     warned_chunk = True
                 if decision.action == GuardAction.REQUIRE_APPROVAL:
                     self._requires_approval = True
             except Exception as exc:
-                if self._fail_mode == FailMode.CLOSED:
+                if (rule.fail_mode or self._fail_mode) == FailMode.CLOSED:
                     new_findings.append(self._rule_failure_finding(rule, exc))
                     self._blocked = True
+                    self._terminal_action = GuardAction.BLOCK
                     self._findings.extend(new_findings)
                     return StreamResult(
                         chunk=chunk,
@@ -246,6 +280,7 @@ class StreamScanner:
         actionable_score = self._actionable_score()
         if actionable_score.should_block:
             self._blocked = True
+            self._terminal_action = GuardAction.BLOCK
             return StreamResult(
                 chunk=chunk,
                 findings=new_findings,
@@ -260,6 +295,7 @@ class StreamScanner:
             self._buffer.append(ch)
 
         if self._requires_approval:
+            self._terminal_action = GuardAction.REQUIRE_APPROVAL
             return StreamResult(
                 chunk=chunk,
                 findings=new_findings,
@@ -273,7 +309,11 @@ class StreamScanner:
             action=(
                 GuardAction.WARN
                 if (warned_chunk or actionable_score.should_warn)
-                else (GuardAction.REDACT if redacted_chunk else GuardAction.ALLOW)
+                else (
+                    GuardAction.REDACT
+                    if redacted_chunk
+                    else (GuardAction.TRANSFORM if transformed_chunk else GuardAction.ALLOW)
+                )
             ),
             safe_chunk=safe_chunk,
         )
@@ -330,7 +370,7 @@ class StreamScanner:
         async for chunk in source:
             result = await self.aprocess_chunk(chunk)
             yield result
-            if result.is_blocked:
+            if result.is_terminal:
                 break
 
     def finalize(self) -> GuardResult:
@@ -342,15 +382,19 @@ class StreamScanner:
         )
         actionable_score = self._actionable_score()
         action = (
-            GuardAction.BLOCK
-            if (self._blocked or actionable_score.should_block)
+            self._terminal_action
+            if self._terminal_action is not None
             else (
                 GuardAction.REQUIRE_APPROVAL
                 if self._requires_approval
                 else (
                     GuardAction.WARN
                     if (self._warned or actionable_score.should_warn)
-                    else (GuardAction.REDACT if self._redacted else GuardAction.ALLOW)
+                    else (
+                        GuardAction.REDACT
+                        if self._redacted
+                        else (GuardAction.TRANSFORM if self._transformed else GuardAction.ALLOW)
+                    )
                 )
             )
         )
@@ -374,7 +418,9 @@ class StreamScanner:
         self._rules_evaluated = 0
         self._findings.clear()
         self._blocked = False
+        self._terminal_action = None
         self._requires_approval = False
         self._redacted = False
+        self._transformed = False
         self._warned = False
         self._policy_handled_finding_ids.clear()
