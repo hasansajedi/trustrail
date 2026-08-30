@@ -256,7 +256,7 @@ class Message(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    role: str  # "user", "assistant", "system", "tool"
+    role: str  # Built-ins: "system", "developer", "user", "assistant", "tool"
     content: str
     name: str | None = None
     tool_call_id: str | None = None
