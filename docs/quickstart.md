@@ -62,6 +62,10 @@ guard = Guard.from_profile("paranoid")
 
 ## Decorators
 
+Input decorators bind the complete call signature, including defaults and
+variadic arguments. The selected value returned to the wrapped function is the
+guard's normalized or redacted value, never the original unchecked string.
+
 ```python
 @guard.input()
 async def handle_message(message: str) -> str:
@@ -72,3 +76,47 @@ async def handle_message(message: str) -> str:
 async def generate(prompt: str) -> str:
     return await llm.generate(prompt)
 ```
+
+Use `selector` when a function has several payload fields. Structured or
+multi-field payloads need a serializer for scanning and a deserializer so any
+normalization or redaction can be written safely back into the call:
+
+```python
+import json
+
+from trustrail import GuardStage
+
+
+@guard.input(
+    stage=GuardStage.RAG_DOCUMENT,
+    selector=lambda arguments: ("query", "document"),
+    serializer=lambda payload: json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+    ),
+    deserializer=json.loads,
+)
+async def retrieve(query: str, document: dict[str, str]) -> str:
+    return await index.add(query=query, document=document)
+```
+
+The selector receives a read-only mapping of fully bound arguments with
+`self`/`cls` removed. It may return one parameter name or a sequence of names.
+Serialization is capped at 10,000 characters by default; set
+`max_serialized_chars` deliberately for larger payloads. Oversized or
+non-reconstructable transformed payloads fail closed before the callable runs.
+
+Tool decorators also bind positional, keyword-only, variadic, and defaulted
+arguments before applying the configured `tools` policy:
+
+```python
+@guard.tool(policy="tools")
+async def fetch_url(url: str, *, timeout: float = 5.0) -> str:
+    return await http_client.get(url, timeout=timeout)
+```
+
+`policy="default"` remains an alias for `policy="tools"`. Unknown policy names
+raise `ConfigurationError` while the function is being decorated. Both input
+and tool decorators raise `ApprovalRequiredError` for `REQUIRE_APPROVAL`, and
+do not invoke the wrapped function.

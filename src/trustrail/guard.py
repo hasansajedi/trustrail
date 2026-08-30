@@ -8,15 +8,19 @@ from __future__ import annotations
 import asyncio
 import functools
 import inspect
+import json
 import queue
 import threading
 import time
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable, Mapping, Sequence
 from contextlib import asynccontextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields, is_dataclass
+from enum import Enum
+from pathlib import PurePath
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, get_type_hints
 
-from pydantic import TypeAdapter, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
 if TYPE_CHECKING:
     from trustrail.agents.session import AgentSession
@@ -74,6 +78,14 @@ from trustrail.rules.sensitive_data import ProtectedDataDisclosureRule
 from trustrail.streaming import StreamScanner
 
 F = TypeVar("F", bound=Callable[..., Any])
+ArgumentNameSelection = str | Sequence[str]
+ArgumentSelector = ArgumentNameSelection | Callable[[Mapping[str, Any]], ArgumentNameSelection]
+ArgumentSerializer = Callable[[Any], str]
+ArgumentDeserializer = Callable[[str], Any]
+
+_DEFAULT_DECORATOR_MAX_CHARS = 10_000
+_DECORATOR_MAX_DEPTH = 8
+_DECORATOR_MAX_ITEMS = 1_000
 
 
 class _AlertCallback:
@@ -112,6 +124,14 @@ class _RuleOverride:
     severity: Severity | None = None
     threshold: float | None = None
     params: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class _ArgumentTarget:
+    """Location of one selected value within inspect.BoundArguments."""
+
+    parameter: str
+    item: int | str | None = None
 
 
 class GuardSession:
@@ -1247,41 +1267,88 @@ class Guard:
         self,
         stage: GuardStage = GuardStage.USER_INPUT,
         raise_on_block: bool = True,
+        *,
+        selector: ArgumentSelector | None = None,
+        serializer: ArgumentSerializer | None = None,
+        deserializer: ArgumentDeserializer | None = None,
+        max_serialized_chars: int = _DEFAULT_DECORATOR_MAX_CHARS,
     ) -> Callable[[F], F]:
-        """Decorator that checks the first string argument as user input."""
+        """Validate a bound input argument and forward its safe transformed value.
+
+        By default the first string value is selected after binding positional,
+        keyword, variadic, and defaulted arguments. ``selector`` can name one or
+        more parameters, or derive those names from the bound argument mapping.
+        Structured selections require a ``deserializer`` whenever a guard rule
+        transforms their serialized representation.
+        """
+
+        _validate_decorator_limit(max_serialized_chars)
 
         def decorator(func: F) -> F:
+            signature = inspect.signature(func)
+
             if asyncio.iscoroutinefunction(func):
 
                 @functools.wraps(func)
                 async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
-                    # Find first string arg
-                    text = _first_string(args, kwargs)
-                    if text is not None:
+                    bound = _bind_decorator_arguments(signature, args, kwargs)
+                    targets = _select_input_targets(signature, bound, selector)
+                    if targets:
+                        payload = _selection_payload(bound, targets)
+                        text = _serialize_decorator_payload(
+                            payload,
+                            serializer=serializer,
+                            max_chars=max_serialized_chars,
+                        )
                         result = await self.acheck(text, stage)
-                        if result.is_blocked and raise_on_block:
-                            raise GuardrailBlockedError(
-                                "Input blocked by guardrail",
-                                stage=stage,
-                                findings=result.findings,
-                            )
-                    return await func(*args, **kwargs)
+                        self._enforce_decorator_result(
+                            result,
+                            stage=stage,
+                            message="Input blocked by guardrail",
+                            raise_on_block=raise_on_block,
+                        )
+                        _apply_decorator_transformation(
+                            bound,
+                            targets,
+                            payload=payload,
+                            serialized=text,
+                            transformed=result.output_value,
+                            serializer=serializer,
+                            deserializer=deserializer,
+                        )
+                    return await func(*bound.args, **bound.kwargs)
 
                 return async_wrapper  # type: ignore[return-value]
             else:
 
                 @functools.wraps(func)
                 def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-                    text = _first_string(args, kwargs)
-                    if text is not None:
+                    bound = _bind_decorator_arguments(signature, args, kwargs)
+                    targets = _select_input_targets(signature, bound, selector)
+                    if targets:
+                        payload = _selection_payload(bound, targets)
+                        text = _serialize_decorator_payload(
+                            payload,
+                            serializer=serializer,
+                            max_chars=max_serialized_chars,
+                        )
                         result = self.check(text, stage)
-                        if result.is_blocked and raise_on_block:
-                            raise GuardrailBlockedError(
-                                "Input blocked by guardrail",
-                                stage=stage,
-                                findings=result.findings,
-                            )
-                    return func(*args, **kwargs)
+                        self._enforce_decorator_result(
+                            result,
+                            stage=stage,
+                            message="Input blocked by guardrail",
+                            raise_on_block=raise_on_block,
+                        )
+                        _apply_decorator_transformation(
+                            bound,
+                            targets,
+                            payload=payload,
+                            serialized=text,
+                            transformed=result.output_value,
+                            serializer=serializer,
+                            deserializer=deserializer,
+                        )
+                    return func(*bound.args, **bound.kwargs)
 
                 return sync_wrapper  # type: ignore[return-value]
 
@@ -1302,12 +1369,12 @@ class Guard:
                     ret = await func(*args, **kwargs)
                     if isinstance(ret, str):
                         result = await self.acheck(ret, stage)
-                        if result.is_blocked and raise_on_block:
-                            raise GuardrailBlockedError(
-                                "Output blocked by guardrail",
-                                stage=stage,
-                                findings=result.findings,
-                            )
+                        self._enforce_decorator_result(
+                            result,
+                            stage=stage,
+                            message="Output blocked by guardrail",
+                            raise_on_block=raise_on_block,
+                        )
                         return result.output_value
                     return ret
 
@@ -1319,12 +1386,12 @@ class Guard:
                     ret = func(*args, **kwargs)
                     if isinstance(ret, str):
                         result = self.check(ret, stage)
-                        if result.is_blocked and raise_on_block:
-                            raise GuardrailBlockedError(
-                                "Output blocked by guardrail",
-                                stage=stage,
-                                findings=result.findings,
-                            )
+                        self._enforce_decorator_result(
+                            result,
+                            stage=stage,
+                            message="Output blocked by guardrail",
+                            raise_on_block=raise_on_block,
+                        )
                         return result.output_value
                     return ret
 
@@ -1336,29 +1403,46 @@ class Guard:
         self,
         policy: str = "default",
         raise_on_block: bool = True,
+        *,
+        max_serialized_chars: int = _DEFAULT_DECORATOR_MAX_CHARS,
     ) -> Callable[[F], F]:
-        """Decorator that validates tool call arguments."""
+        """Decorator that validates fully bound tool call arguments.
+
+        ``default`` is a backwards-compatible alias for the configured
+        ``tools`` policy. Any other policy name is rejected during decoration.
+        """
+
+        _validate_decorator_limit(max_serialized_chars)
+        policy_id = self._resolve_tool_decorator_policy(policy)
 
         def decorator(func: F) -> F:
+            signature = inspect.signature(func)
+
             if asyncio.iscoroutinefunction(func):
 
                 @functools.wraps(func)
                 async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+                    bound = _bind_decorator_arguments(signature, args, kwargs)
                     func_name = func.__name__
                     ctx = GuardContext(
                         stage=GuardStage.TOOL_REQUEST,
                         metadata={
                             "tool_name": func_name,
-                            "tool_args": kwargs,
+                            "tool_args": _bound_tool_arguments(
+                                signature,
+                                bound,
+                                max_chars=max_serialized_chars,
+                            ),
+                            "tool_policy": policy_id,
                         },
                     )
                     result = await self.acheck(func_name, GuardStage.TOOL_REQUEST, context=ctx)
-                    if result.is_blocked and raise_on_block:
-                        raise GuardrailBlockedError(
-                            f"Tool call '{func_name}' blocked",
-                            stage=GuardStage.TOOL_REQUEST,
-                            findings=result.findings,
-                        )
+                    self._enforce_decorator_result(
+                        result,
+                        stage=GuardStage.TOOL_REQUEST,
+                        message=f"Tool call '{func_name}' blocked",
+                        raise_on_block=raise_on_block,
+                    )
                     return await func(*args, **kwargs)
 
                 return async_wrapper  # type: ignore[return-value]
@@ -1366,26 +1450,67 @@ class Guard:
 
                 @functools.wraps(func)
                 def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+                    bound = _bind_decorator_arguments(signature, args, kwargs)
                     func_name = func.__name__
                     ctx = GuardContext(
                         stage=GuardStage.TOOL_REQUEST,
                         metadata={
                             "tool_name": func_name,
-                            "tool_args": kwargs,
+                            "tool_args": _bound_tool_arguments(
+                                signature,
+                                bound,
+                                max_chars=max_serialized_chars,
+                            ),
+                            "tool_policy": policy_id,
                         },
                     )
                     result = self.check(func_name, GuardStage.TOOL_REQUEST, context=ctx)
-                    if result.is_blocked and raise_on_block:
-                        raise GuardrailBlockedError(
-                            f"Tool call '{func_name}' blocked",
-                            stage=GuardStage.TOOL_REQUEST,
-                            findings=result.findings,
-                        )
+                    self._enforce_decorator_result(
+                        result,
+                        stage=GuardStage.TOOL_REQUEST,
+                        message=f"Tool call '{func_name}' blocked",
+                        raise_on_block=raise_on_block,
+                    )
                     return func(*args, **kwargs)
 
                 return sync_wrapper  # type: ignore[return-value]
 
         return decorator
+
+    def _resolve_tool_decorator_policy(self, policy: str) -> str:
+        policy_id = "tools" if policy == "default" else policy
+        selected = self._policies.get(policy_id)
+        if policy_id != "tools" or not isinstance(selected, ToolPolicy):
+            raise ConfigurationError(
+                f"Unknown tool decorator policy: '{policy}'. "
+                "Use 'default' or the configured 'tools' policy."
+            )
+        return policy_id
+
+    def _enforce_decorator_result(
+        self,
+        result: GuardResult,
+        *,
+        stage: GuardStage,
+        message: str,
+        raise_on_block: bool,
+    ) -> None:
+        if result.action == GuardAction.REQUIRE_APPROVAL:
+            raise ApprovalRequiredError(
+                message.replace("blocked", "requires approval"),
+                stage=stage,
+                findings=result.findings,
+                request_id=result.context.request_id if result.context else None,
+            )
+        if not raise_on_block:
+            return
+        if result.action in (GuardAction.BLOCK, GuardAction.QUARANTINE, GuardAction.RETRY):
+            raise GuardrailBlockedError(
+                message,
+                stage=stage,
+                findings=result.findings,
+                score=result.score.value,
+            )
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -1496,12 +1621,301 @@ class Guard:
                 asyncio.run(self._audit_sink.emit(event))
 
 
-def _first_string(args: tuple[Any, ...], kwargs: dict[str, Any]) -> str | None:
-    """Find the first string argument in args or kwargs."""
-    for arg in args:
-        if isinstance(arg, str):
-            return arg
-    for val in kwargs.values():
-        if isinstance(val, str):
-            return val
-    return None
+def _validate_decorator_limit(max_chars: int) -> None:
+    if max_chars < 1:
+        raise ConfigurationError("max_serialized_chars must be at least 1")
+
+
+def _bind_decorator_arguments(
+    signature: inspect.Signature,
+    args: tuple[Any, ...],
+    kwargs: dict[str, Any],
+) -> inspect.BoundArguments:
+    """Bind a call exactly as Python will and materialize declared defaults."""
+    bound = signature.bind(*args, **kwargs)
+    bound.apply_defaults()
+    return bound
+
+
+def _select_input_targets(
+    signature: inspect.Signature,
+    bound: inspect.BoundArguments,
+    selector: ArgumentSelector | None,
+) -> list[_ArgumentTarget]:
+    if selector is None:
+        for name, parameter in signature.parameters.items():
+            if name in {"self", "cls"}:
+                continue
+            value = bound.arguments[name]
+            if isinstance(value, str):
+                return [_ArgumentTarget(name)]
+            if parameter.kind == inspect.Parameter.VAR_POSITIONAL:
+                for index, item in enumerate(value):
+                    if isinstance(item, str):
+                        return [_ArgumentTarget(name, index)]
+            elif parameter.kind == inspect.Parameter.VAR_KEYWORD:
+                for key in sorted(value):
+                    if isinstance(value[key], str):
+                        return [_ArgumentTarget(name, key)]
+        return []
+
+    public_arguments = MappingProxyType(
+        {name: value for name, value in bound.arguments.items() if name not in {"self", "cls"}}
+    )
+    selected = selector(public_arguments) if callable(selector) else selector
+    if isinstance(selected, str):
+        names = [selected]
+    elif isinstance(selected, Sequence) and not isinstance(selected, (bytes, bytearray)):
+        names = list(selected)
+    else:
+        raise ConfigurationError("input selector must return a parameter name or sequence of names")
+    if not names or any(not isinstance(name, str) for name in names):
+        raise ConfigurationError("input selector must choose at least one valid parameter name")
+
+    targets: list[_ArgumentTarget] = []
+    for name in names:
+        if name in {"self", "cls"}:
+            raise ConfigurationError(f"input selector cannot select '{name}'")
+        if name in bound.arguments:
+            targets.append(_ArgumentTarget(name))
+            continue
+        variadic_keyword = next(
+            (
+                parameter_name
+                for parameter_name, parameter in signature.parameters.items()
+                if parameter.kind == inspect.Parameter.VAR_KEYWORD
+                and name in bound.arguments[parameter_name]
+            ),
+            None,
+        )
+        if variadic_keyword is None:
+            raise ConfigurationError(f"input selector chose unknown argument '{name}'")
+        targets.append(_ArgumentTarget(variadic_keyword, name))
+    if len({(target.parameter, target.item) for target in targets}) != len(targets):
+        raise ConfigurationError("input selector returned duplicate argument names")
+    return targets
+
+
+def _target_label(target: _ArgumentTarget) -> str:
+    return target.item if isinstance(target.item, str) else target.parameter
+
+
+def _target_value(bound: inspect.BoundArguments, target: _ArgumentTarget) -> Any:
+    value = bound.arguments[target.parameter]
+    return value if target.item is None else value[target.item]
+
+
+def _selection_payload(
+    bound: inspect.BoundArguments,
+    targets: list[_ArgumentTarget],
+) -> Any:
+    if len(targets) == 1:
+        return _target_value(bound, targets[0])
+    return {_target_label(target): _target_value(bound, target) for target in targets}
+
+
+def _serialize_decorator_payload(
+    payload: Any,
+    *,
+    serializer: ArgumentSerializer | None,
+    max_chars: int,
+) -> str:
+    if serializer is not None:
+        try:
+            serialized = serializer(payload)
+        except Exception as exc:
+            raise ConfigurationError(f"input serializer failed: {type(exc).__name__}") from exc
+        if not isinstance(serialized, str):
+            raise ConfigurationError("input serializer must return str")
+    elif isinstance(payload, str):
+        serialized = payload
+    else:
+        normalized = _bounded_decorator_value(payload, max_chars=max_chars)
+        serialized = json.dumps(
+            normalized,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+    if len(serialized) > max_chars:
+        raise ResourceLimitError(
+            f"Decorator payload contains {len(serialized)} characters; limit is {max_chars}"
+        )
+    return serialized
+
+
+def _bounded_decorator_value(
+    value: Any,
+    *,
+    max_chars: int,
+    depth: int = 0,
+    budget: list[int] | None = None,
+) -> Any:
+    """Create a deterministic JSON-compatible value under strict bounds."""
+    if budget is None:
+        budget = [_DECORATOR_MAX_ITEMS]
+    budget[0] -= 1
+    if budget[0] < 0:
+        raise ResourceLimitError(f"Decorator payload exceeds the {_DECORATOR_MAX_ITEMS}-item limit")
+    if depth > _DECORATOR_MAX_DEPTH:
+        raise ResourceLimitError(
+            f"Decorator payload exceeds the maximum depth of {_DECORATOR_MAX_DEPTH}"
+        )
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    if isinstance(value, str):
+        if len(value) > max_chars:
+            raise ResourceLimitError(
+                f"Decorator string contains {len(value)} characters; limit is {max_chars}"
+            )
+        return value
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    if isinstance(value, Enum):
+        return _bounded_decorator_value(
+            value.value,
+            max_chars=max_chars,
+            depth=depth + 1,
+            budget=budget,
+        )
+    if isinstance(value, PurePath):
+        return str(value)
+    if isinstance(value, BaseModel):
+        value = value.model_dump(mode="json")
+    elif is_dataclass(value) and not isinstance(value, type):
+        value = {item.name: getattr(value, item.name) for item in fields(value)}
+    if isinstance(value, Mapping):
+        normalized_items: list[tuple[str, Any]] = []
+        for key, item in value.items():
+            if not isinstance(key, (str, int, float, bool, Enum)):
+                raise ConfigurationError(
+                    "Decorator mappings require scalar keys; provide an explicit serializer"
+                )
+            normalized_key = str(key.value if isinstance(key, Enum) else key)
+            normalized_items.append(
+                (
+                    normalized_key,
+                    _bounded_decorator_value(
+                        item,
+                        max_chars=max_chars,
+                        depth=depth + 1,
+                        budget=budget,
+                    ),
+                )
+            )
+        normalized_items.sort(key=lambda item: item[0])
+        if len({key for key, _ in normalized_items}) != len(normalized_items):
+            raise ConfigurationError("Decorator mapping keys collide after normalization")
+        return dict(normalized_items)
+    if isinstance(value, (list, tuple, set, frozenset)):
+        normalized = [
+            _bounded_decorator_value(
+                item,
+                max_chars=max_chars,
+                depth=depth + 1,
+                budget=budget,
+            )
+            for item in value
+        ]
+        if isinstance(value, (set, frozenset)):
+            normalized.sort(
+                key=lambda item: json.dumps(
+                    item,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                )
+            )
+        return normalized
+    raise ConfigurationError(
+        f"Cannot serialize decorator argument of type {type(value).__name__}; "
+        "provide an explicit serializer"
+    )
+
+
+def _replace_argument_target(
+    bound: inspect.BoundArguments,
+    target: _ArgumentTarget,
+    replacement: Any,
+) -> None:
+    if target.item is None:
+        bound.arguments[target.parameter] = replacement
+        return
+    container = bound.arguments[target.parameter]
+    if isinstance(target.item, int):
+        positional_values = list(container)
+        positional_values[target.item] = replacement
+        bound.arguments[target.parameter] = tuple(positional_values)
+    else:
+        keyword_values = dict(container)
+        keyword_values[target.item] = replacement
+        bound.arguments[target.parameter] = keyword_values
+
+
+def _apply_decorator_transformation(
+    bound: inspect.BoundArguments,
+    targets: list[_ArgumentTarget],
+    *,
+    payload: Any,
+    serialized: str,
+    transformed: str,
+    serializer: ArgumentSerializer | None,
+    deserializer: ArgumentDeserializer | None,
+) -> None:
+    if transformed == serialized:
+        return
+    if len(targets) == 1 and serializer is None and isinstance(payload, str):
+        _replace_argument_target(bound, targets[0], transformed)
+        return
+    if deserializer is None:
+        raise ConfigurationError(
+            "A deserializer is required to apply transformed structured or multi-field input"
+        )
+    try:
+        replacement = deserializer(transformed)
+    except Exception as exc:
+        raise ConfigurationError(f"input deserializer failed: {type(exc).__name__}") from exc
+    if len(targets) == 1:
+        _replace_argument_target(bound, targets[0], replacement)
+        return
+    if not isinstance(replacement, Mapping):
+        raise ConfigurationError("multi-field input deserializer must return a mapping")
+    for target in targets:
+        label = _target_label(target)
+        if label not in replacement:
+            raise ConfigurationError(
+                f"multi-field input deserializer omitted selected argument '{label}'"
+            )
+        _replace_argument_target(bound, target, replacement[label])
+
+
+def _bound_tool_arguments(
+    signature: inspect.Signature,
+    bound: inspect.BoundArguments,
+    *,
+    max_chars: int,
+) -> dict[str, Any]:
+    arguments: dict[str, Any] = {}
+    for name, parameter in signature.parameters.items():
+        if name in {"self", "cls"}:
+            continue
+        value = bound.arguments[name]
+        if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+            for key in sorted(value):
+                arguments[key] = value[key]
+        else:
+            arguments[name] = value
+    normalized = _bounded_decorator_value(arguments, max_chars=max_chars)
+    if not isinstance(normalized, dict):
+        raise RuntimeError("Bound tool arguments did not normalize to a mapping")
+    serialized = json.dumps(
+        normalized,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    if len(serialized) > max_chars:
+        raise ResourceLimitError(
+            f"Tool arguments contain {len(serialized)} characters; limit is {max_chars}"
+        )
+    return normalized

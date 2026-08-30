@@ -26,10 +26,40 @@ safe_result = await guard.aprotect(str(raw_result), GuardStage.TOOL_RESPONSE)
 For function-based tools, the decorator creates the tool context automatically:
 
 ```python
-@guard.tool()
+@guard.tool(policy="tools")
 async def fetch_url(url: str) -> str:
     return await http_client.get(url)
 ```
+
+The decorator uses `inspect.signature()` binding before validation. Positional,
+keyword-only, variadic, and omitted default arguments are therefore all present
+in `tool_args`; bound methods exclude `self` and `cls`. The deterministic
+argument representation is limited to 10,000 characters by default and rejects
+unsupported or oversized structures before the tool executes. Set
+`max_serialized_chars` explicitly if a tool has a larger reviewed schema.
+
+`policy="default"` is a backwards-compatible alias for the configured `tools`
+policy. Use `policy="tools"` to be explicit. Other names raise
+`ConfigurationError` during decoration instead of silently being ignored. The
+policy can be configured through `GuardConfig`:
+
+```python
+from trustrail import Guard, GuardConfig, GuardPolicy
+
+guard = Guard(
+    GuardConfig(
+        policies={
+            "tools": GuardPolicy(
+                params={"allowlist": ["fetch_url"]},
+            )
+        }
+    )
+)
+```
+
+`BLOCK`, `QUARANTINE`, and `RETRY` stop execution with
+`GuardrailBlockedError`. `REQUIRE_APPROVAL` stops execution with
+`ApprovalRequiredError`; decorators do not perform approval themselves.
 
 The decorator is a content guardrail, not an authorization decision. Use
 `ToolAuthorizer` to bind the exact tool/version and scalar argument schema to an
