@@ -21,17 +21,24 @@ async def simulate_stream():
 async def main() -> None:
     guard = Guard.balanced()
     scanner = guard.stream(GuardStage.STREAM)
+    safe_output: list[str] = []
 
     print("Scanning stream chunks:\n")
     async for result in scanner.scan(simulate_stream()):
-        status = "BLOCKED" if result.is_blocked else "OK"
-        print(f"[{status}] Chunk: {result.chunk!r}")
+        status = result.action.value.upper()
+        # Only safe_chunk may be sent to a client. chunk is the original input
+        # and is retained for local control flow, not downstream rendering.
+        if result.safe_chunk:
+            safe_output.append(result.safe_chunk)
+        print(f"[{status}] Safe chunk: {result.safe_chunk!r}")
         if result.findings:
             for f in result.findings:
                 print(f"         Finding: {f.message}")
 
     final = scanner.finalize()
     print(f"\nFinal result: {final.action.value}, score={final.score.value}")
+    if final.is_allowed:
+        print(f"Safe response: {''.join(safe_output)}")
 
 
 if __name__ == "__main__":

@@ -1,8 +1,12 @@
 """Reserve model resources and validate actual output before consumption."""
 
 import asyncio
+import gzip
 
 from trustrail import (
+    BoundedDecompressor,
+    CompressedPayloadRequest,
+    CompressionFormat,
     ConsumptionBudgetPolicy,
     ResourceBudgetManager,
     ResourceCompletionRequest,
@@ -37,16 +41,34 @@ async def main() -> None:
     )
     lease = await manager.require_reservation(request)
 
-    # Call the provider with requested_output_tokens and a deadline here.
-    provider_output = "The approved policy has been summarized."
-    safe_output = await manager.require_completion(
-        ResourceCompletionRequest(
-            lease_id=lease.lease_id,
-            output_text=provider_output,
-            output_tokens=10,
+    completed = False
+    try:
+        # Call the provider with requested_output_tokens and a deadline here.
+        provider_output = "The approved policy has been summarized."
+        safe_output = await manager.require_completion(
+            ResourceCompletionRequest(
+                lease_id=lease.lease_id,
+                output_text=provider_output,
+                output_tokens=10,
+            )
+        )
+        completed = True
+        print(safe_output)
+    finally:
+        # Release concurrency immediately if the provider call or completion
+        # validation fails. Completed leases are already released.
+        if not completed:
+            await manager.cancel(lease.lease_id)
+
+    compressed = gzip.compress(b'{"document":"small reviewed payload"}')
+    decompressed = BoundedDecompressor(manager.policy).require(
+        CompressedPayloadRequest(
+            request_id="compressed-request-1",
+            format=CompressionFormat.GZIP,
+            payload=compressed,
         )
     )
-    print(safe_output)
+    print(decompressed.decode())
 
 
 asyncio.run(main())

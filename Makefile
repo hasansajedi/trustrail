@@ -5,13 +5,13 @@ install:
 	pre-commit install
 
 lint:
-	ruff check src/ tests/
+	ruff check src/ tests/ examples/
 
 format:
-	ruff format src/ tests/
+	ruff format src/ tests/ examples/
 
 format-check:
-	ruff format --check src/ tests/
+	ruff format --check src/ tests/ examples/
 
 typecheck:
 	mypy src/
