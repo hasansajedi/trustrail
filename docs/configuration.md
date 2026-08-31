@@ -21,6 +21,8 @@ config = GuardConfig(
     warn_at=35,
     max_text_length=50_000,
     timeout_seconds=5.0,
+    provider_timeout_seconds=2.0,
+    max_async_concurrency=8,
     audit_enabled=True,
     sensitive_data_mode=SensitiveDataMode.DEFAULT,
     strip_invisible_unicode=True,
@@ -102,6 +104,13 @@ content-free `SYS-001` finding. Python cannot forcibly stop arbitrary synchronou
 rule code, so a timed-out custom rule may finish in its isolated daemon thread;
 custom rules should still implement their own I/O deadlines and cancellation.
 
+`provider_timeout_seconds` is the default per-call deadline for async rules and
+external safety providers; `ProviderRegistration` and `AsyncRuleRegistration`
+can override it for one check. `max_async_concurrency` bounds independent async
+checks within each evaluation. The whole evaluation remains bounded by
+`timeout_seconds`. See [external safety providers](integrations/external-safety-providers.md)
+for ordering, cancellation, fail-mode, and synchronous-call behavior.
+
 When `audit_include_metadata=False`, audit events omit request, session, user,
 tenant, and tag fields. Finding summaries, timing, stage, action, score, and
 input length remain available. Arbitrary `GuardContext.metadata` values are
@@ -124,6 +133,9 @@ fail_mode: closed
 block_at: 70
 warn_at: 35
 max_text_length: 100000
+timeout_seconds: 10.0
+provider_timeout_seconds: 5.0
+max_async_concurrency: 4
 audit_enabled: true
 sensitive_data_mode: default
 strip_invisible_unicode: true

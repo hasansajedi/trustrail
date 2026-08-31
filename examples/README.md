@@ -55,6 +55,10 @@ tools.
 
 ## Provider and framework adapters
 
+| Need | Runnable example | What it demonstrates |
+| --- | --- | --- |
+| Run external safety checks | [`async_providers.py`](async_providers.py) | Awaited moderation and RAG grounding with per-provider deadlines and fail modes |
+
 [`openai_messages.py`](openai_messages.py) runs without an API key or network
 call and demonstrates preserving multipart content and tool-call fields. Install
 `trustrail[openai]` when using the returned messages with the OpenAI SDK.
@@ -70,6 +74,8 @@ so their maintained examples live in the integration guides:
   — install `trustrail[llamaindex]`.
 - [OpenTelemetry audit export](../docs/observability.md) — install
   `trustrail[otel]`.
+- [External safety providers](../docs/integrations/external-safety-providers.md)
+  — moderation, DLP, prompt-injection, and grounding adapters.
 - [Redis-backed distributed rate limiting](../docs/guides/rate-limiting.md) —
   install `trustrail[redis]`.
 

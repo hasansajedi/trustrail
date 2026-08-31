@@ -57,3 +57,55 @@ def test_allows_normal_text() -> None:
 ```
 
 See the [rules API](api/rules.md) for available helpers and class attributes.
+
+## Async rules
+
+Subclass `BaseAsyncRule` when a rule must await application or remote I/O. Set
+its phase explicitly when it transforms the value; detector rules run
+concurrently and cannot transform.
+
+```python
+from trustrail import (
+    AsyncRuleRegistration,
+    FailMode,
+    Guard,
+    GuardStage,
+    RuleCategory,
+    RulePhase,
+)
+from trustrail.models import GuardAction, GuardDecision
+from trustrail.rules.base import BaseAsyncRule
+
+
+class TenantVocabularyRule(BaseAsyncRule):
+    rule_id = "ORG-ASYNC-001"
+    rule_name = "Tenant vocabulary normalization"
+    category = RuleCategory.CONTENT_SAFETY
+    phase = RulePhase.TRANSFORM
+
+    async def evaluate(self, value, context):
+        replacement = await vocabulary_service.normalize(context.tenant_id, value)
+        return GuardDecision(
+            action=GuardAction.TRANSFORM,
+            transformed_value=replacement,
+            rule_id=self.rule_id,
+        )
+
+
+guard = Guard(
+    async_rules=[
+        AsyncRuleRegistration(
+            TenantVocabularyRule(),
+            timeout_seconds=0.5,
+            fail_mode=FailMode.CLOSED,
+        )
+    ]
+)
+result = await guard.acheck(text, GuardStage.USER_INPUT)
+```
+
+Runtime `RuleConfig` controls—enablement, action, severity, confidence threshold,
+and validated constructor parameters—also apply to `BaseAsyncRule`. Cancelling
+`acheck()` propagates cancellation to the rule. See
+[external safety providers](integrations/external-safety-providers.md) for the
+full execution contract.

@@ -1,12 +1,19 @@
 # Performance
 
 `Guard.check` runs deterministic rules synchronously. `Guard.acheck` moves that
-work to a thread so async request handlers do not block the event loop.
+work to a thread and awaits configured async rules and external providers without
+blocking the event loop.
 
 ```python
 result = guard.check(text, GuardStage.USER_INPUT)          # synchronous code
 result = await guard.acheck(text, GuardStage.USER_INPUT)  # async applications
 ```
+
+When an async check applies to a stage, `Guard.check` raises
+`AsyncGuardRequiredError` instead of silently skipping it. Independent async
+checks share the `max_async_concurrency` bound. Each check uses its registration
+timeout (or `provider_timeout_seconds`), while `timeout_seconds` bounds the whole
+evaluation. See [external safety providers](integrations/external-safety-providers.md).
 
 Use `result.latency_ms` and `result.rules_evaluated` to measure real workloads.
 Benchmark benign and adversarial inputs across representative lengths; regex and
