@@ -134,6 +134,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 ## Documentation
 
+- [Runnable examples](examples/README.md)
 - [Installation](docs/installation.md)
 - [Quick Start](docs/quickstart.md)
 - [Concepts](docs/concepts.md)

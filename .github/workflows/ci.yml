@@ -18,9 +18,9 @@ jobs:
       - name: Install ruff
         run: pip install ruff==0.16.3
       - name: Check format
-        run: ruff format --check src/ tests/
+        run: ruff format --check src/ tests/ examples/
       - name: Check lint
-        run: ruff check src/ tests/
+        run: ruff check src/ tests/ examples/
 
   typecheck:
     name: Type Check

@@ -9,10 +9,19 @@ async def main() -> None:
     guard = Guard.balanced()
     ctx = GuardContext(
         stage=GuardStage.AGENT_ACTION,
+        request_id="request-001",
         session_id="agent-session-001",
+        user_id="authenticated-user",
+        tenant_id="tenant-a",
     )
 
-    async with guard.agent_session(ctx, max_steps=5, max_tool_calls=10) as session:
+    async with guard.agent_session(
+        ctx,
+        max_steps=5,
+        max_tool_calls=10,
+        max_depth=3,
+        max_duration_seconds=30,
+    ) as session:
         print("Agent session started\n")
 
         # Simulate agent steps
