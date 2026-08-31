@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - End-to-end developer examples covering core guards, configuration, RAG,
   streaming, agents, framework integrations, observability, testing, and
   production deployment patterns.
+- Production Redis state backend with pooled async connections, versioned and
+  namespaced storage, collision-safe keys, atomic TTL counters, explicit fail
+  modes, and clean shutdown.
 
 ### Changed
 

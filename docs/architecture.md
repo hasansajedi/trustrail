@@ -41,6 +41,26 @@ Guard
   └── StateBackend (MemoryStateBackend / RedisStateBackend)
 ```
 
+### State backends
+
+`MemoryStateBackend` provides bounded, process-local storage for development and
+single-worker services. `RedisStateBackend` provides shared asynchronous state for
+multi-worker and multi-replica deployments through redis-py's connection pool.
+
+Redis physical keys use
+`<namespace>:v1:<sha256(logical-key)>`. Values use a versioned JSON envelope, and
+counter updates use an atomic Lua operation that initializes expiration only when
+the counter is created. The hash keeps tenant and session identifiers out of Redis
+keys; `build_state_key()` canonically separates identity components before hashing
+them so attacker-controlled delimiters cannot create key collisions.
+
+Redis failures are fail-closed by default and raise `StateBackendError` without
+including the key, value, URL, or credentials in the public message. Explicit
+fail-open mode returns an empty read, treats writes and deletes as no-ops, and
+returns the requested delta for counters. This degraded mode weakens distributed
+limits and must be selected deliberately. Owned clients expose `aclose()` and an
+async context manager so pooled connections are released during shutdown.
+
 Tool execution is a separate complete-mediation boundary:
 
 ```

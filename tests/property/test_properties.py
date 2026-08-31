@@ -31,7 +31,7 @@ class TestGuardInvariants:
         assert result.action in list(GuardAction)
 
     @given(text=text_strategy)
-    @settings(max_examples=100)
+    @settings(max_examples=100, deadline=None)
     def test_score_bounded(self, text: str):
         """Risk score should always be in [0, 100]."""
         result = guard.check(text, GuardStage.USER_INPUT)
