@@ -1,5 +1,15 @@
-"""LangChain integration for trustrail."""
+"""LangChain integration for TrustRail."""
 
-from trustrail.integrations.langchain.handler import AegisRailCallbackHandler
+from trustrail.integrations.langchain.handler import (
+    AegisRailAsyncCallbackHandler,
+    AegisRailCallbackHandler,
+    TrustRailAsyncCallbackHandler,
+    TrustRailCallbackHandler,
+)
 
-__all__ = ["AegisRailCallbackHandler"]
+__all__ = [
+    "AegisRailAsyncCallbackHandler",
+    "AegisRailCallbackHandler",
+    "TrustRailAsyncCallbackHandler",
+    "TrustRailCallbackHandler",
+]

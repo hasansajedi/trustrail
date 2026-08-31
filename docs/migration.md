@@ -51,3 +51,16 @@ Unmodified messages now round trip losslessly. Textual multipart fields are
 scanned and transformed in place; image, audio, file, and unknown content parts
 are retained unchanged and require a separate modality-specific validator when
 untrusted. Async adapter functions now use async guard evaluation throughout.
+
+## LangChain and LlamaIndex callbacks now enforce awaited decisions
+
+Async LangChain workloads should replace `AegisRailCallbackHandler` with
+`TrustRailAsyncCallbackHandler`; it awaits input decisions instead of scheduling
+background checks. Synchronous workloads should use `TrustRailCallbackHandler`.
+The old AegisRail names remain compatibility aliases.
+
+LlamaIndex async pipelines should call `aon_query()`, `aon_retrieve()`, and
+`aon_llm_response()`. `TrustRailObserver` now raises when every checked RAG node
+is rejected unless `empty_retrieval="return_empty"` is configured explicitly.
+Unexpected framework guard errors now follow `GuardConfig.fail_mode` in both
+integrations.
