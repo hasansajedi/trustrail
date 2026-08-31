@@ -195,6 +195,11 @@ class Guard:
         self._configured_extra_rules: tuple[BaseRule, ...] = ()
         self._build_rule_cache()
 
+    @property
+    def fail_mode(self) -> FailMode:
+        """Return the configured behavior for unexpected evaluation failures."""
+        return self._config.fail_mode
+
     # ── Factory methods ───────────────────────────────────────────────────────
 
     @classmethod

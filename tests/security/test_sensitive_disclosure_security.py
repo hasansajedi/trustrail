@@ -12,7 +12,7 @@ import pytest
 from trustrail import Guard, GuardStage
 from trustrail.audit import LoggingAuditSink
 from trustrail.integrations.langchain.handler import AegisRailCallbackHandler
-from trustrail.models.enums import GuardAction
+from trustrail.models.enums import FailMode, GuardAction
 
 CORPUS_PATH = Path(__file__).parent.parent / "security_corpus" / "sensitive_disclosure.json"
 
@@ -47,7 +47,10 @@ def test_integration_error_log_uses_exception_type_only(
     secret = "do-not-log-this-secret"
 
     class BrokenGuard:
-        def check(self, value: str, stage: GuardStage):
+        fail_mode = FailMode.OPEN
+
+        def check(self, value: str, stage: GuardStage, **kwargs: object):
+            del value, stage, kwargs
             raise RuntimeError(secret)
 
     handler = AegisRailCallbackHandler(BrokenGuard())  # type: ignore[arg-type]
