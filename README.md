@@ -28,6 +28,7 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 - **AI Supply-Chain Verification** — Pin provenance, revisions, and cryptographic artifact digests
 - **Data Poisoning Controls** — Quarantine unauthorized, changed, or anomalous AI data and models
 - **Least-Privilege Tool Authorization** — Bind exact tools and arguments to identity, intent, ownership, scopes, approval, and execution budgets
+- **Agent Goal Integrity** — Bind plans and delegations to an authorized objective and require exact approval for every material goal change
 - **System Prompt Leakage Controls** — Validate classified prompt construction and block extraction attempts and generated prompt fragments
 - **Evidence-Backed Grounding** — Bind claims and citations to trusted evidence, expose uncertainty, and require review for high-impact advice
 - **Bounded Resource Consumption** — Reserve input/output tokens, concurrency, retries, tool loops, session budgets, and safe decompression
@@ -167,6 +168,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 - [Architecture](docs/architecture.md)
 - [Configuration](docs/configuration.md)
 - [External Safety Providers](docs/integrations/external-safety-providers.md)
+- [Agent Goal Integrity](docs/security/agent-goal-integrity.md)
 - [Security Threat Model](docs/security/threat-model.md)
 
 ## Contributing

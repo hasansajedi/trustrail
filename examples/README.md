@@ -46,6 +46,7 @@ tools.
 | Need | Runnable example | What it demonstrates |
 | --- | --- | --- |
 | Bound an agent run | [`agent.py`](agent.py) | Step, tool-call, recursion, and duration budgets |
+| Preserve an agent goal | [`goal_integrity.py`](goal_integrity.py) | Integrity-bound plans, delegation, mutation approval, and content-free audit |
 | Authorize a tool | [`tool_authorization.py`](tool_authorization.py) | Capability, identity, intent, ownership, and execution budget |
 | Bound model resources | [`resource_budget.py`](resource_budget.py) | Reservation, completion, and failure cleanup |
 | Rate-limit one process | [`rate_limiting.py`](rate_limiting.py) | Atomic fixed-window admission and collision-safe identity keys |

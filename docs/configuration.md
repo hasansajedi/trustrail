@@ -351,6 +351,35 @@ permission-change effects require authenticated approval by default. See
 [Excessive agency](security/excessive-agency.md) for request construction,
 approval handling, and security assumptions.
 
+## Agent goal-integrity policy
+
+Goal integrity is configured separately from text scanning because the manifest,
+identity, approval context, execution state, and plan sequence must come from
+trusted orchestration code:
+
+```python
+from trustrail import GoalIntegrityGuard, GoalIntegrityPolicy
+
+goal_guard = GoalIntegrityGuard(
+    GoalIntegrityPolicy(
+        max_steps_per_execution=100,
+        max_mutations_per_execution=3,
+        max_step_chars=10_000,
+        max_drift_history_chars=50_000,
+        require_all_constraint_bindings=True,
+        detect_encoded_hijacking=True,
+        detect_split_hijacking=True,
+    ),
+    approval_verifier=production_goal_approval_verifier,
+    audit_sink=production_goal_audit_sink,
+)
+```
+
+Keep one application-owned `GoalExecutionState` for the full execution. Lower
+limits to the smallest values supported by the workflow, and retain exact
+constraint binding unless an application-specific design documents why partial
+binding is safe. See [agent goal integrity](security/agent-goal-integrity.md).
+
 ## Destination-aware output policy
 
 `OutputHandlingPolicy` is separate from `GuardConfig` because it describes where
