@@ -42,3 +42,12 @@ Message roles are no longer routed through an `else` fallback. The built-in
 roles are `system`, `developer`, `user`, `assistant`, and `tool`. Supply a
 `role_stages` mapping for any application-specific role. Built-in role mappings
 cannot be overridden with a weaker boundary.
+
+## OpenAI adapter preserves structured messages
+
+The OpenAI adapter no longer converts `content=None` to `"None"`, flattens
+multipart content, or drops tool calls, refusals, and extension fields.
+Unmodified messages now round trip losslessly. Textual multipart fields are
+scanned and transformed in place; image, audio, file, and unknown content parts
+are retained unchanged and require a separate modality-specific validator when
+untrusted. Async adapter functions now use async guard evaluation throughout.
