@@ -6,7 +6,7 @@ from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
-    from trustrail.models.agency import ToolApprovalGrant
+    from trustrail.models.agency import ToolApprovalGrant, ToolCompensationRequest
 
 from trustrail.models.core import (
     AuditEvent,
@@ -136,6 +136,15 @@ class ToolApprovalVerifier(Protocol):
 
     def verify_approval(self, approval: ToolApprovalGrant) -> bool:
         """Return whether the application issued the approval grant."""
+        ...
+
+
+@runtime_checkable
+class ToolCompensator(Protocol):
+    """Application hook for rolling back or compensating unsafe tool outcomes."""
+
+    def compensate(self, request: ToolCompensationRequest) -> bool:
+        """Attempt compensation and report whether it completed successfully."""
         ...
 
 

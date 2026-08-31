@@ -39,7 +39,10 @@ budgets; `BoundedDecompressor` rejects compressed amplification before parsing.
 `ToolAuthorizationPolicy` inventories exact, least-privilege capabilities.
 `ToolAuthorizationRequest` binds an invocation to trusted identity, intent,
 ownership, scope, approval, and execution context. `ToolAuthorizer` returns a
-short-lived lease only when every check succeeds.
+short-lived lease only when every check succeeds. Optional
+`ToolSemanticAuthorizationPolicy` operations bind arguments to trusted facts,
+restrict sequences and labeled data flows, and require `ToolExecutionReport`
+postcondition evidence before the chain can continue.
 
 ::: trustrail.models.agency
     options:

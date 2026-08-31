@@ -351,6 +351,52 @@ permission-change effects require authenticated approval by default. See
 [Excessive agency](security/excessive-agency.md) for request construction,
 approval handling, and security assumptions.
 
+For calls whose meaning or observed side effects matter, attach a separate
+semantic policy. This example requires the proposed document identifier to match
+a trusted user selection and requires the adapter to attest retrieval:
+
+```python
+from trustrail import (
+    ToolArgumentBinding,
+    ToolAuthorizer,
+    ToolPostconditionPolicy,
+    ToolPreconditionPolicy,
+    ToolSemanticAuthorizationPolicy,
+    ToolSemanticOperationPolicy,
+)
+
+semantic_tool_policy = ToolSemanticAuthorizationPolicy(
+    operations=(
+        ToolSemanticOperationPolicy(
+            tool_name="documents.read",
+            preconditions=ToolPreconditionPolicy(
+                expected_facts={"account_active": True},
+                argument_bindings=(
+                    ToolArgumentBinding(
+                        argument="document_id",
+                        trusted_fact="selected_document_id",
+                    ),
+                ),
+            ),
+            postconditions=ToolPostconditionPolicy(
+                expected_facts={"retrieved": True},
+            ),
+        ),
+    ),
+)
+authorizer = ToolAuthorizer(
+    tool_policy,
+    semantic_policy=semantic_tool_policy,
+    compensator=production_compensator,
+)
+```
+
+The semantic policy must cover every capability in `tool_policy`; operation and
+argument names are checked when the authorizer is created. Construct runtime `ToolSemanticContext` and
+`ToolExecutionReport` records from trusted application state. See
+[semantic tool authorization](security/tool-misuse.md) for sequence and data-flow
+rules, post-execution verification, compensation, and residual risk.
+
 ## Agent goal-integrity policy
 
 Goal integrity is configured separately from text scanning because the manifest,

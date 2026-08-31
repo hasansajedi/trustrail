@@ -24,12 +24,21 @@ from trustrail.models.agency import (
     ToolAuthorizationRequest,
     ToolAuthorizationResult,
     ToolCapability,
+    ToolCompensationRequest,
+    ToolDataFlowReference,
+    ToolDataFlowRule,
+    ToolExecutionRecord,
+    ToolExecutionReport,
+    ToolExecutionStatus,
+    ToolPostconditionResult,
+    ToolSemanticAuthorizationPolicy,
+    ToolSemanticOperationPolicy,
     utcnow,
 )
 from trustrail.models.enums import GuardAction, Severity
 
 if TYPE_CHECKING:
-    from trustrail.protocols import ToolApprovalVerifier
+    from trustrail.protocols import ToolApprovalVerifier, ToolCompensator
 
 
 @dataclass
@@ -49,6 +58,16 @@ class ToolExecutionBudget:
     chain_actions: dict[str, int] = field(default_factory=lambda: defaultdict(int))
     active_authorizations: set[str] = field(default_factory=set)
     used_approval_ids: set[str] = field(default_factory=set)
+    active_semantic_requests: dict[str, ToolAuthorizationRequest] = field(
+        default_factory=dict,
+        repr=False,
+    )
+    verified_executions: dict[str, ToolExecutionRecord] = field(default_factory=dict)
+    chain_history: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
+    quarantined_chains: set[str] = field(default_factory=set)
+    data_flow_uses: dict[tuple[str, str, str], int] = field(
+        default_factory=lambda: defaultdict(int)
+    )
 
     @property
     def active_calls(self) -> int:
@@ -64,12 +83,24 @@ class ToolAuthorizer:
         policy: ToolAuthorizationPolicy,
         *,
         approval_verifier: ToolApprovalVerifier | None = None,
+        semantic_policy: ToolSemanticAuthorizationPolicy | None = None,
+        compensator: ToolCompensator | None = None,
     ) -> None:
         self._policy = policy.model_copy(deep=True)
         self._capabilities = {
             capability.name: capability for capability in self._policy.capabilities
         }
         self._approval_verifier = approval_verifier
+        self._semantic_policy = semantic_policy.model_copy(deep=True) if semantic_policy else None
+        self._semantic_operations = (
+            {operation.tool_name: operation for operation in self._semantic_policy.operations}
+            if self._semantic_policy
+            else {}
+        )
+        if self._semantic_policy and set(self._semantic_operations) != set(self._capabilities):
+            raise ValueError("semantic policy must cover every declared capability")
+        self._validate_semantic_contract()
+        self._compensator = compensator
         self._lock = threading.Lock()
 
     @property
@@ -77,11 +108,35 @@ class ToolAuthorizer:
         """Return the immutable policy used by this authorizer."""
         return self._policy.model_copy(deep=True)
 
+    @property
+    def semantic_policy(self) -> ToolSemanticAuthorizationPolicy | None:
+        """Return the optional immutable semantic authorization policy."""
+        return self._semantic_policy.model_copy(deep=True) if self._semantic_policy else None
+
     def new_budget(self, session_id: str) -> ToolExecutionBudget:
         """Create the application-owned execution budget for one agent session."""
         if not session_id:
             raise ValueError("session_id must not be empty")
         return ToolExecutionBudget(session_id=session_id)
+
+    def _validate_semantic_contract(self) -> None:
+        if self._semantic_policy is None:
+            return
+        for operation in self._semantic_policy.operations:
+            capability = self._capabilities[operation.tool_name]
+            declared_arguments = set(capability.arguments)
+            bound_arguments = {
+                binding.argument for binding in operation.preconditions.argument_bindings
+            }
+            invariant_arguments = set(operation.invariants.destination_arguments).union(
+                operation.invariants.provenance_required_arguments
+            )
+            if not bound_arguments.union(invariant_arguments).issubset(declared_arguments):
+                raise ValueError("semantic controls must reference declared tool arguments")
+        for rule in self._semantic_policy.data_flow_rules:
+            capability = self._capabilities[rule.target_tool]
+            if rule.target_argument not in capability.arguments:
+                raise ValueError("data-flow target arguments must be declared by the capability")
 
     def authorize(
         self,
@@ -109,6 +164,7 @@ class ToolAuthorizer:
         findings.extend(self._scope_findings(request, capability))
         findings.extend(self._argument_findings(request.arguments, capability))
         findings.extend(self._resource_findings(request, capability))
+        findings.extend(self._semantic_findings(request, capability, budget))
         if request.autonomous and not capability.allow_autonomous:
             findings.append(
                 self._finding(
@@ -141,6 +197,9 @@ class ToolAuthorizer:
             return self._blocked(approval_findings)
 
         with self._lock:
+            semantic_findings = self._semantic_findings(request, capability, budget)
+            if semantic_findings:
+                return self._blocked(semantic_findings)
             budget_findings = self._budget_findings(
                 request,
                 budget,
@@ -156,6 +215,16 @@ class ToolAuthorizer:
                 authorization_id,
                 consume_approval=approval_required,
             )
+            if request.tool_name in self._semantic_operations:
+                budget.active_semantic_requests[authorization_id] = request.model_copy(deep=True)
+                if request.semantic_context is not None:
+                    for flow in request.semantic_context.data_flows:
+                        key = (
+                            flow.source_authorization_id,
+                            request.tool_name,
+                            flow.target_argument,
+                        )
+                        budget.data_flow_uses[key] += 1
 
         return ToolAuthorizationResult(
             action=GuardAction.ALLOW,
@@ -183,14 +252,512 @@ class ToolAuthorizer:
         return result.authorization
 
     def complete(self, authorization: AuthorizedToolCall, budget: ToolExecutionBudget) -> bool:
-        """Release a parallel-call lease after the tool finishes or is cancelled."""
+        """Release a non-semantic lease after the tool finishes or is cancelled.
+
+        Semantic operations must use :meth:`verify_completion`; releasing those
+        leases without a trusted execution report fails closed.
+        """
         if authorization.session_id != budget.session_id:
             return False
         with self._lock:
             if authorization.authorization_id not in budget.active_authorizations:
                 return False
+            if authorization.authorization_id in budget.active_semantic_requests:
+                return False
             budget.active_authorizations.remove(authorization.authorization_id)
         return True
+
+    def verify_completion(
+        self,
+        authorization: AuthorizedToolCall,
+        report: ToolExecutionReport,
+        budget: ToolExecutionBudget,
+    ) -> ToolPostconditionResult:
+        """Verify a trusted outcome, close its lease, and quarantine violations."""
+        with self._lock:
+            request = budget.active_semantic_requests.get(authorization.authorization_id)
+            if (
+                request is None
+                or authorization.authorization_id not in budget.active_authorizations
+            ):
+                findings = [
+                    self._finding(
+                        ToolAuthorizationCode.EXECUTION_REPORT_MISMATCH,
+                        Severity.CRITICAL,
+                        "Execution report does not reference an active semantic authorization",
+                    )
+                ]
+                return self._postcondition_result(None, authorization, findings)
+
+            operation = self._semantic_operations[request.tool_name]
+            findings = self._postcondition_findings(
+                authorization,
+                request,
+                report,
+                operation,
+            )
+            budget.active_authorizations.remove(authorization.authorization_id)
+            del budget.active_semantic_requests[authorization.authorization_id]
+
+            if findings:
+                budget.quarantined_chains.add(request.chain_id)
+            elif report.status == ToolExecutionStatus.SUCCEEDED:
+                resource_ids = report.affected_resource_ids
+                record = ToolExecutionRecord(
+                    authorization_id=authorization.authorization_id,
+                    tool_name=request.tool_name,
+                    chain_id=request.chain_id,
+                    intent_id=request.intent.intent_id,
+                    resource_ids=resource_ids,
+                    output_labels=report.output_labels,
+                    output_value_digests=report.output_value_digests,
+                )
+                budget.verified_executions[authorization.authorization_id] = record
+                budget.chain_history[request.chain_id].append(authorization.authorization_id)
+
+        return self._postcondition_result(request, authorization, findings)
+
+    def _semantic_findings(
+        self,
+        request: ToolAuthorizationRequest,
+        capability: ToolCapability,
+        budget: ToolExecutionBudget,
+    ) -> list[ToolAuthorizationFinding]:
+        operation = self._semantic_operations.get(request.tool_name)
+        if operation is None:
+            return []
+        if request.chain_id in budget.quarantined_chains:
+            return [
+                self._finding(
+                    ToolAuthorizationCode.CHAIN_QUARANTINED,
+                    Severity.CRITICAL,
+                    "Execution chain is quarantined after an unverifiable tool outcome",
+                )
+            ]
+        context = request.semantic_context
+        if context is None:
+            return [
+                self._finding(
+                    ToolAuthorizationCode.SEMANTIC_CONTEXT_REQUIRED,
+                    Severity.CRITICAL,
+                    "Trusted semantic context is required for this capability",
+                )
+            ]
+
+        findings: list[ToolAuthorizationFinding] = []
+        if any(
+            active.chain_id == request.chain_id
+            for active in budget.active_semantic_requests.values()
+        ):
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.SEQUENCE_NOT_ALLOWED,
+                    Severity.CRITICAL,
+                    "A semantic tool call is already active in this chain",
+                )
+            )
+        if context.expected_effects != capability.effects:
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.EFFECT_OUTSIDE_INTENT,
+                    Severity.CRITICAL,
+                    "Capability effects do not exactly match the effects approved by user intent",
+                )
+            )
+
+        preconditions = operation.preconditions
+        missing_facts = preconditions.required_facts.difference(context.trusted_facts)
+        for fact in sorted(missing_facts):
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.PRECONDITION_MISSING,
+                    Severity.HIGH,
+                    f"Required trusted precondition is missing: {fact}",
+                )
+            )
+        for fact, expected in preconditions.expected_facts.items():
+            if context.trusted_facts.get(fact) != expected:
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.PRECONDITION_FAILED,
+                        Severity.CRITICAL,
+                        f"Trusted precondition does not hold: {fact}",
+                    )
+                )
+        for binding in preconditions.argument_bindings:
+            if binding.trusted_fact not in context.trusted_facts:
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.PRECONDITION_MISSING,
+                        Severity.HIGH,
+                        f"Argument binding fact is missing: {binding.trusted_fact}",
+                    )
+                )
+            elif (
+                request.arguments.get(binding.argument)
+                != context.trusted_facts[binding.trusted_fact]
+            ):
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.ARGUMENT_BINDING_MISMATCH,
+                        Severity.CRITICAL,
+                        f"Argument is not bound to trusted intent: {binding.argument}",
+                    )
+                )
+
+        invariants = operation.invariants
+        for argument in invariants.destination_arguments:
+            destination = request.arguments.get(argument)
+            if not isinstance(destination, str) or destination not in context.approved_destinations:
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.DESTINATION_NOT_APPROVED,
+                        Severity.CRITICAL,
+                        f"Destination argument is not approved by user intent: {argument}",
+                    )
+                )
+
+        flows_by_argument = {flow.target_argument: flow for flow in context.data_flows}
+        for argument in invariants.provenance_required_arguments:
+            if argument in request.arguments and argument not in flows_by_argument:
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.DATA_FLOW_PROVENANCE_REQUIRED,
+                        Severity.CRITICAL,
+                        f"Tool-derived argument lacks provenance: {argument}",
+                    )
+                )
+
+        findings.extend(self._sequence_findings(request, budget))
+        findings.extend(self._data_flow_findings(request, budget))
+        return findings
+
+    def _sequence_findings(
+        self,
+        request: ToolAuthorizationRequest,
+        budget: ToolExecutionBudget,
+    ) -> list[ToolAuthorizationFinding]:
+        if self._semantic_policy is None or not budget.chain_history[request.chain_id]:
+            return []
+        previous_id = budget.chain_history[request.chain_id][-1]
+        previous = budget.verified_executions[previous_id]
+        transition = (previous.tool_name, request.tool_name)
+        allowed = {
+            (item.source_tool, item.target_tool)
+            for item in self._semantic_policy.allowed_transitions
+        }
+        if transition in allowed or not self._semantic_policy.deny_unlisted_transitions:
+            return []
+        return [
+            self._finding(
+                ToolAuthorizationCode.SEQUENCE_NOT_ALLOWED,
+                Severity.CRITICAL,
+                "Adjacent tool sequence is not explicitly allowed",
+            )
+        ]
+
+    def _data_flow_findings(
+        self,
+        request: ToolAuthorizationRequest,
+        budget: ToolExecutionBudget,
+    ) -> list[ToolAuthorizationFinding]:
+        context = request.semantic_context
+        if context is None or self._semantic_policy is None:
+            return []
+        findings: list[ToolAuthorizationFinding] = []
+        target_resources = set(context.expected_resource_ids)
+        if request.resource is not None:
+            target_resources.add(request.resource.resource_id)
+        for flow in context.data_flows:
+            if flow.target_argument not in request.arguments:
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.DATA_FLOW_NOT_ALLOWED,
+                        Severity.CRITICAL,
+                        "Tool data-flow target is not present in the proposed arguments",
+                    )
+                )
+                continue
+            if not flow.matches(request.arguments[flow.target_argument]):
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.DATA_FLOW_NOT_ALLOWED,
+                        Severity.CRITICAL,
+                        "Tool-derived argument does not match its provenance digest",
+                    )
+                )
+                continue
+            source = budget.verified_executions.get(flow.source_authorization_id)
+            if (
+                source is None
+                or source.chain_id != request.chain_id
+                or flow.label not in source.output_labels
+                or source.output_value_digests.get(flow.label) != flow.value_digest
+            ):
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.DATA_FLOW_NOT_ALLOWED,
+                        Severity.CRITICAL,
+                        f"Tool data-flow provenance could not be verified: {flow.target_argument}",
+                    )
+                )
+                continue
+            rule = self._matching_data_flow_rule(source.tool_name, request.tool_name, flow)
+            if rule is None:
+                if self._semantic_policy.deny_unlisted_data_flows:
+                    findings.append(
+                        self._finding(
+                            ToolAuthorizationCode.DATA_FLOW_NOT_ALLOWED,
+                            Severity.CRITICAL,
+                            "Tool-to-tool data flow is not explicitly allowed: "
+                            f"{flow.target_argument}",
+                        )
+                    )
+                continue
+            flow_key = (
+                flow.source_authorization_id,
+                request.tool_name,
+                flow.target_argument,
+            )
+            if budget.data_flow_uses[flow_key] >= rule.max_uses:
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.DATA_FLOW_NOT_ALLOWED,
+                        Severity.CRITICAL,
+                        "Tool-to-tool data-flow use limit has been reached",
+                    )
+                )
+            if rule.require_same_intent and source.intent_id != request.intent.intent_id:
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.DATA_FLOW_NOT_ALLOWED,
+                        Severity.CRITICAL,
+                        "Tool-to-tool data flow crosses user intents",
+                    )
+                )
+            if rule.require_same_resource and (
+                not source.resource_ids
+                or not target_resources
+                or source.resource_ids.isdisjoint(target_resources)
+            ):
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.DATA_FLOW_NOT_ALLOWED,
+                        Severity.CRITICAL,
+                        "Tool-to-tool data flow crosses resource boundaries",
+                    )
+                )
+        return findings
+
+    def _matching_data_flow_rule(
+        self,
+        source_tool: str,
+        target_tool: str,
+        flow: ToolDataFlowReference,
+    ) -> ToolDataFlowRule | None:
+        if self._semantic_policy is None:
+            return None
+        return next(
+            (
+                rule
+                for rule in self._semantic_policy.data_flow_rules
+                if rule.source_tool == source_tool
+                and rule.target_tool == target_tool
+                and rule.target_argument == flow.target_argument
+                and flow.label in rule.allowed_labels
+            ),
+            None,
+        )
+
+    def _postcondition_findings(
+        self,
+        authorization: AuthorizedToolCall,
+        request: ToolAuthorizationRequest,
+        report: ToolExecutionReport,
+        operation: ToolSemanticOperationPolicy,
+    ) -> list[ToolAuthorizationFinding]:
+        findings: list[ToolAuthorizationFinding] = []
+        if (
+            authorization.request_digest != request.approval_digest
+            or authorization.session_id != request.session_id
+            or authorization.tool_name != request.tool_name
+            or authorization.tool_version != request.tool_version
+            or authorization.arguments_json != request.canonical_arguments_json
+            or report.authorization_id != authorization.authorization_id
+            or report.request_digest != request.approval_digest
+            or report.session_id != request.session_id
+            or report.tool_name != request.tool_name
+        ):
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.EXECUTION_REPORT_MISMATCH,
+                    Severity.CRITICAL,
+                    "Execution report is not bound to the authorized invocation",
+                )
+            )
+        if not report.verifiable or report.status == ToolExecutionStatus.UNKNOWN:
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.EXECUTION_REPORT_UNVERIFIABLE,
+                    Severity.CRITICAL,
+                    "Tool outcome cannot be independently verified",
+                )
+            )
+
+        context = request.semantic_context
+        if context is None:
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.EXECUTION_REPORT_UNVERIFIABLE,
+                    Severity.CRITICAL,
+                    "Authorized semantic context is unavailable",
+                )
+            )
+            return findings
+
+        expected_effects = context.expected_effects
+        if not report.observed_effects.issubset(expected_effects):
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.UNEXPECTED_EFFECT,
+                    Severity.CRITICAL,
+                    "Tool produced an effect outside the authorized intent",
+                )
+            )
+        postconditions = operation.postconditions
+        if (
+            report.status == ToolExecutionStatus.SUCCEEDED
+            and postconditions.require_exact_effects
+            and report.observed_effects != expected_effects
+        ):
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.POSTCONDITION_MISSING,
+                    Severity.HIGH,
+                    "Successful tool outcome did not attest every expected effect",
+                )
+            )
+
+        expected_resources = set(context.expected_resource_ids)
+        if request.resource is not None:
+            expected_resources.add(request.resource.resource_id)
+        if not report.affected_resource_ids.issubset(expected_resources):
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.UNEXPECTED_RESOURCE,
+                    Severity.CRITICAL,
+                    "Tool affected a resource outside the authorized boundary",
+                )
+            )
+        if len(report.affected_resource_ids) > operation.invariants.max_affected_resources:
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.UNEXPECTED_RESOURCE,
+                    Severity.CRITICAL,
+                    "Tool affected more resources than the invariant permits",
+                )
+            )
+        if (
+            report.status == ToolExecutionStatus.SUCCEEDED
+            and postconditions.require_expected_resource
+            and expected_resources
+            and not expected_resources.issubset(report.affected_resource_ids)
+        ):
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.POSTCONDITION_MISSING,
+                    Severity.HIGH,
+                    "Successful tool outcome did not attest the expected resource",
+                )
+            )
+
+        expected_destinations = {
+            value
+            for argument in operation.invariants.destination_arguments
+            if isinstance((value := request.arguments.get(argument)), str)
+        }
+        if not report.destinations.issubset(
+            context.approved_destinations
+        ) or not report.destinations.issubset(expected_destinations):
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.UNEXPECTED_DESTINATION,
+                    Severity.CRITICAL,
+                    "Tool used a destination outside the authorized boundary",
+                )
+            )
+        if (
+            report.status == ToolExecutionStatus.SUCCEEDED
+            and expected_destinations
+            and not expected_destinations.issubset(report.destinations)
+        ):
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.POSTCONDITION_MISSING,
+                    Severity.HIGH,
+                    "Successful tool outcome did not attest the approved destination",
+                )
+            )
+
+        for fact in postconditions.required_facts.difference(report.facts):
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.POSTCONDITION_MISSING,
+                    Severity.HIGH,
+                    f"Required execution fact is missing: {fact}",
+                )
+            )
+        for fact, expected in postconditions.expected_facts.items():
+            if report.facts.get(fact) != expected:
+                findings.append(
+                    self._finding(
+                        ToolAuthorizationCode.POSTCONDITION_FAILED,
+                        Severity.CRITICAL,
+                        f"Execution postcondition does not hold: {fact}",
+                    )
+                )
+        if report.status == ToolExecutionStatus.FAILED and (
+            report.observed_effects or report.affected_resource_ids or report.destinations
+        ):
+            findings.append(
+                self._finding(
+                    ToolAuthorizationCode.POSTCONDITION_FAILED,
+                    Severity.CRITICAL,
+                    "Failed tool call reported side effects that require compensation",
+                )
+            )
+        return findings
+
+    def _postcondition_result(
+        self,
+        request: ToolAuthorizationRequest | None,
+        authorization: AuthorizedToolCall,
+        findings: list[ToolAuthorizationFinding],
+    ) -> ToolPostconditionResult:
+        if not findings:
+            return ToolPostconditionResult(action=GuardAction.ALLOW)
+        compensation_succeeded: bool | None = None
+        compensation_required = request is not None
+        if request is not None and self._compensator is not None:
+            compensation_request = ToolCompensationRequest(
+                authorization_id=authorization.authorization_id,
+                request_digest=authorization.request_digest,
+                session_id=request.session_id,
+                chain_id=request.chain_id,
+                operation_id=request.operation_id,
+                tool_name=request.tool_name,
+                findings=tuple(findings),
+            )
+            try:
+                compensation_succeeded = self._compensator.compensate(compensation_request)
+            except Exception:
+                compensation_succeeded = False
+        return ToolPostconditionResult(
+            action=GuardAction.QUARANTINE,
+            findings=tuple(findings),
+            compensation_required=compensation_required,
+            compensation_succeeded=compensation_succeeded,
+        )
 
     def _identity_findings(
         self,

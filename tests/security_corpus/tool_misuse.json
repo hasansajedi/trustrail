@@ -1,0 +1,10 @@
+[
+  {"name": "schema-valid-recipient-substitution", "phase": "authorize", "mutation": "recipient", "expected_code": "argument_binding_mismatch"},
+  {"name": "schema-valid-amount-inflation", "phase": "authorize", "mutation": "amount", "expected_code": "argument_binding_mismatch"},
+  {"name": "effect-confusion", "phase": "authorize", "mutation": "effect", "expected_code": "effect_outside_intent"},
+  {"name": "unapproved-destination", "phase": "authorize", "mutation": "destination", "expected_code": "destination_not_approved"},
+  {"name": "unverifiable-success", "phase": "complete", "mutation": "unverifiable", "expected_code": "execution_report_unverifiable"},
+  {"name": "undeclared-delete-effect", "phase": "complete", "mutation": "effect", "expected_code": "unexpected_effect"},
+  {"name": "cross-resource-side-effect", "phase": "complete", "mutation": "resource", "expected_code": "unexpected_resource"},
+  {"name": "missing-ledger-commit", "phase": "complete", "mutation": "postcondition", "expected_code": "postcondition_failed"}
+]

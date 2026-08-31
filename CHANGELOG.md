@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OWASP ASI01 agent goal-integrity controls with immutable manifests, bound plan
   steps and delegation, exact mutation approval, cumulative drift detection, and
   content-free audit evidence.
+- OWASP ASI02 semantic tool controls with trusted preconditions, intent-bound
+  arguments and destinations, sequence and data-flow policy, verified execution
+  postconditions, chain quarantine, and compensation hooks.
 
 ## [0.1.2] - 2026-08-31
 
