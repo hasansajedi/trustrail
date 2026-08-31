@@ -164,6 +164,19 @@ class StateBackend(Protocol):
         """Atomically increment a counter and return new value."""
         ...
 
+    async def increment_with_ttl(
+        self,
+        key: str,
+        delta: int = 1,
+        ttl_seconds: float = 60.0,
+    ) -> int:
+        """Atomically increment a counter, setting TTL only when it is created.
+
+        Existing, unexpired counters must retain their current expiration. An expired
+        counter is treated as absent and starts a new TTL window.
+        """
+        ...
+
     async def delete(self, key: str) -> None:
         """Delete a key."""
         ...

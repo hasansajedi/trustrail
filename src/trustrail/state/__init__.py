@@ -1,5 +1,15 @@
-"""trustrail state backends."""
+"""trustrail state backends and rate limiting."""
 
-from trustrail.state.backends import MemoryStateBackend
+from trustrail.state.backends import (
+    FixedWindowRateLimiter,
+    MemoryStateBackend,
+    RateLimiter,
+    RedisStateBackend,
+)
 
-__all__ = ["MemoryStateBackend"]
+__all__ = [
+    "FixedWindowRateLimiter",
+    "MemoryStateBackend",
+    "RateLimiter",
+    "RedisStateBackend",
+]
