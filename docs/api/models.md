@@ -53,6 +53,25 @@ short-lived lease only when every check succeeds.
     options:
       members: true
 
+## Agent goal integrity
+
+Goal manifests bind an authorized objective, constraints, owner, approval
+context, actions, delegates, session, and execution. `GoalIntegrityGuard`
+validates every proposed plan step and material mutation while emitting
+content-free audit evidence.
+
+::: trustrail.models.goal
+    options:
+      members: true
+
+::: trustrail.goal_integrity.GoalIntegrityGuard
+    options:
+      members: true
+
+::: trustrail.goal_integrity.GoalExecutionState
+    options:
+      members: true
+
 ## Context-aware output handling
 
 `OutputHandlingPolicy` defines fail-closed destination constraints.

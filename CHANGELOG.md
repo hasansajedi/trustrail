@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First-class async rules and external moderation, prompt-injection, sensitive-data,
   and grounding providers with deterministic execution order, bounded concurrency,
   per-check deadlines, cancellation, and explicit fail-open/fail-closed behavior.
+- OWASP ASI01 agent goal-integrity controls with immutable manifests, bound plan
+  steps and delegation, exact mutation approval, cumulative drift detection, and
+  content-free audit evidence.
 
 ## [0.1.2] - 2026-08-31
 

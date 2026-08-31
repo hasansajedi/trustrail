@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from trustrail.models.agency import ToolAuthorizationResult
+    from trustrail.models.goal import GoalIntegrityResult
     from trustrail.models.grounding import GroundingResult
     from trustrail.models.output_handling import OutputHandlingResult
     from trustrail.models.poisoning import DataPoisoningResult
@@ -75,6 +76,14 @@ class GroundingVerificationError(AegisRailError):
 
     def __init__(self, result: GroundingResult) -> None:
         super().__init__("Generated claims failed grounding verification")
+        self.result = result
+
+
+class GoalIntegrityError(AegisRailError):
+    """Raised when a plan step or goal mutation is not authorized."""
+
+    def __init__(self, result: GoalIntegrityResult) -> None:
+        super().__init__("Agent goal-integrity check did not authorize the proposal")
         self.result = result
 
 

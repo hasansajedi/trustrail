@@ -20,3 +20,9 @@ complete mitigation.
 Coverage depends on the selected `GuardStage`, configuration, custom rules, and
 application enforcement. Review the [threat model](security/threat-model.md) and
 test against threats specific to your system.
+
+## OWASP Top 10 for Agentic Applications 2026
+
+| OWASP agentic risk | trustrail APIs | Additional controls required |
+| --- | --- | --- |
+| **ASI01:2026 Agent Goal Hijack** | `GoalManifest` integrity-binds the authorized objective, constraints, owner/tenant, primary actor, permitted actions/delegates, approval context, session, execution, expiry, revision, parent, and original goal digest; `GoalIntegrityGuard` completely mediates ordered plan steps and delegation, rejects stale/cross-session bindings, detects direct/encoded/split drift, approval-gates every material mutation, prevents approval replay, bounds cumulative work, and emits content-free audit evidence | Trusted manifest issuance and identity, complete mediation of every planner/scheduler/delegate/resume path, protected or signed manifest/state storage, atomic distributed execution state, narrow capabilities plus downstream `ToolAuthorizer`, semantic and multilingual plan review, behavioral monitoring, secure human approval UX, red-team evaluation, sandboxing, service-side authorization, and egress/transaction limits remain required |

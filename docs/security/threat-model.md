@@ -109,6 +109,25 @@ resources. Distributed quotas, billing controls, provider cancellation, identity
 abuse prevention, parser sandboxes, and infrastructure isolation remain required.
 See [bounded resource consumption](resource-consumption.md).
 
+### Agent Goal Hijack (OWASP ASI01:2026)
+
+- Untrusted user, RAG, memory, tool, or intermediate planning content replacing
+  the authorized objective
+- Small goal changes accumulating without explicit review
+- Goal-hijacking instructions split across multiple steps or hidden with common
+  text encodings and invisible Unicode
+- Plan steps dropping constraints or rebinding to stale manifests
+- Cross-owner, cross-tenant, cross-session, or cross-execution goal reuse
+- Unknown delegates acting before an authorized delegation step
+- Material objective, constraint, action, or delegate changes without an exact,
+  authenticated, single-use approval
+- Sensitive objective or mutation content leaking through results and audit logs
+
+Manifest digests establish integrity, not authenticity or semantic correctness.
+Application-owned state, complete mediation, narrow actions, downstream tool
+authorization, durable shared execution state, independent review, and behavioral
+monitoring remain required. See [agent goal integrity](agent-goal-integrity.md).
+
 ## SSRF
 - Private IP range access
 - Cloud metadata service access
