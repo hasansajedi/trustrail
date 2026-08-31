@@ -65,9 +65,216 @@ class ToolAuthorizationCode(StrEnum):
     RETRY_LIMIT_EXCEEDED = "retry_limit_exceeded"
     PARALLEL_LIMIT_EXCEEDED = "parallel_limit_exceeded"
     AUTONOMOUS_LIMIT_EXCEEDED = "autonomous_limit_exceeded"
+    SEMANTIC_CONTEXT_REQUIRED = "semantic_context_required"
+    PRECONDITION_MISSING = "precondition_missing"
+    PRECONDITION_FAILED = "precondition_failed"
+    ARGUMENT_BINDING_MISMATCH = "argument_binding_mismatch"
+    EFFECT_OUTSIDE_INTENT = "effect_outside_intent"
+    DESTINATION_NOT_APPROVED = "destination_not_approved"
+    SEQUENCE_NOT_ALLOWED = "sequence_not_allowed"
+    DATA_FLOW_PROVENANCE_REQUIRED = "data_flow_provenance_required"
+    DATA_FLOW_NOT_ALLOWED = "data_flow_not_allowed"
+    CHAIN_QUARANTINED = "chain_quarantined"
+    EXECUTION_REPORT_UNVERIFIABLE = "execution_report_unverifiable"
+    EXECUTION_REPORT_MISMATCH = "execution_report_mismatch"
+    UNEXPECTED_EFFECT = "unexpected_effect"
+    UNEXPECTED_RESOURCE = "unexpected_resource"
+    UNEXPECTED_DESTINATION = "unexpected_destination"
+    POSTCONDITION_MISSING = "postcondition_missing"
+    POSTCONDITION_FAILED = "postcondition_failed"
 
 
 ScalarValue = str | int | float | bool
+
+
+class ToolExecutionStatus(StrEnum):
+    """Trusted executor status for one completed tool invocation."""
+
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    UNKNOWN = "unknown"
+
+
+class ToolArgumentBinding(BaseModel):
+    """Require a model-proposed argument to equal an application-owned fact."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    argument: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,127}$")
+    trusted_fact: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,127}$")
+
+
+class ToolPreconditionPolicy(BaseModel):
+    """Facts and exact argument bindings that must hold before execution."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    required_facts: frozenset[str] = Field(default_factory=frozenset, max_length=256)
+    expected_facts: dict[str, ScalarValue] = Field(default_factory=dict, max_length=256)
+    argument_bindings: tuple[ToolArgumentBinding, ...] = Field(
+        default_factory=tuple,
+        max_length=256,
+    )
+
+    @model_validator(mode="after")
+    def validate_preconditions(self) -> ToolPreconditionPolicy:
+        bound_arguments = [binding.argument for binding in self.argument_bindings]
+        if len(bound_arguments) != len(set(bound_arguments)):
+            raise ValueError("precondition argument bindings must be unique")
+        return self
+
+
+class ToolInvariantPolicy(BaseModel):
+    """Side-effect boundaries that hold before, during, and after a tool call."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    destination_arguments: frozenset[str] = Field(default_factory=frozenset, max_length=256)
+    provenance_required_arguments: frozenset[str] = Field(
+        default_factory=frozenset,
+        max_length=256,
+    )
+    max_affected_resources: int = Field(default=1, ge=0, le=100_000)
+
+
+class ToolPostconditionPolicy(BaseModel):
+    """Trusted outcome facts that must be observable after execution."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    required_facts: frozenset[str] = Field(default_factory=frozenset, max_length=256)
+    expected_facts: dict[str, ScalarValue] = Field(default_factory=dict, max_length=256)
+    require_exact_effects: bool = True
+    require_expected_resource: bool = True
+
+
+class ToolSemanticOperationPolicy(BaseModel):
+    """Semantic preconditions, invariants, and postconditions for one tool."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    tool_name: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,127}$")
+    preconditions: ToolPreconditionPolicy = Field(default_factory=ToolPreconditionPolicy)
+    invariants: ToolInvariantPolicy = Field(default_factory=ToolInvariantPolicy)
+    postconditions: ToolPostconditionPolicy = Field(default_factory=ToolPostconditionPolicy)
+
+
+class ToolSequenceTransition(BaseModel):
+    """One explicitly allowed adjacent transition in an execution chain."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    source_tool: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,127}$")
+    target_tool: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,127}$")
+
+
+class ToolDataFlowRule(BaseModel):
+    """Allow labeled output from one tool to feed one target argument."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    source_tool: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,127}$")
+    target_tool: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,127}$")
+    target_argument: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,127}$")
+    allowed_labels: frozenset[str] = Field(min_length=1, max_length=256)
+    require_same_intent: bool = True
+    require_same_resource: bool = True
+    max_uses: int = Field(default=1, ge=1, le=10_000)
+
+
+class ToolSemanticAuthorizationPolicy(BaseModel):
+    """Fail-closed semantic policy spanning operations and tool chains."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    operations: tuple[ToolSemanticOperationPolicy, ...] = Field(min_length=1)
+    allowed_transitions: tuple[ToolSequenceTransition, ...] = ()
+    data_flow_rules: tuple[ToolDataFlowRule, ...] = ()
+    deny_unlisted_transitions: bool = True
+    deny_unlisted_data_flows: bool = True
+
+    @model_validator(mode="after")
+    def validate_semantic_policy(self) -> ToolSemanticAuthorizationPolicy:
+        operation_names = [operation.tool_name for operation in self.operations]
+        if len(operation_names) != len(set(operation_names)):
+            raise ValueError("semantic operation tool names must be unique")
+        known_tools = set(operation_names)
+        for transition in self.allowed_transitions:
+            if (
+                transition.source_tool not in known_tools
+                or transition.target_tool not in known_tools
+            ):
+                raise ValueError("sequence transitions must reference semantic operations")
+        for flow in self.data_flow_rules:
+            if flow.source_tool not in known_tools or flow.target_tool not in known_tools:
+                raise ValueError("data-flow rules must reference semantic operations")
+        return self
+
+
+class ToolDataFlowReference(BaseModel):
+    """Application-recorded provenance for one tool-derived argument."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    source_authorization_id: str = Field(min_length=1, max_length=256)
+    target_argument: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,127}$")
+    label: str = Field(min_length=1, max_length=256)
+    value_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+    @classmethod
+    def bind(
+        cls,
+        *,
+        source_authorization_id: str,
+        target_argument: str,
+        label: str,
+        value: Any,
+    ) -> ToolDataFlowReference:
+        """Bind provenance to the exact value forwarded into the target call."""
+        return cls(
+            source_authorization_id=source_authorization_id,
+            target_argument=target_argument,
+            label=label,
+            value_digest=cls.digest_value(value),
+        )
+
+    @staticmethod
+    def digest_value(value: Any) -> str:
+        """Return the canonical digest used for content-free value binding."""
+        canonical = json.dumps(
+            value,
+            allow_nan=False,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        return hashlib.sha256(canonical.encode()).hexdigest()
+
+    def matches(self, value: Any) -> bool:
+        """Return whether a proposed argument matches the provenance digest."""
+        try:
+            return self.value_digest == self.digest_value(value)
+        except (TypeError, ValueError):
+            return False
+
+
+class ToolSemanticContext(BaseModel):
+    """Trusted intent and provenance facts for semantic authorization."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    trusted_facts: dict[str, ScalarValue] = Field(default_factory=dict, max_length=256)
+    expected_effects: frozenset[ToolEffect] = Field(min_length=1)
+    approved_destinations: frozenset[str] = Field(default_factory=frozenset, max_length=1_000)
+    expected_resource_ids: frozenset[str] = Field(default_factory=frozenset, max_length=1_000)
+    data_flows: tuple[ToolDataFlowReference, ...] = Field(default_factory=tuple, max_length=256)
+
+    @model_validator(mode="after")
+    def validate_data_flows(self) -> ToolSemanticContext:
+        arguments = [flow.target_argument for flow in self.data_flows]
+        if len(arguments) != len(set(arguments)):
+            raise ValueError("each target argument may have only one data-flow reference")
+        return self
 
 
 class ToolArgumentConstraint(BaseModel):
@@ -222,6 +429,7 @@ class ToolAuthorizationRequest(BaseModel):
     operation_id: str = Field(min_length=1, max_length=256)
     autonomous: bool = True
     approval: ToolApprovalGrant | None = None
+    semantic_context: ToolSemanticContext | None = None
 
     @property
     def canonical_arguments_json(self) -> str:
@@ -259,6 +467,7 @@ class ToolAuthorizationRequest(BaseModel):
             },
             "requested_scopes": sorted(self.requested_scopes),
             "resource": self.resource.model_dump(mode="json") if self.resource else None,
+            "semantic_context": self._canonical_semantic_context(),
             "session_id": self.session_id,
             "tool_name": self.tool_name,
             "tool_version": self.tool_version,
@@ -271,6 +480,25 @@ class ToolAuthorizationRequest(BaseModel):
             allow_nan=False,
         )
         return hashlib.sha256(canonical.encode()).hexdigest()
+
+    def _canonical_semantic_context(self) -> dict[str, Any] | None:
+        context = self.semantic_context
+        if context is None:
+            return None
+        return {
+            "approved_destinations": sorted(context.approved_destinations),
+            "data_flows": sorted(
+                (flow.model_dump(mode="json") for flow in context.data_flows),
+                key=lambda flow: (
+                    flow["target_argument"],
+                    flow["source_authorization_id"],
+                    flow["label"],
+                ),
+            ),
+            "expected_effects": sorted(effect.value for effect in context.expected_effects),
+            "expected_resource_ids": sorted(context.expected_resource_ids),
+            "trusted_facts": context.trusted_facts,
+        }
 
 
 def _approval_effects() -> frozenset[ToolEffect]:
@@ -313,6 +541,79 @@ class ToolAuthorizationFinding(BaseModel):
     code: ToolAuthorizationCode
     severity: Severity
     message: str
+
+
+class ToolExecutionReport(BaseModel):
+    """Application-observed outcome bound to one authorization lease."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    authorization_id: str = Field(min_length=1, max_length=256)
+    request_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    session_id: str = Field(min_length=1, max_length=256)
+    tool_name: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_.:-]{0,127}$")
+    status: ToolExecutionStatus
+    verifiable: bool = True
+    observed_effects: frozenset[ToolEffect] = Field(default_factory=frozenset)
+    affected_resource_ids: frozenset[str] = Field(default_factory=frozenset, max_length=100_000)
+    destinations: frozenset[str] = Field(default_factory=frozenset, max_length=10_000)
+    facts: dict[str, ScalarValue] = Field(default_factory=dict, max_length=256)
+    output_labels: frozenset[str] = Field(default_factory=frozenset, max_length=256)
+    output_value_digests: dict[str, str] = Field(default_factory=dict, max_length=256)
+
+    @model_validator(mode="after")
+    def validate_output_digests(self) -> ToolExecutionReport:
+        if not set(self.output_value_digests).issubset(self.output_labels):
+            raise ValueError("output value digests must have a declared output label")
+        if any(
+            re.fullmatch(r"[0-9a-f]{64}", digest) is None
+            for digest in self.output_value_digests.values()
+        ):
+            raise ValueError("output value digests must be lowercase SHA-256 values")
+        return self
+
+
+class ToolExecutionRecord(BaseModel):
+    """Minimal verified history retained for sequence and data-flow decisions."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    authorization_id: str
+    tool_name: str
+    chain_id: str
+    intent_id: str
+    resource_ids: frozenset[str] = Field(default_factory=frozenset)
+    output_labels: frozenset[str] = Field(default_factory=frozenset)
+    output_value_digests: dict[str, str] = Field(default_factory=dict)
+
+
+class ToolCompensationRequest(BaseModel):
+    """Content-minimized request to roll back or compensate an unsafe outcome."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    authorization_id: str
+    request_digest: str
+    session_id: str
+    chain_id: str
+    operation_id: str
+    tool_name: str
+    findings: tuple[ToolAuthorizationFinding, ...]
+
+
+class ToolPostconditionResult(BaseModel):
+    """Fail-closed verification result after a tool returns."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    action: Literal[GuardAction.ALLOW, GuardAction.QUARANTINE]
+    findings: tuple[ToolAuthorizationFinding, ...] = ()
+    compensation_required: bool = False
+    compensation_succeeded: bool | None = None
+
+    @property
+    def is_verified(self) -> bool:
+        return self.action == GuardAction.ALLOW
 
 
 class AuthorizedToolCall(BaseModel):

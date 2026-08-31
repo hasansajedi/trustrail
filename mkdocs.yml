@@ -102,6 +102,7 @@ nav:
       - Data and model poisoning: security/data-model-poisoning.md
       - Excessive agency: security/excessive-agency.md
       - Agent goal integrity: security/agent-goal-integrity.md
+      - Semantic tool authorization: security/tool-misuse.md
       - System prompt leakage: security/system-prompt-leakage.md
       - Vector and embedding security: security/vector-embedding-security.md
       - Misinformation and overreliance: security/misinformation-overreliance.md

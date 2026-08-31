@@ -179,16 +179,21 @@ Use both layers when an orchestration loop needs those broader controls.
   deployments need shared atomic replay and budget state.
 - In-memory counters are process-local and are not a distributed rate limiter.
   Enforce quotas and concurrency again at the downstream service or gateway.
-- Regular expressions and scalar constraints are not semantic validation. Resolve
-  resource ownership through an authoritative data store and enforce database,
-  filesystem, network-egress, and OAuth permissions downstream.
+- Regular expressions and scalar constraints are not semantic validation. Add a
+  `ToolSemanticAuthorizationPolicy` when arguments must match trusted intent or
+  when sequences, data flows, and outcomes need verification. Resolve resource
+  ownership through an authoritative data store and enforce database, filesystem,
+  network-egress, and OAuth permissions downstream. See
+  [semantic tool authorization](tool-misuse.md).
 - A correctly authorized tool can still contain implementation vulnerabilities,
   race conditions, unsafe side effects, or compromised dependencies. Use
   idempotency keys, transactions, timeouts, cancellation, rollback, sandboxing,
   audit logs, and service-level least privilege.
-- Completing a lease records neither success nor rollback. Applications must
-  separately audit the proposed action, authorization ID, outcome, and affected
-  resource without logging secrets or sensitive argument values.
+- `complete()` records neither success nor rollback for ordinary capability-only
+  leases. Semantic leases reject `complete()` and require an authoritative report
+  through `verify_completion()`. Applications must still durably audit the
+  proposed action, authorization ID, outcome, and affected resource without
+  logging secrets or sensitive argument values.
 
 The `EA-*`, `TL-*`, and `AG-*` rules detect suspicious content and orchestration
 metadata, but do not replace this deterministic boundary or downstream access

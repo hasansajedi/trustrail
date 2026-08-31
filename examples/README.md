@@ -48,6 +48,7 @@ tools.
 | Bound an agent run | [`agent.py`](agent.py) | Step, tool-call, recursion, and duration budgets |
 | Preserve an agent goal | [`goal_integrity.py`](goal_integrity.py) | Integrity-bound plans, delegation, mutation approval, and content-free audit |
 | Authorize a tool | [`tool_authorization.py`](tool_authorization.py) | Capability, identity, intent, ownership, and execution budget |
+| Verify tool semantics | [`semantic_tool_authorization.py`](semantic_tool_authorization.py) | Trusted argument bindings, effects, resources, and execution postconditions |
 | Bound model resources | [`resource_budget.py`](resource_budget.py) | Reservation, completion, and failure cleanup |
 | Rate-limit one process | [`rate_limiting.py`](rate_limiting.py) | Atomic fixed-window admission and collision-safe identity keys |
 | Rate-limit multiple workers | [`redis_rate_limiting.py`](redis_rate_limiting.py) | Shared Redis state, fail mode, pooling, and shutdown |

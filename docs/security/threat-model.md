@@ -128,6 +128,25 @@ Application-owned state, complete mediation, narrow actions, downstream tool
 authorization, durable shared execution state, independent review, and behavioral
 monitoring remain required. See [agent goal integrity](agent-goal-integrity.md).
 
+### Tool Misuse and Exploitation (OWASP ASI02:2026)
+
+- Schema-valid arguments that change the intended recipient, value, purpose, or
+  affected resource
+- Individually authorized calls combined into a dangerous or undeclared sequence
+- Retrieved secrets or one tool's output forwarded into an unrelated tool
+- Tool adapters reporting success while producing undeclared effects or touching
+  additional resources and destinations
+- Missing, forged, replayed, or cross-intent provenance for tool-derived values
+- Unknown or partially failed outcomes followed by continued autonomous actions
+- Rollback hooks failing or being treated as proof that irreversible effects were
+  undone
+
+Typed policies cannot establish whether application-supplied facts or reports are
+true. Use authoritative identity and state, complete mediation, authenticated
+adapters, shared atomic execution history, conditional writes, idempotency,
+service-side authorization, value and egress limits, and human review for
+high-impact operations. See [semantic tool authorization](tool-misuse.md).
+
 ## SSRF
 - Private IP range access
 - Cloud metadata service access

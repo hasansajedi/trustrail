@@ -76,5 +76,10 @@ finally:
 
 See [Excessive agency](../security/excessive-agency.md) for the complete policy
 and request configuration, approval workflow, limitations, and residual risk.
+For semantically sensitive operations, configure
+`ToolSemanticAuthorizationPolicy` and call `verify_completion()` with an
+application-observed `ToolExecutionReport`; semantic leases intentionally cannot
+be released by `complete()`. See
+[semantic tool authorization](../security/tool-misuse.md).
 Also enforce least-privilege credentials, network egress, timeouts, quotas, and
 resource ownership in the downstream service.
