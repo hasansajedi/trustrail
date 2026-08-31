@@ -79,6 +79,7 @@ nav:
       - Adaptive red-team gates: guides/red-team-gates.md
       - Protect tools: guides/protect-tools.md
       - Protect streaming output: guides/protect-streaming.md
+      - Rate limiting: guides/rate-limiting.md
       - Streaming internals: streaming.md
       - Custom rules: custom-rules.md
       - Guardrail lifecycle: guardrail-lifecycle.md
