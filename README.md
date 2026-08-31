@@ -1,8 +1,4 @@
 <p align="center">
-  <img src="https://github.com/hasansajedi/trustrail/blob/main/assets/banner.svg" alt="trustrail — Production-grade guardrails for LLM & AI applications" width="720"/>
-</p>
-
-<p align="center">
   <img src="https://github.com/hasansajedi/trustrail/blob/main/assets/logo.svg" alt="trustrail shield logo" width="130"/>
 </p>
 
@@ -42,18 +38,18 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 ## Installation
 
 ```bash
-pip install trustrail
+pip install "trustrail==0.1.2"
 ```
 
 With optional extras:
 
 ```bash
-pip install trustrail[openai]      # OpenAI integration
-pip install trustrail[fastapi]     # FastAPI middleware
-pip install trustrail[redis]       # Redis state backend
-pip install trustrail[presidio]    # Microsoft Presidio NER
-pip install trustrail[otel]        # OpenTelemetry tracing
-pip install trustrail[all]         # All extras
+pip install "trustrail[openai]==0.1.2"      # OpenAI integration
+pip install "trustrail[fastapi]==0.1.2"     # FastAPI middleware
+pip install "trustrail[redis]==0.1.2"       # Redis state backend
+pip install "trustrail[presidio]==0.1.2"    # Microsoft Presidio NER
+pip install "trustrail[otel]==0.1.2"        # OpenTelemetry tracing
+pip install "trustrail[all]==0.1.2"         # All extras
 ```
 
 ## Quick Start
