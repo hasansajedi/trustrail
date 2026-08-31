@@ -34,6 +34,7 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 - **Agent Session Tracking** — Monitor step counts, tool usage, and recursion depth
 - **Streaming Support** — Real-time cross-chunk pattern detection
 - **Audit & Observability** — Structured audit events, OpenTelemetry integration
+- **Async Safety Providers** — Await moderation, DLP, prompt-injection, and grounding checks with bounded concurrency, deadlines, and fail modes
 
 ## Installation
 
@@ -165,6 +166,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 - [Concepts](docs/concepts.md)
 - [Architecture](docs/architecture.md)
 - [Configuration](docs/configuration.md)
+- [External Safety Providers](docs/integrations/external-safety-providers.md)
 - [Security Threat Model](docs/security/threat-model.md)
 
 ## Contributing

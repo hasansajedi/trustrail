@@ -18,16 +18,18 @@ from dataclasses import dataclass, field, fields, is_dataclass
 from enum import Enum
 from pathlib import PurePath
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Literal, TypeVar, get_type_hints
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast, get_type_hints
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
 if TYPE_CHECKING:
     from trustrail.agents.session import AgentSession
 
+from trustrail.async_checks import AsyncRuleRegistration, ProviderRegistration
 from trustrail.audit import AuditEvent, LoggingAuditSink, NullAuditSink
 from trustrail.exceptions import (
     ApprovalRequiredError,
+    AsyncGuardRequiredError,
     ConfigurationError,
     GuardrailBlockedError,
     ResourceLimitError,
@@ -47,6 +49,7 @@ from trustrail.models.enums import (
     GuardAction,
     GuardStage,
     RuleCategory,
+    RulePhase,
     SensitiveDataMode,
     Severity,
     TrustLevel,
@@ -70,8 +73,16 @@ from trustrail.policies.resource import ResourcePolicy
 from trustrail.policies.sensitive_data import SensitiveDataPolicy
 from trustrail.policies.supply_chain import SupplyChainPolicy
 from trustrail.policies.tools import ToolPolicy
-from trustrail.protocols import ApprovalProvider, AuditSink
-from trustrail.rules.base import BaseRule
+from trustrail.protocols import (
+    ApprovalProvider,
+    AsyncGuardRule,
+    AuditSink,
+    ContentSafetyProvider,
+    GroundingVerifier,
+    PromptInjectionProvider,
+    SensitiveDataProvider,
+)
+from trustrail.rules.base import BaseAsyncRule, BaseRule
 from trustrail.rules.prompt_injection import InvisibleUnicodeRule
 from trustrail.rules.prompt_injection.boundary import CrossBoundaryInjectionRule
 from trustrail.rules.sensitive_data import ProtectedDataDisclosureRule
@@ -129,6 +140,40 @@ _SAFE_MESSAGE_ACTIONS = {
     GuardAction.TRANSFORM,
 }
 
+_ALL_ASYNC_STAGES = frozenset(GuardStage)
+_CONTENT_SAFETY_STAGES = frozenset(
+    {
+        GuardStage.USER_INPUT,
+        GuardStage.EXTERNAL_CONTENT,
+        GuardStage.RAG_DOCUMENT,
+        GuardStage.RAG_CONTEXT,
+        GuardStage.LLM_REQUEST,
+        GuardStage.LLM_RESPONSE,
+        GuardStage.TOOL_REQUEST,
+        GuardStage.TOOL_RESPONSE,
+        GuardStage.AGENT_ACTION,
+        GuardStage.MEMORY_READ,
+        GuardStage.MEMORY_WRITE,
+        GuardStage.FINAL_OUTPUT,
+    }
+)
+_PROMPT_INJECTION_STAGES = frozenset(
+    {
+        GuardStage.USER_INPUT,
+        GuardStage.EXTERNAL_CONTENT,
+        GuardStage.RAG_DOCUMENT,
+        GuardStage.RAG_CONTEXT,
+        GuardStage.LLM_REQUEST,
+        GuardStage.TOOL_REQUEST,
+        GuardStage.TOOL_RESPONSE,
+        GuardStage.AGENT_ACTION,
+        GuardStage.MEMORY_READ,
+        GuardStage.MEMORY_WRITE,
+    }
+)
+_SENSITIVE_DATA_STAGES = frozenset(stage for stage in GuardStage if stage != GuardStage.STREAM)
+_GROUNDING_STAGES = frozenset({GuardStage.LLM_RESPONSE, GuardStage.FINAL_OUTPUT})
+
 
 @dataclass
 class _RuleOverride:
@@ -147,6 +192,47 @@ class _ArgumentTarget:
 
     parameter: str
     item: int | str | None = None
+
+
+@dataclass
+class _EvaluationState:
+    """Internal aggregate retained while async checks extend a sync result."""
+
+    result: GuardResult
+    current_value: str
+    requested_actions: set[GuardAction]
+    handled_finding_ids: set[int]
+
+
+@dataclass(frozen=True)
+class _AsyncRuleBinding:
+    rule: AsyncGuardRule
+    rule_id: str
+    rule_name: str
+    category: RuleCategory
+    phase: RulePhase
+    enabled: bool
+    timeout_seconds: float
+    fail_mode: FailMode
+    stages: frozenset[GuardStage]
+    override: _RuleOverride | None = None
+
+
+@dataclass(frozen=True)
+class _ProviderBinding:
+    provider_id: str
+    provider: object
+    kind: Literal["content_safety", "prompt_injection", "sensitive_data", "grounding"]
+    timeout_seconds: float
+    fail_mode: FailMode
+    stages: frozenset[GuardStage]
+    action: GuardAction
+
+
+@dataclass
+class _AsyncOutcome:
+    decisions: list[GuardDecision] = field(default_factory=list)
+    checks_evaluated: int = 1
 
 
 class GuardSession:
@@ -182,10 +268,39 @@ class Guard:
         audit_sink: AuditSink | None = None,
         extra_rules: list[BaseRule] | None = None,
         approval_provider: ApprovalProvider | None = None,
+        *,
+        async_rules: Sequence[AsyncGuardRule | AsyncRuleRegistration] | None = None,
+        content_safety_providers: Sequence[
+            ContentSafetyProvider | ProviderRegistration[ContentSafetyProvider]
+        ]
+        | None = None,
+        prompt_injection_providers: Sequence[
+            PromptInjectionProvider | ProviderRegistration[PromptInjectionProvider]
+        ]
+        | None = None,
+        sensitive_data_providers: Sequence[
+            SensitiveDataProvider | ProviderRegistration[SensitiveDataProvider]
+        ]
+        | None = None,
+        grounding_verifiers: Sequence[GroundingVerifier | ProviderRegistration[GroundingVerifier]]
+        | None = None,
     ) -> None:
         self._config = config if config is not None else GuardConfig.default()
         self._audit_sink = audit_sink if audit_sink is not None else LoggingAuditSink()
         self._extra_rules = extra_rules if extra_rules is not None else []
+        self._async_rule_registrations = self._normalize_async_rules(async_rules or ())
+        self._provider_registrations = {
+            "content_safety": self._normalize_providers(
+                "content_safety", content_safety_providers or ()
+            ),
+            "prompt_injection": self._normalize_providers(
+                "prompt_injection", prompt_injection_providers or ()
+            ),
+            "sensitive_data": self._normalize_providers(
+                "sensitive_data", sensitive_data_providers or ()
+            ),
+            "grounding": self._normalize_providers("grounding", grounding_verifiers or ()),
+        }
         self._approval_provider = approval_provider
         self._alert_callbacks: list[_AlertCallback] = []
         self._policy_fail_modes: dict[str, FailMode] = {}
@@ -193,12 +308,43 @@ class Guard:
         self._policy_rules: dict[str, tuple[BaseRule, ...]] = {}
         self._standalone_rules: tuple[BaseRule, ...] = ()
         self._configured_extra_rules: tuple[BaseRule, ...] = ()
+        self._async_rule_bindings: tuple[_AsyncRuleBinding, ...] = ()
+        self._provider_bindings: tuple[_ProviderBinding, ...] = ()
         self._build_rule_cache()
 
     @property
     def fail_mode(self) -> FailMode:
         """Return the configured behavior for unexpected evaluation failures."""
         return self._config.fail_mode
+
+    @staticmethod
+    def _normalize_async_rules(
+        rules: Sequence[AsyncGuardRule | AsyncRuleRegistration],
+    ) -> tuple[AsyncRuleRegistration, ...]:
+        registrations: list[AsyncRuleRegistration] = []
+        for rule in rules:
+            registration = (
+                rule if isinstance(rule, AsyncRuleRegistration) else AsyncRuleRegistration(rule)
+            )
+            registrations.append(registration)
+        return tuple(registrations)
+
+    @staticmethod
+    def _normalize_providers(
+        kind: str,
+        providers: Sequence[object],
+    ) -> tuple[ProviderRegistration[object], ...]:
+        registrations: list[ProviderRegistration[object]] = []
+        for index, provider in enumerate(providers):
+            if isinstance(provider, ProviderRegistration):
+                registration = provider
+            else:
+                registration = ProviderRegistration(
+                    provider_id=f"{kind}:{type(provider).__name__}:{index}",
+                    provider=provider,
+                )
+            registrations.append(registration)
+        return tuple(registrations)
 
     # ── Factory methods ───────────────────────────────────────────────────────
 
@@ -421,6 +567,151 @@ class Guard:
         )
         return rule
 
+    def _rebuild_async_rule(
+        self,
+        rule: BaseAsyncRule,
+        params: dict[str, Any],
+    ) -> BaseAsyncRule:
+        if not params:
+            return rule
+        constructor = type(rule).__init__
+        validated = self._validate_params(
+            constructor,
+            params,
+            label=f"async rule '{rule.rule_id}'",
+            excluded={"enabled"},
+        )
+        signature = inspect.signature(constructor)
+        kwargs: dict[str, Any] = {}
+        if "enabled" in signature.parameters:
+            kwargs["enabled"] = rule.enabled
+        for name, parameter in signature.parameters.items():
+            if name in {"self", "enabled"} or name in validated:
+                continue
+            if hasattr(rule, name):
+                kwargs[name] = getattr(rule, name)
+            elif parameter.default is inspect.Parameter.empty:
+                raise ConfigurationError(
+                    f"Async rule '{rule.rule_id}' parameter '{name}' cannot be overridden safely"
+                )
+        kwargs.update(validated)
+        try:
+            rebuilt = type(rule)(**kwargs)
+        except Exception as exc:
+            raise ConfigurationError(
+                f"Invalid parameters for async rule '{rule.rule_id}': {exc}"
+            ) from exc
+        if not isinstance(rebuilt, BaseAsyncRule):
+            raise ConfigurationError(f"Async rule '{rule.rule_id}' could not be rebuilt safely")
+        return rebuilt
+
+    def _build_async_rule_bindings(self) -> tuple[_AsyncRuleBinding, ...]:
+        bindings: list[_AsyncRuleBinding] = []
+        seen: set[str] = set()
+        for registration in self._async_rule_registrations:
+            rule = registration.rule
+            rule_id = rule.id
+            if rule_id in seen:
+                raise ConfigurationError(f"Duplicate async rule ID: '{rule_id}'")
+            seen.add(rule_id)
+            override = self._merge_rule_override(None, rule_id)
+            runtime_override: _RuleOverride | None = override
+            if isinstance(rule, BaseAsyncRule):
+                rule = self._rebuild_async_rule(rule, override.params)
+                if override.enabled is not None:
+                    rule.enabled = override.enabled
+                rule.configure(
+                    action=override.action,
+                    severity=override.severity,
+                    threshold=override.threshold,
+                    fail_mode=registration.fail_mode or self._config.fail_mode,
+                )
+                runtime_override = None
+            elif override.params:
+                raise ConfigurationError(
+                    f"Protocol async rule '{rule_id}' does not support configurable parameters; "
+                    "subclass BaseAsyncRule to use RuleConfig.params"
+                )
+
+            try:
+                category = RuleCategory(getattr(rule, "category", RuleCategory.CONTENT_SAFETY))
+                phase = RulePhase(getattr(rule, "phase", RulePhase.DETECT))
+            except ValueError as exc:
+                raise ConfigurationError(f"Async rule '{rule_id}' has invalid metadata") from exc
+            enabled = bool(getattr(rule, "enabled", True))
+            if override.enabled is not None and not isinstance(rule, BaseAsyncRule):
+                enabled = override.enabled
+            configured_fail_mode = getattr(rule, "fail_mode", None)
+            fail_mode = FailMode(
+                registration.fail_mode or configured_fail_mode or self._config.fail_mode
+            )
+            stages = frozenset(registration.stages or _ALL_ASYNC_STAGES)
+            bindings.append(
+                _AsyncRuleBinding(
+                    rule=rule,
+                    rule_id=rule_id,
+                    rule_name=str(getattr(rule, "rule_name", type(rule).__name__)),
+                    category=category,
+                    phase=phase,
+                    enabled=enabled and self._category_enabled(category),
+                    timeout_seconds=(
+                        registration.timeout_seconds or self._config.provider_timeout_seconds
+                    ),
+                    fail_mode=fail_mode,
+                    stages=stages,
+                    override=runtime_override,
+                )
+            )
+        return tuple(bindings)
+
+    def _build_provider_bindings(self) -> tuple[_ProviderBinding, ...]:
+        default_stages = {
+            "content_safety": _CONTENT_SAFETY_STAGES,
+            "prompt_injection": _PROMPT_INJECTION_STAGES,
+            "sensitive_data": _SENSITIVE_DATA_STAGES,
+            "grounding": _GROUNDING_STAGES,
+        }
+        default_actions = {
+            "content_safety": GuardAction.BLOCK,
+            "prompt_injection": GuardAction.BLOCK,
+            "sensitive_data": GuardAction.REDACT,
+            "grounding": GuardAction.BLOCK,
+        }
+        default_categories = {
+            "content_safety": RuleCategory.CONTENT_SAFETY,
+            "prompt_injection": RuleCategory.PROMPT_INJECTION,
+            "sensitive_data": RuleCategory.SENSITIVE_DATA,
+            "grounding": RuleCategory.GROUNDING,
+        }
+        bindings: list[_ProviderBinding] = []
+        seen: set[str] = set()
+        for raw_kind, registrations in self._provider_registrations.items():
+            kind = raw_kind
+            if kind not in default_stages:
+                raise ConfigurationError(f"Unknown async provider kind: '{kind}'")
+            if not self._category_enabled(default_categories[kind]):
+                continue
+            for registration in registrations:
+                if registration.provider_id in seen:
+                    raise ConfigurationError(
+                        f"Duplicate external provider ID: '{registration.provider_id}'"
+                    )
+                seen.add(registration.provider_id)
+                bindings.append(
+                    _ProviderBinding(
+                        provider_id=registration.provider_id,
+                        provider=registration.provider,
+                        kind=kind,  # type: ignore[arg-type]
+                        timeout_seconds=(
+                            registration.timeout_seconds or self._config.provider_timeout_seconds
+                        ),
+                        fail_mode=registration.fail_mode or self._config.fail_mode,
+                        stages=frozenset(registration.stages or default_stages[kind]),
+                        action=registration.action or default_actions[kind],
+                    )
+                )
+        return tuple(bindings)
+
     def _category_enabled(self, category: RuleCategory) -> bool:
         enabled = self._config.enabled_categories
         if enabled is not None and category not in enabled:
@@ -480,6 +771,14 @@ class Guard:
             rule for rule in configured_extra if self._category_enabled(rule.category)
         )
         known_rule_ids.update(rule.rule_id for rule in configured_extra)
+        self._async_rule_bindings = self._build_async_rule_bindings()
+        for binding in self._async_rule_bindings:
+            if binding.rule_id in known_rule_ids:
+                raise ConfigurationError(
+                    f"Async rule ID conflicts with an existing rule: '{binding.rule_id}'"
+                )
+            known_rule_ids.add(binding.rule_id)
+        self._provider_bindings = self._build_provider_bindings()
         # SD-017 is constructed per request because its protected values are
         # caller supplied; its runtime controls are still validated here.
         known_rule_ids.add("SD-017")
@@ -573,14 +872,14 @@ class Guard:
 
         return rules
 
-    def _evaluate_rules(
+    def _evaluate_rules_state(
         self,
         value: str,
         stage: GuardStage,
         context: GuardContext,
         protected_data: list[ProtectedData] | None = None,
-    ) -> GuardResult:
-        """Synchronous rule evaluation."""
+    ) -> _EvaluationState:
+        """Evaluate synchronous rules while retaining aggregation state."""
         rules = self._get_rules_for_stage(stage, protected_data)
         findings: list[GuardFinding] = []
         transformed_value: str | None = None
@@ -650,18 +949,33 @@ class Guard:
             handled_finding_ids,
         )
 
-        return GuardResult(
-            action=action,
-            findings=findings,
-            score=score,
-            value=value,
-            transformed_value=transformed_value,
-            input_length=len(value),
-            stage=stage,
-            context=context,
-            latency_ms=latency_ms,
-            rules_evaluated=len(rules),
+        return _EvaluationState(
+            result=GuardResult(
+                action=action,
+                findings=findings,
+                score=score,
+                value=value,
+                transformed_value=transformed_value,
+                input_length=len(value),
+                stage=stage,
+                context=context,
+                latency_ms=latency_ms,
+                rules_evaluated=len(rules),
+            ),
+            current_value=current_value,
+            requested_actions=requested_actions,
+            handled_finding_ids=handled_finding_ids,
         )
+
+    def _evaluate_rules(
+        self,
+        value: str,
+        stage: GuardStage,
+        context: GuardContext,
+        protected_data: list[ProtectedData] | None = None,
+    ) -> GuardResult:
+        """Evaluate only the synchronous rule pipeline."""
+        return self._evaluate_rules_state(value, stage, context, protected_data).result
 
     def _determine_action(
         self,
@@ -809,6 +1123,376 @@ class Guard:
             raise outcome
         raise RuntimeError("Invalid guard evaluation failure")
 
+    def _has_async_checks_for_stage(self, stage: GuardStage) -> bool:
+        return any(
+            binding.enabled and stage in binding.stages for binding in self._async_rule_bindings
+        ) or any(stage in binding.stages for binding in self._provider_bindings)
+
+    @staticmethod
+    def _provider_category_allowed(binding: _ProviderBinding, finding: GuardFinding) -> bool:
+        allowed = {
+            "content_safety": {RuleCategory.CONTENT_SAFETY},
+            "prompt_injection": {
+                RuleCategory.PROMPT_INJECTION,
+                RuleCategory.JAILBREAK,
+            },
+            "sensitive_data": {
+                RuleCategory.SENSITIVE_DATA,
+                RuleCategory.SECRET,
+            },
+            "grounding": {RuleCategory.GROUNDING},
+        }
+        return finding.category in allowed[binding.kind]
+
+    @staticmethod
+    def _validate_provider_findings(
+        binding: _ProviderBinding,
+        findings: object,
+    ) -> list[GuardFinding]:
+        if not isinstance(findings, list) or any(
+            not isinstance(finding, GuardFinding) for finding in findings
+        ):
+            raise TypeError("External provider must return list[GuardFinding]")
+        typed_findings = cast(list[GuardFinding], findings)
+        if any(
+            not Guard._provider_category_allowed(binding, finding) for finding in typed_findings
+        ):
+            raise ValueError("External provider returned a finding for an invalid category")
+        return typed_findings
+
+    @staticmethod
+    def _failure_outcome(
+        *,
+        check_id: str,
+        check_kind: str,
+        fail_mode: FailMode,
+        error_type: Literal["timeout", "exception"],
+    ) -> _AsyncOutcome:
+        fail_closed = fail_mode == FailMode.CLOSED
+        finding = GuardFinding(
+            rule_id=f"ASYNC-{check_id}:error",
+            rule_name="Async safety check failure",
+            category=RuleCategory.RESOURCE,
+            severity=Severity.HIGH if fail_closed else Severity.INFO,
+            message=(
+                "Async safety check failed (fail-closed)"
+                if fail_closed
+                else "Async safety check failed (fail-open)"
+            ),
+            metadata={
+                "check_id": check_id,
+                "check_kind": check_kind,
+                "error_type": error_type,
+            },
+        )
+        return _AsyncOutcome(
+            decisions=[
+                GuardDecision(
+                    action=GuardAction.BLOCK if fail_closed else GuardAction.WARN,
+                    finding=finding,
+                    rule_id=finding.rule_id,
+                    suppress_risk=not fail_closed,
+                )
+            ]
+        )
+
+    @staticmethod
+    def _apply_protocol_rule_override(
+        decision: GuardDecision,
+        binding: _AsyncRuleBinding,
+    ) -> GuardDecision:
+        override = binding.override
+        finding = decision.finding
+        if override is None or finding is None:
+            return decision
+        if override.threshold is not None and finding.confidence < override.threshold:
+            return GuardDecision(action=GuardAction.ALLOW, rule_id=binding.rule_id)
+        if override.severity is not None:
+            finding.severity = override.severity
+        if override.action is not None:
+            decision.action = override.action
+            decision.suppress_risk = True
+            if decision.action == GuardAction.ALLOW:
+                decision.transformed_value = None
+            elif (
+                decision.action in (GuardAction.REDACT, GuardAction.TRANSFORM)
+                and decision.transformed_value is None
+            ):
+                decision.action = GuardAction.BLOCK
+                decision.suppress_risk = False
+        return decision
+
+    async def _run_async_rule(
+        self,
+        binding: _AsyncRuleBinding,
+        value: str,
+        context: GuardContext,
+        semaphore: asyncio.Semaphore,
+        *,
+        allow_transformation: bool,
+    ) -> _AsyncOutcome:
+        try:
+            async with semaphore, asyncio.timeout(binding.timeout_seconds):
+                started_at = time.perf_counter()
+                if isinstance(binding.rule, BaseAsyncRule):
+                    decision = await binding.rule.timed_evaluate(value, context)
+                else:
+                    decision = await binding.rule.evaluate(value, context)
+                    decision.latency_ms = (time.perf_counter() - started_at) * 1000
+                    decision = self._apply_protocol_rule_override(decision, binding)
+                if not isinstance(decision, GuardDecision):
+                    raise TypeError("Async rules must return GuardDecision")
+                if not allow_transformation and decision.action in (
+                    GuardAction.REDACT,
+                    GuardAction.TRANSFORM,
+                ):
+                    raise ValueError(
+                        "Independent async rules cannot transform; declare phase TRANSFORM"
+                    )
+                return _AsyncOutcome(decisions=[decision])
+        except TimeoutError:
+            return self._failure_outcome(
+                check_id=binding.rule_id,
+                check_kind="async_rule",
+                fail_mode=binding.fail_mode,
+                error_type="timeout",
+            )
+        except Exception:
+            return self._failure_outcome(
+                check_id=binding.rule_id,
+                check_kind="async_rule",
+                fail_mode=binding.fail_mode,
+                error_type="exception",
+            )
+
+    async def _invoke_provider(
+        self,
+        binding: _ProviderBinding,
+        value: str,
+        context: GuardContext,
+        documents: list[Document] | None,
+        semaphore: asyncio.Semaphore,
+    ) -> _AsyncOutcome:
+        try:
+            async with semaphore, asyncio.timeout(binding.timeout_seconds):
+                transformed_value: str | None = None
+                if binding.kind == "content_safety":
+                    content_provider = cast(ContentSafetyProvider, binding.provider)
+                    raw_findings = await content_provider.check(value, context)
+                elif binding.kind == "prompt_injection":
+                    injection_provider = cast(PromptInjectionProvider, binding.provider)
+                    raw_findings = await injection_provider.check(value, context)
+                elif binding.kind == "sensitive_data":
+                    sensitive_provider = cast(SensitiveDataProvider, binding.provider)
+                    raw_findings = await sensitive_provider.detect(value, context)
+                    findings = self._validate_provider_findings(binding, raw_findings)
+                    if findings:
+                        transformed_value = await sensitive_provider.redact(value, context)
+                        if not isinstance(transformed_value, str):
+                            raise TypeError("Sensitive data provider redact() must return str")
+                    return _AsyncOutcome(
+                        decisions=[
+                            GuardDecision(
+                                action=(
+                                    binding.action
+                                    if transformed_value != value
+                                    else GuardAction.BLOCK
+                                ),
+                                finding=finding,
+                                transformed_value=(
+                                    transformed_value if transformed_value != value else None
+                                ),
+                                rule_id=finding.rule_id,
+                            )
+                            for finding in findings
+                        ]
+                    )
+                else:
+                    if documents is None:
+                        raise ValueError("Grounding verification requires documents")
+                    grounding_provider = cast(GroundingVerifier, binding.provider)
+                    raw_findings = await grounding_provider.verify(value, documents, context)
+
+                findings = self._validate_provider_findings(binding, raw_findings)
+                return _AsyncOutcome(
+                    decisions=[
+                        GuardDecision(
+                            action=binding.action,
+                            finding=finding,
+                            rule_id=finding.rule_id,
+                        )
+                        for finding in findings
+                    ]
+                )
+        except TimeoutError:
+            return self._failure_outcome(
+                check_id=binding.provider_id,
+                check_kind=binding.kind,
+                fail_mode=binding.fail_mode,
+                error_type="timeout",
+            )
+        except Exception:
+            return self._failure_outcome(
+                check_id=binding.provider_id,
+                check_kind=binding.kind,
+                fail_mode=binding.fail_mode,
+                error_type="exception",
+            )
+
+    def _merge_async_outcome(
+        self,
+        state: _EvaluationState,
+        outcome: _AsyncOutcome,
+    ) -> None:
+        state.result.rules_evaluated += outcome.checks_evaluated
+        for decision in outcome.decisions:
+            policy_handled = decision.suppress_risk or self._apply_sensitive_data_mode(decision)
+            if decision.finding is not None:
+                state.result.findings.append(decision.finding)
+                if policy_handled:
+                    state.handled_finding_ids.add(id(decision.finding))
+            if decision.action != GuardAction.TRANSFORM or decision.suppress_risk:
+                state.requested_actions.add(decision.action)
+            if (
+                decision.action in (GuardAction.REDACT, GuardAction.TRANSFORM)
+                and decision.transformed_value is not None
+            ):
+                state.current_value = decision.transformed_value
+
+    def _state_is_blocked(self, state: _EvaluationState) -> bool:
+        score = RiskScore.from_findings(
+            state.result.findings,
+            block_at=self._config.block_at,
+            warn_at=self._config.warn_at,
+        )
+        return (
+            self._determine_action(
+                score,
+                state.result.findings,
+                state.requested_actions,
+                state.handled_finding_ids,
+            )
+            == GuardAction.BLOCK
+        )
+
+    def _finalize_evaluation_state(
+        self,
+        state: _EvaluationState,
+        *,
+        started_at: float,
+    ) -> GuardResult:
+        findings = state.result.findings
+        score = RiskScore.from_findings(
+            findings,
+            block_at=self._config.block_at,
+            warn_at=self._config.warn_at,
+        )
+        state.result.score = score
+        state.result.action = self._determine_action(
+            score,
+            findings,
+            state.requested_actions,
+            state.handled_finding_ids,
+        )
+        state.result.transformed_value = (
+            state.current_value if state.current_value != state.result.value else None
+        )
+        state.result.latency_ms = (time.perf_counter() - started_at) * 1000
+        return state.result
+
+    async def _evaluate_async_pipeline(
+        self,
+        value: str,
+        stage: GuardStage,
+        context: GuardContext,
+        protected_data: list[ProtectedData] | None,
+        documents: list[Document] | None,
+        started_at: float,
+    ) -> GuardResult:
+        state = await asyncio.to_thread(
+            self._evaluate_rules_state,
+            value,
+            stage,
+            context,
+            protected_data,
+        )
+        if state.result.is_blocked:
+            return self._finalize_evaluation_state(state, started_at=started_at)
+
+        semaphore = asyncio.Semaphore(self._config.max_async_concurrency)
+        transform_rules = [
+            binding
+            for binding in self._async_rule_bindings
+            if binding.enabled
+            and stage in binding.stages
+            and binding.phase in (RulePhase.NORMALIZE, RulePhase.TRANSFORM)
+        ]
+        sensitive_providers = [
+            binding
+            for binding in self._provider_bindings
+            if binding.kind == "sensitive_data" and stage in binding.stages
+        ]
+        for transform_binding in transform_rules:
+            outcome = await self._run_async_rule(
+                transform_binding,
+                state.current_value,
+                context,
+                semaphore,
+                allow_transformation=True,
+            )
+            self._merge_async_outcome(state, outcome)
+            if self._state_is_blocked(state):
+                return self._finalize_evaluation_state(state, started_at=started_at)
+        for sensitive_binding in sensitive_providers:
+            outcome = await self._invoke_provider(
+                sensitive_binding,
+                state.current_value,
+                context,
+                documents,
+                semaphore,
+            )
+            self._merge_async_outcome(state, outcome)
+            if self._state_is_blocked(state):
+                return self._finalize_evaluation_state(state, started_at=started_at)
+
+        detector_rules = [
+            binding
+            for binding in self._async_rule_bindings
+            if binding.enabled
+            and stage in binding.stages
+            and binding.phase not in (RulePhase.NORMALIZE, RulePhase.TRANSFORM)
+        ]
+        detector_providers = [
+            binding
+            for binding in self._provider_bindings
+            if binding.kind != "sensitive_data" and stage in binding.stages
+        ]
+        calls = [
+            self._run_async_rule(
+                rule_binding,
+                state.current_value,
+                context,
+                semaphore,
+                allow_transformation=False,
+            )
+            for rule_binding in detector_rules
+        ]
+        calls.extend(
+            self._invoke_provider(
+                provider_binding,
+                state.current_value,
+                context,
+                documents,
+                semaphore,
+            )
+            for provider_binding in detector_providers
+        )
+        if calls:
+            outcomes = await asyncio.gather(*calls)
+            for outcome in outcomes:
+                self._merge_async_outcome(state, outcome)
+        return self._finalize_evaluation_state(state, started_at=started_at)
+
     # ── Public synchronous API ────────────────────────────────────────────────
 
     def check(
@@ -820,6 +1504,11 @@ class Guard:
         **kwargs: Any,
     ) -> GuardResult:
         """Check a value at the given stage. Returns GuardResult."""
+        if self._has_async_checks_for_stage(stage):
+            raise AsyncGuardRequiredError(
+                "Guard.check() cannot execute configured async rules or providers for "
+                f"stage '{stage.value}'; use 'await guard.acheck(...)'"
+            )
         ctx = context or self._make_context(stage, **kwargs)
         result = self._evaluate_with_timeout(value, stage, ctx, protected_data)
         self._fire_alerts(result)
@@ -868,6 +1557,16 @@ class Guard:
         """Check a document with authoritative provenance and caller identity."""
         ctx = self._document_context(document, stage=stage, context=context)
         return self.check(document.content, stage, context=ctx)
+
+    async def acheck_document(
+        self,
+        document: Document,
+        stage: GuardStage = GuardStage.RAG_DOCUMENT,
+        context: GuardContext | None = None,
+    ) -> GuardResult:
+        """Asynchronously check a document while preserving authoritative provenance."""
+        ctx = self._document_context(document, stage=stage, context=context)
+        return await self.acheck(document.content, stage, context=ctx)
 
     def check_prompt_segments(self, segments: list[PromptSegment]) -> PromptScanResult:
         """Scan a composed prompt without discarding source and trust boundaries.
@@ -1003,6 +1702,30 @@ class Guard:
             require_provenance=require_provenance,
         )
 
+    async def abuild_rag_context(
+        self,
+        documents: list[Document],
+        *,
+        context: GuardContext | None = None,
+        require_provenance: bool = True,
+    ) -> RAGContextEnvelope:
+        """Await document checks and assemble a provenance-labeled RAG envelope."""
+        safe_documents: list[Document] = []
+        for document in documents:
+            result = await self.acheck_document(document, context=context)
+            if result.is_blocked:
+                raise GuardrailBlockedError(
+                    "Retrieved document blocked before RAG context assembly",
+                    stage=GuardStage.RAG_DOCUMENT,
+                    findings=result.findings,
+                    score=result.score.value,
+                )
+            safe_documents.append(document.model_copy(update={"content": result.output_value}))
+        return RAGContextEnvelope.from_documents(
+            safe_documents,
+            require_provenance=require_provenance,
+        )
+
     def check_rag_context(
         self,
         envelope: RAGContextEnvelope,
@@ -1015,6 +1738,18 @@ class Guard:
             context=envelope.guard_context(context),
         )
 
+    async def acheck_rag_context(
+        self,
+        envelope: RAGContextEnvelope,
+        context: GuardContext | None = None,
+    ) -> GuardResult:
+        """Await checks for an envelope while preserving provenance and correlation."""
+        return await self.acheck(
+            envelope.render(),
+            GuardStage.RAG_CONTEXT,
+            context=envelope.guard_context(context),
+        )
+
     def protect_rag_context(
         self,
         envelope: RAGContextEnvelope,
@@ -1022,6 +1757,22 @@ class Guard:
     ) -> str:
         """Return safe RAG data while preserving caller audit correlation."""
         result = self.check_rag_context(envelope, context=context)
+        if result.is_blocked:
+            raise GuardrailBlockedError(
+                "RAG context blocked by guardrail",
+                stage=GuardStage.RAG_CONTEXT,
+                findings=result.findings,
+                score=result.score.value,
+            )
+        return result.output_value
+
+    async def aprotect_rag_context(
+        self,
+        envelope: RAGContextEnvelope,
+        context: GuardContext | None = None,
+    ) -> str:
+        """Await RAG context checks and return safe provenance-labeled data."""
+        result = await self.acheck_rag_context(envelope, context=context)
         if result.is_blocked:
             raise GuardrailBlockedError(
                 "RAG context blocked by guardrail",
@@ -1201,17 +1952,33 @@ class Guard:
         stage: GuardStage,
         context: GuardContext | None = None,
         protected_data: list[ProtectedData] | None = None,
+        documents: list[Document] | None = None,
         **kwargs: Any,
     ) -> GuardResult:
-        """Async check. Runs synchronous rules in a thread pool."""
+        """Run sync rules and configured async checks without blocking the event loop."""
         ctx = context or self._make_context(stage, **kwargs)
-        result = await asyncio.to_thread(
-            self._evaluate_with_timeout,
-            value,
-            stage,
-            ctx,
-            protected_data,
-        )
+        if self._has_async_checks_for_stage(stage):
+            started_at = time.perf_counter()
+            try:
+                async with asyncio.timeout(self._config.timeout_seconds):
+                    result = await self._evaluate_async_pipeline(
+                        value,
+                        stage,
+                        ctx,
+                        protected_data,
+                        documents,
+                        started_at,
+                    )
+            except TimeoutError:
+                result = self._timeout_result(value, stage, ctx, started_at)
+        else:
+            result = await asyncio.to_thread(
+                self._evaluate_with_timeout,
+                value,
+                stage,
+                ctx,
+                protected_data,
+            )
         self._fire_alerts(result)
         if self._config.audit_enabled:
             await self._emit_audit(result)
@@ -1223,6 +1990,7 @@ class Guard:
         stage: GuardStage,
         context: GuardContext | None = None,
         protected_data: list[ProtectedData] | None = None,
+        documents: list[Document] | None = None,
         **kwargs: Any,
     ) -> str:
         """Async protect. Raises GuardrailBlockedError if blocked."""
@@ -1231,6 +1999,7 @@ class Guard:
             stage,
             context=context,
             protected_data=protected_data,
+            documents=documents,
             **kwargs,
         )
         if result.is_blocked:

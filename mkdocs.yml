@@ -86,6 +86,7 @@ nav:
       - Risk scoring: risk-scoring.md
       - Observability: observability.md
   - Integrations:
+      - External safety providers: integrations/external-safety-providers.md
       - OpenAI: integrations/openai.md
       - FastAPI: integrations/fastapi.md
       - LangChain: integrations/langchain.md

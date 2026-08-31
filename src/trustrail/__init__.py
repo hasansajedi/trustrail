@@ -12,11 +12,13 @@ Quick start:
 from importlib.metadata import PackageNotFoundError, version
 
 from trustrail.agency import StaticToolApprovalVerifier, ToolAuthorizer, ToolExecutionBudget
+from trustrail.async_checks import AsyncRuleRegistration, ProviderRegistration
 from trustrail.audit import LoggingAuditSink, MemoryAuditSink, NullAuditSink
 from trustrail.exceptions import (
     AegisRailError,
     ApprovalRequiredError,
     ArtifactVerificationError,
+    AsyncGuardRequiredError,
     ConfigurationError,
     DataPoisoningError,
     GroundingVerificationError,
@@ -217,7 +219,9 @@ __all__ = [
     "ArtifactVerificationPolicy",
     "ArtifactVerificationResult",
     "ArtifactVerifier",
+    "AsyncGuardRequiredError",
     "AsyncGuardRule",
+    "AsyncRuleRegistration",
     # Data models
     "AuditEvent",
     "AuditSink",
@@ -300,6 +304,7 @@ __all__ = [
     "ProtectedData",
     "ProvenanceLabel",
     "ProviderError",
+    "ProviderRegistration",
     "RAGContextEnvelope",
     "RAGContextSegment",
     "RateLimitError",

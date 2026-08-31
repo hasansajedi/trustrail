@@ -1,5 +1,5 @@
 """trustrail guard rules."""
 
-from trustrail.rules.base import BaseRule, RuleRegistry, registry
+from trustrail.rules.base import BaseAsyncRule, BaseRule, RuleRegistry, registry
 
-__all__ = ["BaseRule", "RuleRegistry", "registry"]
+__all__ = ["BaseAsyncRule", "BaseRule", "RuleRegistry", "registry"]

@@ -85,3 +85,31 @@ authenticated request and a separately protected `VectorIndexEntry` catalog; it
 authorizes each result, checks full lineage, recomputes similarity, rejects
 duplicates, and then invokes the document scanner. See
 [Vector and embedding security](../security/vector-embedding-security.md).
+
+## RAG with async providers
+
+When remote prompt-injection, DLP, moderation, or grounding providers are
+registered, use the async RAG helpers so no configured check is skipped:
+
+```python
+envelope = await guard.abuild_rag_context(
+    documents,
+    context=request_context,
+)
+safe_context = await guard.aprotect_rag_context(
+    envelope,
+    context=request_context,
+)
+response = await model.generate(question, context=safe_context)
+result = await guard.acheck(
+    response,
+    GuardStage.LLM_RESPONSE,
+    context=request_context,
+    documents=documents,
+)
+```
+
+`acheck_document()` applies the same provenance collision rules as
+`check_document()`. Grounding verifiers receive the supplied `Document` objects;
+missing documents are handled according to the verifier's fail mode. See
+[external safety providers](../integrations/external-safety-providers.md).

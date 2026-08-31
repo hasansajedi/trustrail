@@ -150,6 +150,12 @@ class ApprovalRequiredError(AegisRailError):
         self.request_id = request_id
 
 
+class AsyncGuardRequiredError(AegisRailError):
+    """Raised when synchronous evaluation would skip configured async checks."""
+
+    pass
+
+
 class RateLimitError(AegisRailError):
     """Raised when a rate limit is exceeded."""
 

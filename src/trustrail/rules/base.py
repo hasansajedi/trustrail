@@ -188,6 +188,134 @@ class BaseRule(ABC):
         return decision
 
 
+class BaseAsyncRule(ABC):
+    """Base class for async rules with the same runtime controls as ``BaseRule``."""
+
+    rule_id: ClassVar[str] = ""
+    rule_name: ClassVar[str] = ""
+    category: ClassVar[RuleCategory] = RuleCategory.CONTENT_SAFETY
+    phase: ClassVar[RulePhase] = RulePhase.DETECT
+    default_severity: ClassVar[Severity] = Severity.HIGH
+    default_action: ClassVar[GuardAction] = GuardAction.BLOCK
+    description: ClassVar[str] = ""
+    owasp: ClassVar[Sequence[str]] = ()
+
+    def __init__(self, enabled: bool = True) -> None:
+        self.enabled = enabled
+        self._configured_action: GuardAction | None = None
+        self._configured_severity: Severity | None = None
+        self._configured_threshold: float | None = None
+        self._configured_fail_mode: FailMode | None = None
+
+    @property
+    def id(self) -> str:
+        return self.rule_id
+
+    @property
+    def fail_mode(self) -> FailMode | None:
+        return self._configured_fail_mode
+
+    def configure(
+        self,
+        *,
+        action: GuardAction | None = None,
+        severity: Severity | None = None,
+        threshold: float | None = None,
+        fail_mode: FailMode | None = None,
+    ) -> None:
+        """Apply validated runtime controls without changing rule logic."""
+        self._configured_action = action
+        self._configured_severity = severity
+        self._configured_threshold = threshold
+        self._configured_fail_mode = fail_mode
+
+    def _apply_runtime_config(self, decision: GuardDecision) -> GuardDecision:
+        finding = decision.finding
+        if finding is None:
+            return decision
+        if (
+            self._configured_threshold is not None
+            and finding.confidence < self._configured_threshold
+        ):
+            return self._allow()
+        if self._configured_severity is not None:
+            finding.severity = self._configured_severity
+        if self._configured_action is not None:
+            decision.action = self._configured_action
+            decision.suppress_risk = True
+            if decision.action == GuardAction.ALLOW:
+                decision.transformed_value = None
+            elif (
+                decision.action in (GuardAction.REDACT, GuardAction.TRANSFORM)
+                and decision.transformed_value is None
+            ):
+                decision.action = GuardAction.BLOCK
+                decision.suppress_risk = False
+        return decision
+
+    @abstractmethod
+    async def evaluate(self, value: str, context: GuardContext) -> GuardDecision:
+        """Asynchronously evaluate a value and return a decision."""
+        ...
+
+    def _allow(self) -> GuardDecision:
+        return GuardDecision(action=GuardAction.ALLOW, rule_id=self.rule_id)
+
+    def _finding(
+        self,
+        message: str,
+        severity: Severity | None = None,
+        offset_start: int | None = None,
+        offset_end: int | None = None,
+        confidence: float = 1.0,
+        **metadata: object,
+    ) -> GuardFinding:
+        return GuardFinding(
+            rule_id=self.rule_id,
+            rule_name=self.rule_name,
+            category=self.category,
+            severity=severity or self.default_severity,
+            message=message,
+            offset_start=offset_start,
+            offset_end=offset_end,
+            confidence=confidence,
+            owasp=list(self.owasp),
+            metadata=dict(metadata),
+        )
+
+    def _block(
+        self,
+        message: str,
+        severity: Severity | None = None,
+        offset_start: int | None = None,
+        offset_end: int | None = None,
+        confidence: float = 1.0,
+        action: GuardAction | None = None,
+        transformed_value: str | None = None,
+        **metadata: object,
+    ) -> GuardDecision:
+        return GuardDecision(
+            action=action or self.default_action,
+            finding=self._finding(
+                message,
+                severity=severity,
+                offset_start=offset_start,
+                offset_end=offset_end,
+                confidence=confidence,
+                **metadata,
+            ),
+            transformed_value=transformed_value,
+            rule_id=self.rule_id,
+        )
+
+    async def timed_evaluate(self, value: str, context: GuardContext) -> GuardDecision:
+        """Evaluate asynchronously with latency and runtime policy controls."""
+        start = time.perf_counter()
+        decision = self._apply_runtime_config(await self.evaluate(value, context))
+        decision.latency_ms = (time.perf_counter() - start) * 1000
+        return decision
+
+
 class RuleRegistry:
     """Registry of all known rules."""
 

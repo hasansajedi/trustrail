@@ -71,6 +71,8 @@ class GuardConfig(BaseModel):
     # Performance settings
     max_text_length: int = Field(default=100_000, ge=1)
     timeout_seconds: float = Field(default=10.0, ge=0.1)
+    provider_timeout_seconds: float = Field(default=5.0, gt=0.0)
+    max_async_concurrency: int = Field(default=4, ge=1, le=1_000)
 
     # Normalize invisible Unicode channels before downstream rule evaluation
     strip_invisible_unicode: bool = True

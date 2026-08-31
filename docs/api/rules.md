@@ -5,7 +5,13 @@ external moderation, approval, state, or audit providers.
 
 ::: trustrail.rules.base.BaseRule
 
+::: trustrail.rules.base.BaseAsyncRule
+
 ::: trustrail.rules.base.RuleRegistry
+
+::: trustrail.async_checks.AsyncRuleRegistration
+
+::: trustrail.async_checks.ProviderRegistration
 
 ::: trustrail.protocols
     options:
