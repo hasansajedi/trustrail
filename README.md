@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/hasansajedi/trustrail/blob/main/assets/logo.svg" alt="trustrail shield logo" width="130"/>
+  <img src="https://raw.githubusercontent.com/hasansajedi/trustrail/main/assets/logo.svg" alt="trustrail shield logo" width="130"/>
 </p>
 
 <p align="center">
@@ -89,6 +89,35 @@ guard = Guard.from_profile("paranoid")  # Custom profiles
 result = await guard.acheck(text, GuardStage.USER_INPUT)
 safe_text = await guard.aprotect(text, GuardStage.LLM_RESPONSE)
 ```
+
+## Distributed State
+
+Use the optional Redis backend when rate limits or other guard state must be
+shared by multiple workers or replicas:
+
+```python
+import os
+
+from trustrail import FailMode
+from trustrail.state import FixedWindowRateLimiter, RedisStateBackend, build_state_key
+
+backend = RedisStateBackend.from_url(
+    os.environ["TRUSTRAIL_REDIS_URL"],
+    namespace="myapp:guard",
+    fail_mode=FailMode.CLOSED,
+    max_connections=20,
+)
+limiter = FixedWindowRateLimiter(backend, max_requests=100, window_seconds=60)
+key = build_state_key("model-call", tenant_id, user_id, session_id)
+
+try:
+    allowed = await limiter.check(key)
+finally:
+    await backend.aclose()
+```
+
+Use a `rediss://` URL for TLS. Create one backend per application process, share
+it across requests, and close it during application shutdown.
 
 ## Decorators
 

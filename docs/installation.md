@@ -32,6 +32,12 @@ python -m pip install "trustrail[llamaindex]"
 python -m pip install "trustrail[redis,otel]"
 ```
 
+The base package imports without Redis installed. Install the `redis` extra only
+when constructing `RedisStateBackend`; otherwise `from_url()` raises an
+actionable optional-dependency error. Redis connection URLs support authenticated
+`redis://` connections and TLS-protected `rediss://` connections. Keep credentials
+in your deployment secret store rather than source code or command history.
+
 For local development, clone the repository and install the development group:
 
 ```bash

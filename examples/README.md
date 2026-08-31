@@ -48,7 +48,8 @@ tools.
 | Bound an agent run | [`agent.py`](agent.py) | Step, tool-call, recursion, and duration budgets |
 | Authorize a tool | [`tool_authorization.py`](tool_authorization.py) | Capability, identity, intent, ownership, and execution budget |
 | Bound model resources | [`resource_budget.py`](resource_budget.py) | Reservation, completion, and failure cleanup |
-| Rate-limit requests | [`rate_limiting.py`](rate_limiting.py) | Atomic fixed-window admission and collision-safe identity keys |
+| Rate-limit one process | [`rate_limiting.py`](rate_limiting.py) | Atomic fixed-window admission and collision-safe identity keys |
+| Rate-limit multiple workers | [`redis_rate_limiting.py`](redis_rate_limiting.py) | Shared Redis state, fail mode, pooling, and shutdown |
 | Approve persistent memory | [`persistent_memory.py`](persistent_memory.py) | Redaction before out-of-band approval and storage |
 | Add an adaptive CI gate | [`red_team_gate.py`](red_team_gate.py) | Deterministic attack mutations and regression thresholds |
 

@@ -163,6 +163,14 @@ class RateLimitError(AegisRailError):
         self.retry_after_seconds = retry_after_seconds
 
 
+class StateBackendError(AegisRailError):
+    """Raised when durable guard state cannot be read or updated safely."""
+
+    def __init__(self, message: str, operation: str = "", **kwargs: Any) -> None:
+        super().__init__(message, **kwargs)
+        self.operation = operation
+
+
 class ResourceLimitError(AegisRailError):
     """Raised when a resource limit (token count, length) is exceeded."""
 

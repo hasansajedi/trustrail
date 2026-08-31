@@ -3,17 +3,24 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import logging
 import math
+import sys
+import types
 from typing import Any
 
 import pytest
 
+from trustrail.models.enums import FailMode
 from trustrail.protocols import StateBackend
 from trustrail.state import (
     FixedWindowRateLimiter,
     MemoryStateBackend,
     RateLimiter,
     RedisStateBackend,
+    StateBackendError,
+    build_state_key,
 )
 
 
@@ -37,6 +44,7 @@ class _FakeRedis:
         self.expires_at: dict[str, float] = {}
         self.scripts: list[str] = []
         self._lock = asyncio.Lock()
+        self.closed = False
 
     def _expire(self, key: str) -> None:
         expires_at = self.expires_at.get(key)
@@ -82,11 +90,31 @@ class _FakeRedis:
         async with self._lock:
             self._expire(key)
             existed = key in self.values
-            value = int(self.values.get(key, "0")) + delta
-            self.values[key] = str(value)
-            if not existed:
+            current = 0
+            if existed:
+                try:
+                    envelope = json.loads(self.values[key])
+                    current = envelope["value"]
+                    valid = (
+                        envelope.get("__trustrail_state__") == 1
+                        and isinstance(current, int)
+                        and not isinstance(current, bool)
+                    )
+                except (KeyError, TypeError, json.JSONDecodeError):
+                    valid = False
+                if not valid:
+                    raise ValueError("TRUSTRAIL_STATE_MALFORMED")
+            value = current + delta
+            self.values[key] = json.dumps(
+                {"__trustrail_state__": 1, "value": value},
+                separators=(",", ":"),
+            )
+            if not existed and ttl_ms > 0:
                 self.expires_at[key] = self.clock() + ttl_ms / 1_000
             return value
+
+    async def aclose(self) -> None:
+        self.closed = True
 
 
 @pytest.mark.asyncio
@@ -170,13 +198,19 @@ async def test_redis_atomic_operation_sets_ttl_once_and_uses_one_transaction():
     backend = RedisStateBackend(client)
 
     assert await backend.increment_with_ttl("counter", ttl_seconds=5) == 1
-    first_expiry = client.expires_at["counter"]
+    redis_key = backend.key_for("counter")
+    first_expiry = client.expires_at[redis_key]
     clock.advance(2)
     assert await backend.increment_with_ttl("counter", ttl_seconds=5) == 2
 
-    assert client.expires_at["counter"] == first_expiry
+    assert client.expires_at[redis_key] == first_expiry
     assert len(client.scripts) == 2
-    assert all("INCRBY" in script and "PEXPIRE" in script for script in client.scripts)
+    assert all(
+        'redis.call("GET"' in script
+        and 'redis.call("SET"' in script
+        and 'redis.call("PEXPIRE"' in script
+        for script in client.scripts
+    )
 
 
 @pytest.mark.asyncio
@@ -190,6 +224,189 @@ async def test_redis_state_round_trip_increment_and_delete():
     await backend.delete("document")
 
     assert await backend.get("document") is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("backend_kind", ["memory", "redis"])
+async def test_state_backend_contract_set_get_increment_expire_and_delete(backend_kind: str):
+    clock = _Clock()
+    if backend_kind == "memory":
+        backend: StateBackend = MemoryStateBackend(clock=clock)
+    else:
+        backend = RedisStateBackend(_FakeRedis(clock))
+
+    await backend.set("record", {"allowed": True}, ttl_seconds=2)
+    assert await backend.get("record") == {"allowed": True}
+    await backend.set("counter", 4, ttl_seconds=2)
+    assert await backend.increment("counter", 3) == 7
+    clock.advance(2)
+    assert await backend.get("record") is None
+    assert await backend.get("counter") is None
+    await backend.delete("record")
+
+
+def test_build_state_key_is_collision_safe_and_hides_identity_components():
+    first = build_state_key("rate-limit", "tenant:a", "user", "session")
+    second = build_state_key("rate-limit", "tenant", "a:user", "session")
+
+    assert first != second
+    assert first.startswith("rate-limit:")
+    assert "tenant" not in first
+    assert "session" not in first
+
+
+def test_redis_physical_keys_are_namespaced_versioned_and_content_free():
+    backend = RedisStateBackend(_FakeRedis(_Clock()), namespace="product:security")
+
+    redis_key = backend.key_for("tenant-secret:session-secret")
+
+    assert redis_key.startswith("product:security:v1:")
+    assert "tenant-secret" not in redis_key
+    assert "session-secret" not in redis_key
+
+
+@pytest.mark.asyncio
+async def test_redis_serialization_is_versioned_and_rejects_malformed_data():
+    client = _FakeRedis(_Clock())
+    backend = RedisStateBackend(client)
+    await backend.set("document", {"trusted": True})
+    redis_key = backend.key_for("document")
+
+    assert json.loads(client.values[redis_key]) == {
+        "__trustrail_state__": 1,
+        "value": {"trusted": True},
+    }
+
+    client.values[redis_key] = '{"__trustrail_state__":2,"value":"old"}'
+    with pytest.raises(StateBackendError, match="operation failed"):
+        await backend.get("document")
+
+
+@pytest.mark.asyncio
+async def test_redis_fail_open_returns_documented_fallbacks_without_sensitive_logs(caplog):
+    secret = "redis://user:password@example.invalid/private-value"
+
+    class _UnavailableRedis:
+        async def get(self, _key: str) -> None:
+            raise RuntimeError(secret)
+
+        async def set(self, _key: str, _value: str, **_kwargs: Any) -> None:
+            raise RuntimeError(secret)
+
+        async def eval(self, *_args: Any) -> None:
+            raise RuntimeError(secret)
+
+        async def delete(self, _key: str) -> None:
+            raise RuntimeError(secret)
+
+    backend = RedisStateBackend(_UnavailableRedis(), fail_mode=FailMode.OPEN)
+    with caplog.at_level(logging.WARNING, logger="trustrail.state"):
+        assert await backend.get("private-key") is None
+        await backend.set("private-key", "private-value")
+        assert await backend.increment("private-key", 2) == 2
+        assert await backend.increment_with_ttl("private-key", 3, 5) == 3
+        await backend.delete("private-key")
+
+    assert "password" not in caplog.text
+    assert "private-key" not in caplog.text
+    assert "private-value" not in caplog.text
+    assert caplog.text.count("continuing in fail-open mode") == 5
+
+
+@pytest.mark.asyncio
+async def test_redis_fail_closed_raises_safe_backend_error():
+    class _UnavailableRedis:
+        async def get(self, _key: str) -> None:
+            raise RuntimeError("credential-bearing provider failure")
+
+    backend = RedisStateBackend(_UnavailableRedis())
+
+    with pytest.raises(StateBackendError) as error:
+        await backend.get("sensitive-key")
+
+    assert error.value.operation == "get"
+    assert "sensitive-key" not in str(error.value)
+    assert "credential" not in str(error.value)
+
+
+@pytest.mark.asyncio
+async def test_redis_recovers_on_a_later_operation_after_transient_failure():
+    class _FlakyRedis(_FakeRedis):
+        def __init__(self) -> None:
+            super().__init__(_Clock())
+            self.fail_next_get = True
+
+        async def get(self, key: str) -> bytes | None:
+            if self.fail_next_get:
+                self.fail_next_get = False
+                raise ConnectionError("temporarily unavailable")
+            return await super().get(key)
+
+    client = _FlakyRedis()
+    backend = RedisStateBackend(client)
+
+    with pytest.raises(StateBackendError):
+        await backend.get("record")
+    await backend.set("record", "available")
+    assert await backend.get("record") == "available"
+
+
+@pytest.mark.asyncio
+async def test_redis_owned_client_closes_once_and_context_manager_rejects_reuse():
+    client = _FakeRedis(_Clock())
+    backend = RedisStateBackend(client, close_client=True)
+
+    async with backend:
+        await backend.set("record", "value")
+
+    assert client.closed
+    await backend.aclose()
+    with pytest.raises(StateBackendError, match="closed"):
+        await backend.get("record")
+
+
+def test_redis_from_url_configures_tls_auth_pool_and_timeouts(monkeypatch):
+    captured: dict[str, Any] = {}
+    client = _FakeRedis(_Clock())
+
+    class _RedisFactory:
+        @staticmethod
+        def from_url(url: str, **kwargs: Any) -> _FakeRedis:
+            captured.update(url=url, **kwargs)
+            return client
+
+    redis_package = types.ModuleType("redis")
+    redis_asyncio = types.ModuleType("redis.asyncio")
+    redis_asyncio.Redis = _RedisFactory  # type: ignore[attr-defined]
+    redis_package.asyncio = redis_asyncio  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "redis", redis_package)
+    monkeypatch.setitem(sys.modules, "redis.asyncio", redis_asyncio)
+
+    backend = RedisStateBackend.from_url(
+        "rediss://user:secret@redis.example:6380/2",
+        socket_connect_timeout=1.5,
+        socket_timeout=2.5,
+        max_connections=32,
+        health_check_interval=15,
+        ssl_ca_certs="/run/secrets/redis-ca.pem",
+    )
+
+    assert captured == {
+        "url": "rediss://user:secret@redis.example:6380/2",
+        "socket_connect_timeout": 1.5,
+        "socket_timeout": 2.5,
+        "max_connections": 32,
+        "health_check_interval": 15,
+        "ssl_ca_certs": "/run/secrets/redis-ca.pem",
+    }
+    assert backend.namespace == "trustrail:state"
+
+
+def test_redis_optional_dependency_error_is_actionable(monkeypatch):
+    monkeypatch.setitem(sys.modules, "redis.asyncio", None)
+
+    with pytest.raises(ImportError, match=r"pip install 'trustrail\[redis\]'"):
+        RedisStateBackend.from_url("redis://localhost:6379/0")
 
 
 class _FailingBackend:
