@@ -51,6 +51,7 @@ tools.
 | Authorize a tool | [`tool_authorization.py`](tool_authorization.py) | Capability, identity, intent, ownership, and execution budget |
 | Verify tool semantics | [`semantic_tool_authorization.py`](semantic_tool_authorization.py) | Trusted argument bindings, effects, resources, and execution postconditions |
 | Isolate generated code | [`isolated_code_execution.py`](isolated_code_execution.py) | Attested sandbox admission, bounded privileges, and verified output and cleanup |
+| Contain dependency failures | [`cascading_failures.py`](cascading_failures.py) | Tenant-isolated circuits, trusted fallbacks, and authenticated outcomes |
 | Bound model resources | [`resource_budget.py`](resource_budget.py) | Reservation, completion, and failure cleanup |
 | Rate-limit one process | [`rate_limiting.py`](rate_limiting.py) | Atomic fixed-window admission and collision-safe identity keys |
 | Rate-limit multiple workers | [`redis_rate_limiting.py`](redis_rate_limiting.py) | Shared Redis state, fail mode, pooling, and shutdown |

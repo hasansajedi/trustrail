@@ -97,6 +97,22 @@ trustrail performs admission and report verification only. The external broker
 must provide OS isolation and enforce the authorized filesystem, network,
 environment, package, process, resource, and cleanup policy.
 
+Dependency dispatch has a separate tenant-isolated failure boundary:
+
+```
+Typed attempt → FailureContainmentManager → dependency gateway
+                      ├── retry / recursion / cost / tool-call limits
+                      ├── tenant + failure-domain circuit state
+                      ├── atomic side-effect idempotency reservation
+                      └── integrity-pinned cross-domain fallback
+                              ↑
+                    authenticated terminal report
+```
+
+The included coordinator is process-local. Distributed dispatchers must store
+permits, replays, retries, idempotency reservations, and circuit transitions in
+shared atomic application state.
+
 ## Fail Modes
 
 - **CLOSED** (default): Block on provider/rule failure

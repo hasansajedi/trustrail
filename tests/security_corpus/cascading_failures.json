@@ -1,0 +1,13 @@
+[
+  {"name": "request-rebinding-after-admission", "mutation": "request_tamper", "expected_code": "request_integrity_invalid"},
+  {"name": "retry-counter-reset", "mutation": "retry_reset", "expected_code": "retry_sequence_invalid"},
+  {"name": "recursive-agent-fanout", "mutation": "recursion", "expected_code": "recursion_limit_exceeded"},
+  {"name": "projected-cost-bypass", "mutation": "cost", "expected_code": "cost_limit_exceeded"},
+  {"name": "abnormal-tool-call-burst", "mutation": "tool_calls", "expected_code": "abnormal_tool_call_limit_exceeded"},
+  {"name": "fallback-artifact-substitution", "mutation": "fallback_digest", "expected_code": "fallback_integrity_invalid"},
+  {"name": "undeclared-fallback-substitution", "mutation": "fallback_unknown", "expected_code": "fallback_unknown"},
+  {"name": "permit-dependency-rebinding", "mutation": "permit_tamper", "expected_code": "permit_invalid"},
+  {"name": "cross-permit-report-rebinding", "mutation": "report_binding", "expected_code": "report_mismatch"},
+  {"name": "unauthenticated-success-report", "mutation": "report_auth", "expected_code": "report_unverifiable"},
+  {"name": "duplicate-side-effect-dispatch", "mutation": "duplicate_side_effect", "expected_code": "duplicate_side_effect"}
+]

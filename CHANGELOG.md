@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   policy, dangerous import and shell rejection, authenticated sandbox admission,
   bounded single-use leases, and verified output, resource, exit, and cleanup
   evidence.
+- OWASP ASI08 cascading-failure controls with typed dependency and failure-domain
+  policy, tenant-isolated circuit breakers, integrity-pinned fallbacks, atomic
+  retry and side-effect admission, authenticated outcomes, and deterministic
+  degraded-mode, cancellation, compensation, and recovery events.
 
 ## [0.1.2] - 2026-08-31
 

@@ -105,6 +105,7 @@ nav:
       - Semantic tool authorization: security/tool-misuse.md
       - Delegated agent identity: security/delegated-agent-identity.md
       - Isolated agent code execution: security/code-execution-isolation.md
+      - Cascading failure containment: security/cascading-failure-containment.md
       - System prompt leakage: security/system-prompt-leakage.md
       - Vector and embedding security: security/vector-embedding-security.md
       - Misinformation and overreliance: security/misinformation-overreliance.md

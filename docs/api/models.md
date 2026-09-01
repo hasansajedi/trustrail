@@ -106,6 +106,21 @@ verification.
     options:
       members: true
 
+## Cascading failure containment
+
+Dependency models declare health, criticality, tenant-scoped failure domains,
+cross-domain fallbacks, and sliding-window thresholds. `FailureContainmentManager`
+issues single-use permits, authenticates outcomes, atomically guards retries and
+side effects, and emits content-free events for degraded mode and recovery.
+
+::: trustrail.models.failure_containment
+    options:
+      members: true
+
+::: trustrail.failure_containment.FailureContainmentManager
+    options:
+      members: true
+
 ## Context-aware output handling
 
 `OutputHandlingPolicy` defines fail-closed destination constraints.
