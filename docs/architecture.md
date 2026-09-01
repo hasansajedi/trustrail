@@ -71,6 +71,18 @@ Model proposal → Guard TOOL_REQUEST scan → ToolAuthorizer → Downstream ser
                                              └── ToolExecutionBudget
 ```
 
+For delegated agents, authenticate and authorize identity before constructing
+the tool request:
+
+```
+Authenticated workload + delegation chain → DelegatedIdentityAuthorizer
+                                                ↓ short-lived ToolPrincipal
+Model proposal + trusted intent → ToolAuthorizer → Downstream service
+```
+
+This identity boundary validates the complete delegation lineage and prevents a
+model from selecting its identity, tenant, audience, purpose, or privileges.
+
 ## Fail Modes
 
 - **CLOSED** (default): Block on provider/rule failure

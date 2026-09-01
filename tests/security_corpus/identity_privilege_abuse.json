@@ -1,0 +1,14 @@
+[
+  {"name": "forwarded-agent-credential", "mutation": "presenter", "expected_code": "presenter_mismatch"},
+  {"name": "swapped-workload-identity", "mutation": "identity_kind", "expected_code": "presenter_mismatch"},
+  {"name": "cross-tenant-reuse", "mutation": "tenant", "expected_code": "tenant_mismatch"},
+  {"name": "confused-deputy-audience", "mutation": "audience", "expected_code": "audience_denied"},
+  {"name": "purpose-rebinding", "mutation": "purpose", "expected_code": "purpose_mismatch"},
+  {"name": "leaf-scope-amplification", "mutation": "scope", "expected_code": "scope_denied"},
+  {"name": "tampered-delegation-chain", "mutation": "chain", "expected_code": "chain_integrity_invalid"},
+  {"name": "expired-leaf-capability", "mutation": "expired", "expected_code": "capability_expired"},
+  {"name": "long-lived-shared-capability", "mutation": "lifetime", "expected_code": "capability_lifetime_exceeded"},
+  {"name": "revoked-parent-capability", "mutation": "revoked", "expected_code": "capability_revoked"},
+  {"name": "high-impact-without-step-up", "mutation": "step_up", "expected_code": "step_up_required"},
+  {"name": "high-impact-without-jit-access", "mutation": "jit", "expected_code": "jit_access_required"}
+]

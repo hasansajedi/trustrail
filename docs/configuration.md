@@ -166,6 +166,38 @@ human approval gate.
 checked on each side of a source boundary. Lower it for tightly bounded latency;
 raise it only after testing representative workloads and bypass cases.
 
+## Delegated agent identity policy
+
+Agent identity and privilege lifecycle use a typed policy because trusted
+issuance, authenticated presenters, revocation, and step-up/JIT grants are not
+model content or text-rule configuration:
+
+```python
+from trustrail import DelegatedAccessPolicy, DelegatedIdentityAuthorizer
+
+identity_authorizer = DelegatedIdentityAuthorizer(
+    DelegatedAccessPolicy(
+        trusted_root_issuer_ids=frozenset({"customer-identity-service"}),
+        allowed_audiences=frozenset({"tool:orders.read", "tool:payments.send"}),
+        max_capability_lifetime_seconds=300,
+        max_grant_lifetime_seconds=120,
+        max_delegation_depth=2,
+        authorization_ttl_seconds=30,
+        step_up_required_scopes=frozenset({"payments:send"}),
+        jit_required_scopes=frozenset({"payments:send"}),
+        minimum_step_up_assurance=3,
+    ),
+    capability_verifier=production_capability_verifier,
+    grant_verifier=production_grant_verifier,
+    revocation_provider=shared_revocation_provider,
+)
+```
+
+The configured lifetimes are hard upper bounds; a capability or grant does not
+become valid merely because it has not expired. Its exact issuance must also be
+authenticated. See [delegated agent identity](security/delegated-agent-identity.md)
+for delegation narrowing, elevation flow, revocation, and production assumptions.
+
 ## Resource consumption policy
 
 Model and agent budgets use a typed policy because authenticated identities,
