@@ -47,6 +47,7 @@ tools.
 | --- | --- | --- |
 | Bound an agent run | [`agent.py`](agent.py) | Step, tool-call, recursion, and duration budgets |
 | Preserve an agent goal | [`goal_integrity.py`](goal_integrity.py) | Integrity-bound plans, delegation, mutation approval, and content-free audit |
+| Delegate an agent identity | [`delegated_identity.py`](delegated_identity.py) | Short-lived identity chains with scope, audience, purpose, tenant, and depth narrowing |
 | Authorize a tool | [`tool_authorization.py`](tool_authorization.py) | Capability, identity, intent, ownership, and execution budget |
 | Verify tool semantics | [`semantic_tool_authorization.py`](semantic_tool_authorization.py) | Trusted argument bindings, effects, resources, and execution postconditions |
 | Bound model resources | [`resource_budget.py`](resource_budget.py) | Reservation, completion, and failure cleanup |

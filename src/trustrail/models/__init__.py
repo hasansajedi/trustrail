@@ -13,6 +13,21 @@ from trustrail.models.core import (
     ToolCall,
     ToolResult,
 )
+from trustrail.models.delegated_identity import (
+    AgentIdentity,
+    AgentIdentityKind,
+    AuthorizedDelegatedAccess,
+    DelegatedAccessCode,
+    DelegatedAccessFinding,
+    DelegatedAccessGrant,
+    DelegatedAccessGrantKind,
+    DelegatedAccessPolicy,
+    DelegatedAccessRequest,
+    DelegatedAccessResult,
+    DelegatedCapability,
+    DelegationChain,
+    DelegationRevocation,
+)
 from trustrail.models.enums import (
     FailMode,
     GuardAction,
@@ -147,6 +162,8 @@ from trustrail.models.vector import (
 )
 
 __all__ = [
+    "AgentIdentity",
+    "AgentIdentityKind",
     "ArtifactDigest",
     "ArtifactKind",
     "ArtifactManifest",
@@ -158,6 +175,7 @@ __all__ = [
     "ArtifactVerificationPolicy",
     "ArtifactVerificationResult",
     "AuditEvent",
+    "AuthorizedDelegatedAccess",
     "AuthorizedPlanStep",
     "AuthorizedVectorHit",
     "ClaimKind",
@@ -172,6 +190,16 @@ __all__ = [
     "DataSourcePolicy",
     "DataTransformation",
     "DecompressionResult",
+    "DelegatedAccessCode",
+    "DelegatedAccessFinding",
+    "DelegatedAccessGrant",
+    "DelegatedAccessGrantKind",
+    "DelegatedAccessPolicy",
+    "DelegatedAccessRequest",
+    "DelegatedAccessResult",
+    "DelegatedCapability",
+    "DelegationChain",
+    "DelegationRevocation",
     "DigestAlgorithm",
     "Document",
     "EvidenceRelation",

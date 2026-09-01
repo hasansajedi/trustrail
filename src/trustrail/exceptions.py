@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from trustrail.models.agency import ToolAuthorizationResult
+    from trustrail.models.delegated_identity import DelegatedAccessResult
     from trustrail.models.goal import GoalIntegrityResult
     from trustrail.models.grounding import GroundingResult
     from trustrail.models.output_handling import OutputHandlingResult
@@ -84,6 +85,14 @@ class GoalIntegrityError(AegisRailError):
 
     def __init__(self, result: GoalIntegrityResult) -> None:
         super().__init__("Agent goal-integrity check did not authorize the proposal")
+        self.result = result
+
+
+class DelegatedIdentityError(AegisRailError):
+    """Raised when an agent identity or delegated privilege is not authorized."""
+
+    def __init__(self, result: DelegatedAccessResult) -> None:
+        super().__init__("Delegated agent identity was not authorized")
         self.result = result
 
 

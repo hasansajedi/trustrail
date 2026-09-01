@@ -103,6 +103,7 @@ nav:
       - Excessive agency: security/excessive-agency.md
       - Agent goal integrity: security/agent-goal-integrity.md
       - Semantic tool authorization: security/tool-misuse.md
+      - Delegated agent identity: security/delegated-agent-identity.md
       - System prompt leakage: security/system-prompt-leakage.md
       - Vector and embedding security: security/vector-embedding-security.md
       - Misinformation and overreliance: security/misinformation-overreliance.md

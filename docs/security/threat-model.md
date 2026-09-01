@@ -147,6 +147,29 @@ adapters, shared atomic execution history, conditional writes, idempotency,
 service-side authorization, value and egress limits, and human review for
 high-impact operations. See [semantic tool authorization](tool-misuse.md).
 
+### Identity and Privilege Abuse (OWASP ASI03:2026)
+
+- Agents impersonating a user, service, peer agent, or sub-agent by changing an
+  untrusted identity field
+- User or service credentials forwarded through an agent chain instead of
+  being exchanged for narrow delegated authority
+- A confused deputy reusing valid authority for another audience, purpose,
+  tenant, or operation
+- Child agents expanding scope, lifetime, audience, or maximum delegation depth
+- Expired, not-yet-valid, revoked, tampered, unauthenticated, or replayed
+  capability and elevation records
+- High-impact work executed without independent step-up authentication or
+  just-in-time privilege activation
+- Revocation-provider failure, concurrency races, or a direct tool path turning
+  a deny into an allow
+
+Capability digests establish field integrity, not issuer authenticity. Use
+authenticated workload identities, protected or signed issuance, proof of
+possession, complete mediation, short lifetimes, shared atomic revocation/replay
+state, downstream service authorization, and independent approval for
+high-impact operations. See
+[delegated agent identity](delegated-agent-identity.md).
+
 ## SSRF
 - Private IP range access
 - Cloud metadata service access

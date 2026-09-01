@@ -40,6 +40,13 @@ limits. Keep its `ToolExecutionBudget` for the entire session; replacing the
 budget to evade a denial is a security failure. See
 [Excessive agency](../security/excessive-agency.md).
 
+Before deriving that tool principal, authenticate the presenting workload and
+authorize its complete human/service-to-agent delegation chain with
+`DelegatedIdentityAuthorizer`. This prevents credential forwarding, identity
+swaps, cross-tenant or cross-purpose reuse, and child privilege amplification;
+configured high-impact scopes additionally require request-bound step-up or JIT
+grants. See [Delegated agent identity](../security/delegated-agent-identity.md).
+
 Do not expose a persistent-memory write tool directly to the model. Use
 `authorize_memory_write()` and store the returned normalized/redacted value only
 after the configured approval provider accepts it. See

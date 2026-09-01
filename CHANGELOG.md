@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OWASP ASI02 semantic tool controls with trusted preconditions, intent-bound
   arguments and destinations, sequence and data-flow policy, verified execution
   postconditions, chain quarantine, and compensation hooks.
+- OWASP ASI03 delegated identity controls with immutable human/service/agent
+  lineage, short-lived scope/audience/purpose-bound capabilities, ancestor
+  revocation, privilege narrowing, and request-bound step-up and JIT grants.
 
 ## [0.1.2] - 2026-08-31
 

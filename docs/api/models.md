@@ -75,6 +75,21 @@ content-free audit evidence.
     options:
       members: true
 
+## Delegated agent identity
+
+Identity models preserve the complete human/service/agent/sub-agent lineage and
+bind each short-lived capability to a tenant, audience, purpose, scope, expiry,
+and maximum depth. `DelegatedIdentityAuthorizer` verifies exact issuance,
+narrowing, presenter identity, revocation, and request-bound step-up/JIT grants.
+
+::: trustrail.models.delegated_identity
+    options:
+      members: true
+
+::: trustrail.delegated_identity.DelegatedIdentityAuthorizer
+    options:
+      members: true
+
 ## Context-aware output handling
 
 `OutputHandlingPolicy` defines fail-closed destination constraints.

@@ -14,6 +14,14 @@ from importlib.metadata import PackageNotFoundError, version
 from trustrail.agency import StaticToolApprovalVerifier, ToolAuthorizer, ToolExecutionBudget
 from trustrail.async_checks import AsyncRuleRegistration, ProviderRegistration
 from trustrail.audit import LoggingAuditSink, MemoryAuditSink, NullAuditSink
+from trustrail.delegated_identity import (
+    DelegatedAccessGrantVerifier,
+    DelegatedCapabilityVerifier,
+    DelegatedIdentityAuthorizer,
+    DelegationRevocationProvider,
+    StaticDelegatedAccessGrantVerifier,
+    StaticDelegatedCapabilityVerifier,
+)
 from trustrail.exceptions import (
     AegisRailError,
     ApprovalRequiredError,
@@ -21,6 +29,7 @@ from trustrail.exceptions import (
     AsyncGuardRequiredError,
     ConfigurationError,
     DataPoisoningError,
+    DelegatedIdentityError,
     GoalIntegrityError,
     GroundingVerificationError,
     GuardrailBlockedError,
@@ -88,6 +97,21 @@ from trustrail.models.core import (
     RiskScore,
     ToolCall,
     ToolResult,
+)
+from trustrail.models.delegated_identity import (
+    AgentIdentity,
+    AgentIdentityKind,
+    AuthorizedDelegatedAccess,
+    DelegatedAccessCode,
+    DelegatedAccessFinding,
+    DelegatedAccessGrant,
+    DelegatedAccessGrantKind,
+    DelegatedAccessPolicy,
+    DelegatedAccessRequest,
+    DelegatedAccessResult,
+    DelegatedCapability,
+    DelegationChain,
+    DelegationRevocation,
 )
 from trustrail.models.enums import (
     FailMode,
@@ -249,6 +273,8 @@ except PackageNotFoundError:
 __all__ = [
     # Exceptions
     "AegisRailError",
+    "AgentIdentity",
+    "AgentIdentityKind",
     "ApprovalProvider",
     "ApprovalRequiredError",
     "ArtifactDigest",
@@ -269,6 +295,7 @@ __all__ = [
     # Data models
     "AuditEvent",
     "AuditSink",
+    "AuthorizedDelegatedAccess",
     "AuthorizedPlanStep",
     "AuthorizedToolCall",
     "AuthorizedVectorHit",
@@ -289,6 +316,21 @@ __all__ = [
     "DataSourcePolicy",
     "DataTransformation",
     "DecompressionResult",
+    "DelegatedAccessCode",
+    "DelegatedAccessFinding",
+    "DelegatedAccessGrant",
+    "DelegatedAccessGrantKind",
+    "DelegatedAccessGrantVerifier",
+    "DelegatedAccessPolicy",
+    "DelegatedAccessRequest",
+    "DelegatedAccessResult",
+    "DelegatedCapability",
+    "DelegatedCapabilityVerifier",
+    "DelegatedIdentityAuthorizer",
+    "DelegatedIdentityError",
+    "DelegationChain",
+    "DelegationRevocation",
+    "DelegationRevocationProvider",
     "DigestAlgorithm",
     "Document",
     "EvidenceGroundingVerifier",
@@ -398,6 +440,8 @@ __all__ = [
     "Severity",
     "StateBackend",
     "StateBackendError",
+    "StaticDelegatedAccessGrantVerifier",
+    "StaticDelegatedCapabilityVerifier",
     "StaticGoalApprovalVerifier",
     "StaticToolApprovalVerifier",
     "SystemPromptDataClass",
