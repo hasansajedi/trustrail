@@ -198,6 +198,57 @@ become valid merely because it has not expired. Its exact issuance must also be
 authenticated. See [delegated agent identity](security/delegated-agent-identity.md)
 for delegation narrowing, elevation flow, revocation, and production assumptions.
 
+## Isolated code execution policy
+
+Dynamic execution uses an explicit typed policy rather than `GuardConfig` text
+rules. Inventory exact runtime bytes and declare the maximum sandbox privileges;
+the request may narrow but never expand them:
+
+```python
+from trustrail import (
+    CodeExecutionAuthorizer,
+    CodeExecutionPolicy,
+    ExecutionArtifactKind,
+    ExecutionLanguage,
+    ExecutionResourceLimits,
+    ExecutionRuntime,
+)
+
+runtime = ExecutionRuntime(
+    runtime_id="python-3.12-microvm",
+    language=ExecutionLanguage.PYTHON,
+    version="3.12.0",
+    executable_digest=trusted_runtime_sha256,
+    sandbox_profile_id="microvm-v3",
+    allowed_artifact_kinds=frozenset({ExecutionArtifactKind.CODE}),
+)
+execution_authorizer = CodeExecutionAuthorizer(
+    CodeExecutionPolicy(
+        runtimes=(runtime,),
+        allowed_artifact_kinds=frozenset({ExecutionArtifactKind.CODE}),
+        max_resources=ExecutionResourceLimits(
+            wall_time_ms=5_000,
+            cpu_time_ms=2_000,
+            memory_bytes=128 * 1024 * 1024,
+            output_bytes=1_100_000,
+            process_count=1,
+            thread_count=4,
+            file_count=16,
+            written_bytes=1_000_000,
+        ),
+        allowed_python_imports=frozenset({"json", "math"}),
+        trusted_sandbox_providers=frozenset({"production-sandbox"}),
+    ),
+    attestation_verifier=production_sandbox_broker,
+    report_verifier=production_sandbox_broker,
+)
+```
+
+Filesystem, network, environment, and package permissions default to empty or
+disabled. Every required sandbox control is enabled by default. See
+[isolated agent code execution](security/code-execution-isolation.md) for
+request construction, evidence verification, output gating, and residual risk.
+
 ## Resource consumption policy
 
 Model and agent budgets use a typed policy because authenticated identities,

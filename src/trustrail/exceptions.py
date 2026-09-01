@@ -6,6 +6,10 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from trustrail.models.agency import ToolAuthorizationResult
+    from trustrail.models.code_execution import (
+        CodeExecutionDecision,
+        CodeExecutionOutcome,
+    )
     from trustrail.models.delegated_identity import DelegatedAccessResult
     from trustrail.models.goal import GoalIntegrityResult
     from trustrail.models.grounding import GroundingResult
@@ -94,6 +98,20 @@ class DelegatedIdentityError(AegisRailError):
     def __init__(self, result: DelegatedAccessResult) -> None:
         super().__init__("Delegated agent identity was not authorized")
         self.result = result
+
+
+class CodeExecutionError(AegisRailError):
+    """Raised when dynamic execution is denied or its result is quarantined."""
+
+    def __init__(
+        self,
+        *,
+        decision: CodeExecutionDecision | None = None,
+        outcome: CodeExecutionOutcome | None = None,
+    ) -> None:
+        super().__init__("Agent-generated execution was not verified")
+        self.decision = decision
+        self.outcome = outcome
 
 
 class OutputHandlingError(AegisRailError):

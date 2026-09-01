@@ -47,6 +47,14 @@ swaps, cross-tenant or cross-purpose reuse, and child privilege amplification;
 configured high-impact scopes additionally require request-bound step-up or JIT
 grants. See [Delegated agent identity](../security/delegated-agent-identity.md).
 
+Never connect model output directly to `eval`, `exec`, a shell, notebook kernel,
+template renderer, package installer, or local subprocess. If dynamic execution
+is a product requirement, use `CodeExecutionAuthorizer` to bind the exact source
+or argv to an authenticated external sandbox, least-privilege filesystem,
+network, environment and resource policy, then verify its terminal report,
+output, and cleanup before continuing. See
+[Isolated agent code execution](../security/code-execution-isolation.md).
+
 Do not expose a persistent-memory write tool directly to the model. Use
 `authorize_memory_write()` and store the returned normalized/redacted value only
 after the configured approval provider accepts it. See

@@ -170,6 +170,27 @@ state, downstream service authorization, and independent approval for
 high-impact operations. See
 [delegated agent identity](delegated-agent-identity.md).
 
+### Unexpected Code Execution (OWASP ASI05:2026)
+
+- Generated code, scripts, commands, templates, or package selections reaching
+  an interpreter without an explicit execution request
+- Shell expansion, dynamic evaluation, interpreter introspection, dangerous
+  imports, native extensions, or process-launch APIs bypassing review
+- Runtime or package substitution after source inspection
+- Filesystem traversal, host mounts, symlink escape, network egress, metadata
+  access, or ambient credentials turning sandbox work into host compromise
+- Missing, forged, expired, rebound, or replayed sandbox attestations
+- CPU, memory, process, thread, file, output, or wall-time exhaustion
+- Forged success, resource, output, or cleanup reports releasing unsafe results
+- Failed cleanup leaving processes, files, network access, or credentials active
+
+Static admission checks cannot prove arbitrary code safe, and trustrail does not
+provide OS isolation. Use a hardened external sandbox with authenticated
+evidence, immutable runtimes, deny-by-default privileges, hard infrastructure
+limits, complete mediation, verified teardown, sandbox-escape testing, and
+destination-specific output handling. See
+[isolated agent code execution](code-execution-isolation.md).
+
 ## SSRF
 - Private IP range access
 - Cloud metadata service access

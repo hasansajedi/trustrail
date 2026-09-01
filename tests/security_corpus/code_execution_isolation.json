@@ -1,0 +1,17 @@
+[
+  {"name": "source-changed-after-attestation", "phase": "admission", "mutation": "source_tamper", "expected_code": "request_integrity_invalid"},
+  {"name": "shell-interpreter", "phase": "admission", "mutation": "shell_runtime", "expected_code": "unsafe_interpreter"},
+  {"name": "shell-command-substitution", "phase": "admission", "mutation": "shell_expansion", "expected_code": "shell_expansion_denied"},
+  {"name": "aliased-os-import", "phase": "admission", "mutation": "dangerous_import", "expected_code": "dangerous_import"},
+  {"name": "dynamic-eval", "phase": "admission", "mutation": "dynamic_eval", "expected_code": "dangerous_construct"},
+  {"name": "filesystem-prefix-escape", "phase": "admission", "mutation": "filesystem", "expected_code": "filesystem_access_denied"},
+  {"name": "network-allowlist-bypass", "phase": "admission", "mutation": "network", "expected_code": "network_access_denied"},
+  {"name": "secret-environment-request", "phase": "admission", "mutation": "environment", "expected_code": "environment_access_denied"},
+  {"name": "memory-limit-amplification", "phase": "admission", "mutation": "resource", "expected_code": "resource_limit_exceeded"},
+  {"name": "unapproved-package-install", "phase": "admission", "mutation": "package", "expected_code": "package_install_denied"},
+  {"name": "forged-sandbox-attestation", "phase": "admission", "mutation": "attestation", "expected_code": "attestation_invalid"},
+  {"name": "missing-sandbox-controls", "phase": "admission", "mutation": "controls", "expected_code": "sandbox_control_missing"},
+  {"name": "timeout-reported-as-output", "phase": "completion", "mutation": "timeout", "expected_code": "execution_timed_out"},
+  {"name": "output-does-not-match-report", "phase": "completion", "mutation": "output", "expected_code": "output_mismatch"},
+  {"name": "sandbox-cleanup-not-proven", "phase": "completion", "mutation": "cleanup", "expected_code": "cleanup_unverified"}
+]
