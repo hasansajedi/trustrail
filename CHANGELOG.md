@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OWASP ASI03 delegated identity controls with immutable human/service/agent
   lineage, short-lived scope/audience/purpose-bound capabilities, ancestor
   revocation, privilege narrowing, and request-bound step-up and JIT grants.
+- OWASP ASI05 dynamic-execution controls with explicit runtime and isolation
+  policy, dangerous import and shell rejection, authenticated sandbox admission,
+  bounded single-use leases, and verified output, resource, exit, and cleanup
+  evidence.
 
 ## [0.1.2] - 2026-08-31
 

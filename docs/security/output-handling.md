@@ -142,7 +142,9 @@ blocks the `CODE` destination unless review mode is explicitly enabled.
 - Tool parsing grants no authority. Keep credentials scoped, re-check object and
   tenant authorization, cap effects, and require approval for consequential work.
 - Generated code still needs sandboxing, resource/network limits, dependency
-  controls, and human review. `REQUIRE_APPROVAL` is not an allow decision.
+  controls, and human review. `REQUIRE_APPROVAL` is not an allow decision; use
+  the [isolated execution boundary](code-execution-isolation.md) before an
+  authenticated external sandbox broker.
 
 ## Grounding rules (GR-001 – GR-005)
 
@@ -250,4 +252,5 @@ result = rule.evaluate(llm_output, context)
 Default action: `WARN`, severity `HIGH`.
 
 Keep the model away from raw interpreter APIs. Prefer typed, narrowly scoped
-tools that translate validated fields into operations.
+tools that translate validated fields into operations. When dynamic execution
+is unavoidable, use the [isolated execution boundary](code-execution-isolation.md).

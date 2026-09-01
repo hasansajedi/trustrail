@@ -90,6 +90,22 @@ narrowing, presenter identity, revocation, and request-bound step-up/JIT grants.
     options:
       members: true
 
+## Isolated dynamic execution
+
+Execution models explicitly bind source or argv to an approved runtime and
+filesystem, network, environment, package, resource, exit, and output policy.
+`CodeExecutionAuthorizer` issues a short-lived lease only for authenticated
+sandbox evidence and releases output only after terminal report and cleanup
+verification.
+
+::: trustrail.models.code_execution
+    options:
+      members: true
+
+::: trustrail.code_execution.CodeExecutionAuthorizer
+    options:
+      members: true
+
 ## Context-aware output handling
 
 `OutputHandlingPolicy` defines fail-closed destination constraints.

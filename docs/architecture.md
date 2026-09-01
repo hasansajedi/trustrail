@@ -83,6 +83,20 @@ Model proposal + trusted intent → ToolAuthorizer → Downstream service
 This identity boundary validates the complete delegation lineage and prevents a
 model from selecting its identity, tenant, audience, purpose, or privileges.
 
+Dynamic code execution has its own boundary outside the application process:
+
+```
+Typed source/argv request + authenticated sandbox attestation
+                              ↓
+                    CodeExecutionAuthorizer → external isolated broker
+                              ↑                     ↓
+                    verified output ← signed report + cleanup evidence
+```
+
+trustrail performs admission and report verification only. The external broker
+must provide OS isolation and enforce the authorized filesystem, network,
+environment, package, process, resource, and cleanup policy.
+
 ## Fail Modes
 
 - **CLOSED** (default): Block on provider/rule failure
