@@ -11,6 +11,7 @@ if TYPE_CHECKING:
         CodeExecutionOutcome,
     )
     from trustrail.models.delegated_identity import DelegatedAccessResult
+    from trustrail.models.failure_containment import FailureContainmentResult
     from trustrail.models.goal import GoalIntegrityResult
     from trustrail.models.grounding import GroundingResult
     from trustrail.models.output_handling import OutputHandlingResult
@@ -112,6 +113,14 @@ class CodeExecutionError(AegisRailError):
         super().__init__("Agent-generated execution was not verified")
         self.decision = decision
         self.outcome = outcome
+
+
+class FailureContainmentError(AegisRailError):
+    """Raised when dependency dispatch is denied by containment policy."""
+
+    def __init__(self, result: FailureContainmentResult) -> None:
+        super().__init__("Dependency attempt was denied by failure containment")
+        self.result = result
 
 
 class OutputHandlingError(AegisRailError):

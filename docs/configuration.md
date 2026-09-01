@@ -244,6 +244,44 @@ execution_authorizer = CodeExecutionAuthorizer(
 )
 ```
 
+## Cascading failure containment policy
+
+Operational dependency limits use a typed inventory outside `GuardConfig`.
+Declare correlated failure domains, initial health, criticality, trusted
+cross-domain fallbacks, and breaker thresholds, then authenticate every terminal
+report:
+
+```python
+from trustrail import (
+    DependencyDeclaration,
+    FailureContainmentManager,
+    FailureContainmentPolicy,
+    FailureDomainDeclaration,
+)
+
+containment = FailureContainmentManager(
+    FailureContainmentPolicy(
+        dependencies=(
+            DependencyDeclaration(
+                dependency_id="primary-model",
+                failure_domain_id="provider-a/eu",
+            ),
+        ),
+        failure_domains=(
+            FailureDomainDeclaration(failure_domain_id="provider-a/eu"),
+        ),
+        max_retries_per_operation=2,
+        max_recursion_depth=4,
+        max_cost_per_attempt=5.0,
+    ),
+    outcome_verifier=authenticated_dependency_broker,
+)
+```
+
+See [cascading failure containment](security/cascading-failure-containment.md)
+for fallback configuration, hooks, distributed-state requirements, and residual
+risk.
+
 Filesystem, network, environment, and package permissions default to empty or
 disabled. Every required sandbox control is enabled by default. See
 [isolated agent code execution](security/code-execution-isolation.md) for
