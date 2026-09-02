@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from trustrail.models.failure_containment import FailureContainmentResult
     from trustrail.models.goal import GoalIntegrityResult
     from trustrail.models.grounding import GroundingResult
+    from trustrail.models.memory import MemoryDecision
     from trustrail.models.output_handling import OutputHandlingResult
     from trustrail.models.poisoning import DataPoisoningResult
     from trustrail.models.resource import DecompressionResult, ResourceBudgetResult
@@ -120,6 +121,14 @@ class FailureContainmentError(AegisRailError):
 
     def __init__(self, result: FailureContainmentResult) -> None:
         super().__init__("Dependency attempt was denied by failure containment")
+        self.result = result
+
+
+class MemoryTaintError(AegisRailError):
+    """Raised when a persistent-memory operation fails taint controls."""
+
+    def __init__(self, result: MemoryDecision) -> None:
+        super().__init__("Persistent memory operation was not authorized")
         self.result = result
 
 

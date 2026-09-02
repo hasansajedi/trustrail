@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   policy, dangerous import and shell rejection, authenticated sandbox admission,
   bounded single-use leases, and verified output, resource, exit, and cleanup
   evidence.
+- OWASP ASI06 persistent-memory taint controls with integrity-bound provenance,
+  identity, tenant, purpose, transformations, and dependencies; privileged-write
+  approval, split-entry and laundering detection, atomic retrieval checks,
+  lineage-wide remediation, exact revalidation, and safe rebuild hooks.
 - OWASP ASI08 cascading-failure controls with typed dependency and failure-domain
   policy, tenant-isolated circuit breakers, integrity-pinned fallbacks, atomic
   retry and side-effect admission, authenticated outcomes, and deterministic
