@@ -48,3 +48,9 @@ through normalization, injection, and sensitive-data scanning without an approva
 request.
 
 ::: trustrail.rules.memory.PersistentMemoryWriteRule
+
+For transformed and retrieved long-lived memory, use the typed lifecycle API:
+
+::: trustrail.memory
+    options:
+      members: true

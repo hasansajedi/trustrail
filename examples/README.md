@@ -56,6 +56,7 @@ tools.
 | Rate-limit one process | [`rate_limiting.py`](rate_limiting.py) | Atomic fixed-window admission and collision-safe identity keys |
 | Rate-limit multiple workers | [`redis_rate_limiting.py`](redis_rate_limiting.py) | Shared Redis state, fail mode, pooling, and shutdown |
 | Approve persistent memory | [`persistent_memory.py`](persistent_memory.py) | Redaction before out-of-band approval and storage |
+| Track persistent-memory taint | [`memory_taint.py`](memory_taint.py) | Provenance, exact-byte commit, retrieval checks, and content-free audit events |
 | Add an adaptive CI gate | [`red_team_gate.py`](red_team_gate.py) | Deterministic attack mutations and regression thresholds |
 
 ## Provider and framework adapters

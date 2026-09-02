@@ -79,6 +79,13 @@ principal, authoritative document/resource grants, approved indexes and
 embedding models, and a protected index-entry catalog. See
 [vector and embedding security](security/vector-embedding-security.md).
 
+`MEMORY_WRITE` text policy classifies one proposal but does not persist lineage.
+Use `MemoryTaintManager` whenever memory is transformed, shared, or retrieved. It
+binds provenance, trust, identity, tenant, purpose, dependency revisions, and
+taint metadata to exact content digests and supplies quarantine, invalidation,
+revalidation, and safe-rebuild workflows. See
+[persistent memory security](security/memory-security.md).
+
 Text output policy can warn about misinformation patterns, but it cannot prove
 claims or citations. Before delivering factual output or using recommendations,
 run `EvidenceGroundingVerifier` with application-owned evidence, trusted
