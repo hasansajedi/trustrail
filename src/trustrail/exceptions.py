@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from trustrail.models.failure_containment import FailureContainmentResult
     from trustrail.models.goal import GoalIntegrityResult
     from trustrail.models.grounding import GroundingResult
+    from trustrail.models.inter_agent import InterAgentMessageVerificationResult
     from trustrail.models.mcp import MCPToolDefinitionResult
     from trustrail.models.mcp_isolation import MCPIsolationResult
     from trustrail.models.mcp_messages import MCPMessageVerificationResult
@@ -139,6 +140,14 @@ class DelegatedIdentityError(AegisRailError):
 
     def __init__(self, result: DelegatedAccessResult) -> None:
         super().__init__("Delegated agent identity was not authorized")
+        self.result = result
+
+
+class InterAgentMessageError(AegisRailError):
+    """Raised when an inter-agent message is not authenticated and authorized."""
+
+    def __init__(self, result: InterAgentMessageVerificationResult) -> None:
+        super().__init__("Inter-agent message was not verified")
         self.result = result
 
 

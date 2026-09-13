@@ -14,6 +14,7 @@ trustrail provides comprehensive security guardrails for LLM applications. It pr
 - Misinformation and unsafe overreliance
 - Resource abuse
 - MCP message tampering and replay
+- Inter-agent impersonation, replay, reordering, and unauthorized delegation
 - MCP cross-server tool shadowing, credential crossover, and unauthorized data flows
 - Data-lifecycle metadata downgrade, incompatible reuse, and incomplete deletion
 
@@ -26,4 +27,5 @@ trustrail provides comprehensive security guardrails for LLM applications. It pr
 - [Configuration](configuration.md)
 - [Security Threat Model](security/threat-model.md)
 - [GenAI Data Lifecycle and Verified Deletion](security/data-lifecycle.md)
+- [Authenticated Inter-Agent Communication](security/inter-agent-communication.md)
 - [FAQ](faq.md)
