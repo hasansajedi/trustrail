@@ -83,6 +83,25 @@ Model proposal + trusted intent → ToolAuthorizer → Downstream service
 This identity boundary validates the complete delegation lineage and prevents a
 model from selecting its identity, tenant, audience, purpose, or privileges.
 
+Inter-agent delivery adds message integrity and ordered, complete mediation:
+
+```
+JSON payload + signed transformation attestations + delegation chain
+                                  ↓
+                signed InterAgentMessageEnvelope
+                                  ↓
+                 InterAgentMessageVerifier → recipient
+                    ├── pinned sender and transformer keys
+                    ├── tenant / session / goal / task / purpose
+                    ├── explicit route, audience, scope, and fan-out
+                    ├── current delegated authority and revocation
+                    └── atomic nonce replay and stream ordering state
+```
+
+The included replay/order store is bounded and process-local. Multi-worker or
+multi-region receivers must supply a shared atomic `InterAgentStateStore`, and
+must provision and revoke keys through an authenticated control plane.
+
 Dynamic code execution has its own boundary outside the application process:
 
 ```

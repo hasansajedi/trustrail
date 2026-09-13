@@ -1,0 +1,72 @@
+[
+  {
+    "id": "forged_authenticated_sender",
+    "mutation": "sender_context",
+    "expected_code": "identity_mismatch"
+  },
+  {
+    "id": "cross_tenant_delivery",
+    "mutation": "tenant_context",
+    "expected_code": "tenant_mismatch"
+  },
+  {
+    "id": "wrong_recipient_delivery",
+    "mutation": "recipient_context",
+    "expected_code": "recipient_mismatch"
+  },
+  {
+    "id": "cross_session_delivery",
+    "mutation": "session_context",
+    "expected_code": "session_mismatch"
+  },
+  {
+    "id": "goal_substitution",
+    "mutation": "goal_context",
+    "expected_code": "goal_mismatch"
+  },
+  {
+    "id": "task_substitution",
+    "mutation": "task_context",
+    "expected_code": "task_mismatch"
+  },
+  {
+    "id": "unauthorized_recipient_fanout",
+    "mutation": "fanout",
+    "expected_code": "fanout_denied"
+  },
+  {
+    "id": "payload_substitution",
+    "mutation": "payload",
+    "expected_code": "payload_digest_mismatch"
+  },
+  {
+    "id": "nonce_substitution",
+    "mutation": "nonce",
+    "expected_code": "signature_invalid"
+  },
+  {
+    "id": "unsigned_downgrade",
+    "mutation": "unsigned",
+    "expected_code": "unsigned_message"
+  },
+  {
+    "id": "revoked_delegation",
+    "mutation": "revoked",
+    "expected_code": "delegation_denied"
+  },
+  {
+    "id": "delegation_chain_substitution",
+    "mutation": "delegation",
+    "expected_code": "delegation_mismatch"
+  },
+  {
+    "id": "message_replay",
+    "mutation": "replay",
+    "expected_code": "replay_detected"
+  },
+  {
+    "id": "message_sequence_skip",
+    "mutation": "out_of_order",
+    "expected_code": "out_of_order"
+  }
+]

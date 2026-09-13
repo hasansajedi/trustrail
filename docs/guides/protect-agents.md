@@ -47,6 +47,14 @@ swaps, cross-tenant or cross-purpose reuse, and child privilege amplification;
 configured high-impact scopes additionally require request-bound step-up or JIT
 grants. See [Delegated agent identity](../security/delegated-agent-identity.md).
 
+Do not trust an agent-to-agent transport to preserve identity or content. Put
+each JSON payload in an `InterAgentMessageEnvelope`, sign it with the sender's
+pinned Ed25519 key, and call `InterAgentMessageVerifier.require()` immediately
+before consuming the payload. The verifier binds the authenticated peer,
+recipient, tenant, session, goal, task, purpose, route, current delegation,
+nonce, and sequence. See
+[Authenticated inter-agent communication](../security/inter-agent-communication.md).
+
 Never connect model output directly to `eval`, `exec`, a shell, notebook kernel,
 template renderer, package installer, or local subprocess. If dynamic execution
 is a product requirement, use `CodeExecutionAuthorizer` to bind the exact source

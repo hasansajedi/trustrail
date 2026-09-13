@@ -53,6 +53,7 @@ from trustrail.exceptions import (
     GoalIntegrityError,
     GroundingVerificationError,
     GuardrailBlockedError,
+    InterAgentMessageError,
     MCPIsolationError,
     MCPMessageVerificationError,
     MCPServerOnboardingError,
@@ -87,6 +88,14 @@ from trustrail.goal_integrity import (
 )
 from trustrail.grounding import EvidenceGroundingVerifier
 from trustrail.guard import Guard
+from trustrail.inter_agent import (
+    InterAgentMessageAuditSink,
+    InterAgentMessageSigner,
+    InterAgentMessageVerifier,
+    InterAgentStateStore,
+    MemoryInterAgentMessageAuditSink,
+    MemoryInterAgentStateStore,
+)
 from trustrail.mcp import MCPToolDefinitionGuard
 from trustrail.mcp_isolation import (
     MCPGatewayApprovalVerifier,
@@ -313,6 +322,23 @@ from trustrail.models.grounding import (
     HumanReviewDecision,
     HumanReviewGrant,
     ImpactDomain,
+)
+from trustrail.models.inter_agent import (
+    InterAgentMessageAuditEvent,
+    InterAgentMessageCode,
+    InterAgentMessageEnvelope,
+    InterAgentMessageFinding,
+    InterAgentMessagePolicy,
+    InterAgentMessageType,
+    InterAgentMessageVerificationResult,
+    InterAgentRoute,
+    InterAgentStateClaimStatus,
+    InterAgentTransformation,
+    InterAgentTrustedKey,
+    InterAgentVerificationContext,
+    canonical_inter_agent_json,
+    inter_agent_content_reference,
+    inter_agent_payload_digest,
 )
 from trustrail.models.mcp import (
     MCPDefinitionChange,
@@ -771,6 +797,23 @@ __all__ = [
     "HumanReviewGrant",
     "ImpactDomain",
     "IngestionAuthorization",
+    "InterAgentMessageAuditEvent",
+    "InterAgentMessageAuditSink",
+    "InterAgentMessageCode",
+    "InterAgentMessageEnvelope",
+    "InterAgentMessageError",
+    "InterAgentMessageFinding",
+    "InterAgentMessagePolicy",
+    "InterAgentMessageSigner",
+    "InterAgentMessageType",
+    "InterAgentMessageVerificationResult",
+    "InterAgentMessageVerifier",
+    "InterAgentRoute",
+    "InterAgentStateClaimStatus",
+    "InterAgentStateStore",
+    "InterAgentTransformation",
+    "InterAgentTrustedKey",
+    "InterAgentVerificationContext",
     "LabelOrigin",
     "LabelQualityAssessment",
     "LabelQualityEvaluator",
@@ -866,6 +909,8 @@ __all__ = [
     "MemoryFailureContainmentAuditSink",
     "MemoryFinding",
     "MemoryGoalIntegrityAuditSink",
+    "MemoryInterAgentMessageAuditSink",
+    "MemoryInterAgentStateStore",
     "MemoryMCPIsolationAuditSink",
     "MemoryMCPMessageAuditSink",
     "MemoryMCPReplayStore",
@@ -1039,6 +1084,9 @@ __all__ = [
     # Version
     "__version__",
     "annotation_set_digest",
+    "canonical_inter_agent_json",
+    "inter_agent_content_reference",
+    "inter_agent_payload_digest",
     "json_artifact_digest",
     "lifecycle_reference",
     "mcp_credential_reference",

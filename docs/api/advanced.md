@@ -12,6 +12,12 @@
 
 ::: trustrail.agents.session.AgentSessionState
 
+## Inter-agent communication
+
+::: trustrail.inter_agent
+    options:
+      members: true
+
 ## Adaptive red-team regression
 
 ::: trustrail.testing.red_team
