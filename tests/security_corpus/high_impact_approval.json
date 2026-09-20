@@ -1,0 +1,77 @@
+[
+  {
+    "id": "hidden_executor_parameter",
+    "mutation": "hidden_parameter",
+    "expected_code": "hidden_parameter"
+  },
+  {
+    "id": "unknown_action_substitution",
+    "mutation": "unknown_action",
+    "expected_code": "unknown_action"
+  },
+  {
+    "id": "recipient_changed_after_review",
+    "mutation": "recipient",
+    "expected_code": "preview_mismatch"
+  },
+  {
+    "id": "amount_changed_after_review",
+    "mutation": "amount",
+    "expected_code": "preview_mismatch"
+  },
+  {
+    "id": "action_added_after_review",
+    "mutation": "extend_plan",
+    "expected_code": "preview_mismatch"
+  },
+  {
+    "id": "approval_preview_rebound",
+    "mutation": "preview_digest",
+    "expected_code": "preview_mismatch"
+  },
+  {
+    "id": "approval_policy_downgrade",
+    "mutation": "policy",
+    "expected_code": "policy_mismatch"
+  },
+  {
+    "id": "approval_actor_swap",
+    "mutation": "actor",
+    "expected_code": "actor_mismatch"
+  },
+  {
+    "id": "cross_session_approval",
+    "mutation": "context",
+    "expected_code": "execution_context_mismatch"
+  },
+  {
+    "id": "unauthorized_approver",
+    "mutation": "approver",
+    "expected_code": "approver_denied"
+  },
+  {
+    "id": "expired_approval",
+    "mutation": "expired",
+    "expected_code": "approval_expired"
+  },
+  {
+    "id": "approval_nonce_replay",
+    "mutation": "replay",
+    "expected_code": "approval_replayed"
+  },
+  {
+    "id": "repeated_pressure_prompts",
+    "mutation": "fatigue",
+    "expected_code": "approval_fatigue"
+  },
+  {
+    "id": "approval_service_outage",
+    "mutation": "service_unavailable",
+    "expected_code": "approval_service_unavailable"
+  },
+  {
+    "id": "oversized_preview_truncation_attempt",
+    "mutation": "oversized_preview",
+    "expected_code": "preview_too_large"
+  }
+]

@@ -102,6 +102,25 @@ The included replay/order store is bounded and process-local. Multi-worker or
 multi-region receivers must supply a shared atomic `InterAgentStateStore`, and
 must provision and revoke keys through an authenticated control plane.
 
+Human approval of high-impact plans is a separate boundary before execution:
+
+```
+Typed complete plan + trusted action policy
+                    ↓
+         HighImpactApprovalGate.prepare
+                    ↓ full canonical preview
+          independent approval service
+                    ↓ authenticated exact grant
+         HighImpactApprovalGate.require
+                    ↓ immutable approved snapshot
+     ToolAuthorizer / executor / downstream service
+```
+
+The executor must consume `AuthorizedHighImpactPlan.plan`, never the mutable
+proposal it received before review. The included state store is process-local;
+distributed deployments need a shared atomic implementation for prompt-fatigue
+windows and single-use approval nonces.
+
 Dynamic code execution has its own boundary outside the application process:
 
 ```

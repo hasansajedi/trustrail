@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from trustrail.models.failure_containment import FailureContainmentResult
     from trustrail.models.goal import GoalIntegrityResult
     from trustrail.models.grounding import GroundingResult
+    from trustrail.models.high_impact_approval import HighImpactApprovalResult
     from trustrail.models.inter_agent import InterAgentMessageVerificationResult
     from trustrail.models.mcp import MCPToolDefinitionResult
     from trustrail.models.mcp_isolation import MCPIsolationResult
@@ -283,6 +284,14 @@ class ApprovalRequiredError(AegisRailError):
         self.stage = stage
         self.severity = severity
         self.request_id = request_id
+
+
+class HighImpactApprovalError(AegisRailError):
+    """Raised when a high-impact plan lacks exact trusted approval."""
+
+    def __init__(self, result: HighImpactApprovalResult) -> None:
+        super().__init__("High-impact plan was not authorized")
+        self.result = result
 
 
 class AsyncGuardRequiredError(AegisRailError):

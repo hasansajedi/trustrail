@@ -112,6 +112,7 @@ nav:
       - MCP server isolation: security/mcp-server-isolation.md
       - Delegated agent identity: security/delegated-agent-identity.md
       - Inter-agent communication: security/inter-agent-communication.md
+      - High-impact action approvals: security/high-impact-approvals.md
       - Isolated agent code execution: security/code-execution-isolation.md
       - Cascading failure containment: security/cascading-failure-containment.md
       - System prompt leakage: security/system-prompt-leakage.md
