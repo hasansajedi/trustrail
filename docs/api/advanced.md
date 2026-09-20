@@ -18,6 +18,12 @@
     options:
       members: true
 
+## High-impact action approvals
+
+::: trustrail.high_impact_approval
+    options:
+      members: true
+
 ## Adaptive red-team regression
 
 ::: trustrail.testing.red_team

@@ -35,6 +35,7 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 - **MCP Server Isolation** — Separate server trust domains, credentials, namespaces, and labeled data flows through a fail-closed gateway
 - **Agent Goal Integrity** — Bind plans and delegations to an authorized objective and require exact approval for every material goal change
 - **Authenticated Inter-Agent Communication** — Sign agent messages and transformations, bind their delegation and audience, and reject replay, reordering, cross-tenant delivery, and unauthorized fan-out
+- **Tamper-Resistant Action Approvals** — Render complete canonical plans and bind single-use approval to exact recipients, amounts, scopes, diffs, disclosures, actor, policy, and execution context
 - **System Prompt Leakage Controls** — Validate classified prompt construction and block extraction attempts and generated prompt fragments
 - **Evidence-Backed Grounding** — Bind claims and citations to trusted evidence, expose uncertainty, and require review for high-impact advice
 - **Bounded Resource Consumption** — Reserve input/output tokens, concurrency, retries, tool loops, session budgets, and safe decompression
@@ -162,6 +163,7 @@ trustrail is designed with security-first principles:
 - Privacy-preserving audit logs (metadata only, no content)
 - Signed MCP requests and responses with identity binding and replay protection
 - Signed, ordered inter-agent messages with current delegation and route authorization
+- Complete high-impact action previews with exact, expiring, single-use approval binding
 - Exact MCP installation consent with verified sources and sandbox-bound permits
 - Isolated MCP server trust domains with explicit cross-origin data-flow edges
 - System-prompt values excluded from normal serialization and findings
@@ -181,6 +183,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 - [Configuration](docs/configuration.md)
 - [External Safety Providers](docs/integrations/external-safety-providers.md)
 - [Authenticated Inter-Agent Communication](docs/security/inter-agent-communication.md)
+- [Tamper-Resistant High-Impact Approvals](docs/security/high-impact-approvals.md)
 - [Agent Goal Integrity](docs/security/agent-goal-integrity.md)
 - [MCP Tool-Definition Integrity](docs/security/mcp-tool-integrity.md)
 - [MCP Message Integrity](docs/security/mcp-message-integrity.md)

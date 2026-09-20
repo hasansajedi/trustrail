@@ -55,6 +55,15 @@ recipient, tenant, session, goal, task, purpose, route, current delegation,
 nonce, and sequence. See
 [Authenticated inter-agent communication](../security/inter-agent-communication.md).
 
+Do not ask users to approve model-authored prose for destructive, financial,
+administrative, externally visible, or disclosure actions. Define every
+executable parameter in `HighImpactApprovalPolicy`, render the complete plan
+with `HighImpactApprovalGate.prepare()`, and execute only the immutable plan
+returned by `require()`. This binds the independent approval to the exact
+recipients, amounts, scopes, commands, diffs, actor, policy, and execution
+context while rejecting hidden fields, mutation, truncation, replay, and prompt
+fatigue. See [Tamper-resistant high-impact approvals](../security/high-impact-approvals.md).
+
 Never connect model output directly to `eval`, `exec`, a shell, notebook kernel,
 template renderer, package installer, or local subprocess. If dynamic execution
 is a product requirement, use `CodeExecutionAuthorizer` to bind the exact source

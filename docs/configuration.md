@@ -547,6 +547,75 @@ limits to the smallest values supported by the workflow, and retain exact
 constraint binding unless an application-specific design documents why partial
 binding is safe. See [agent goal integrity](security/agent-goal-integrity.md).
 
+## High-impact approval policy
+
+Configure action previews from application-owned schemas rather than model text.
+Every executor parameter must appear in the schema; unknown fields fail closed:
+
+```python
+from trustrail import (
+    ActionParameterPolicy,
+    ActionReversibility,
+    ApprovalParameterClass,
+    ApprovalParameterKind,
+    HighImpactActionPolicy,
+    HighImpactApprovalGate,
+    HighImpactApprovalPolicy,
+    HighImpactCategory,
+    HighImpactLevel,
+)
+
+approval_policy = HighImpactApprovalPolicy(
+    policy_id="production-payments",
+    policy_version="2026-09-20",
+    allowed_approver_ids=frozenset({"payments-reviewer"}),
+    actions=(
+        HighImpactActionPolicy(
+            action_id="wire-transfer",
+            display_name="Wire transfer",
+            categories=frozenset({HighImpactCategory.FINANCIAL}),
+            impact=HighImpactLevel.HIGH,
+            reversibility=ActionReversibility.IRREVERSIBLE,
+            parameters=(
+                ActionParameterPolicy(
+                    name="recipient",
+                    display_name="Recipient account",
+                    kind=ApprovalParameterKind.STRING,
+                    parameter_class=ApprovalParameterClass.RECIPIENT,
+                ),
+                ActionParameterPolicy(
+                    name="amount",
+                    display_name="Amount and currency",
+                    kind=ApprovalParameterKind.STRING,
+                    parameter_class=ApprovalParameterClass.AMOUNT,
+                ),
+            ),
+            side_effects=("Funds leave the source account",),
+        ),
+    ),
+    max_plan_actions=10,
+    max_preview_bytes=64 * 1024,
+    max_approval_ttl_seconds=120,
+    prompt_window_seconds=300,
+    max_prompts_per_window=4,
+    max_repeated_preview_prompts=2,
+    chain_escalation_action_count=2,
+)
+approval_gate = HighImpactApprovalGate(
+    approval_policy,
+    approval_verifier=production_approval_verifier,
+    state_store=shared_atomic_approval_state,
+    audit_sink=production_approval_audit,
+)
+```
+
+Use decimal strings with an explicit currency for money rather than binary
+floating-point values. Keep the preview limit large enough for legitimate full
+diffs but bounded; the gate rejects an oversized plan instead of truncating it.
+For multiple workers or regions, replace the in-memory state store with one
+atomic shared implementation. See
+[tamper-resistant high-impact approvals](security/high-impact-approvals.md).
+
 ## MCP server onboarding policy
 
 MCP installation and connection policy is independent from text-stage
