@@ -10,6 +10,7 @@ if TYPE_CHECKING:
         CodeExecutionDecision,
         CodeExecutionOutcome,
     )
+    from trustrail.models.data_labels import DataLabelDecision
     from trustrail.models.data_lifecycle import (
         DataDeletionPlanResult,
         DataDeletionResult,
@@ -118,6 +119,14 @@ class DataLifecycleError(AegisRailError):
         result: DataLifecycleDecision | DataDeletionPlanResult | DataDeletionResult,
     ) -> None:
         super().__init__("Data lifecycle operation was not authorized or completed")
+        self.result = result
+
+
+class DataLabelError(AegisRailError):
+    """Raised when classification propagation or a labeled boundary is denied."""
+
+    def __init__(self, result: DataLabelDecision) -> None:
+        super().__init__("Data classification label did not authorize the operation")
         self.result = result
 
 

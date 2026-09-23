@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   derivation labels; fail-closed use authorization; cascading tombstone-first
   deletion plans; connector receipts and deletion verification; and content-free
   audit evidence.
+- OWASP AISVS C5.2.7 controls for Ed25519-signed, content-bound classification
+  labels; conservative joins across transformations; complete provider,
+  retrieval, persistence, logging, tool, and output boundary enforcement; and
+  content-safe lineage evidence ([#82](https://github.com/hasansajedi/trustrail/issues/82)).
 - OWASP MCP multi-server isolation controls with independent server, namespace,
   credential, principal, and tool trust domains; explicit labeled data-flow
   edges; cross-origin instruction and shadowing detection; gateway redaction,

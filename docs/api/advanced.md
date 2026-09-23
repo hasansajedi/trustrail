@@ -30,6 +30,12 @@
     options:
       members: true
 
+## Data-classification propagation
+
+::: trustrail.data_labels
+    options:
+      members: true
+
 ## Adaptive red-team regression
 
 ::: trustrail.testing.red_team

@@ -1,0 +1,14 @@
+[
+  {"id": "missing-label", "mutation": "missing", "expected_code": "label_missing"},
+  {"id": "forged-signature", "mutation": "signature", "expected_code": "label_signature_invalid"},
+  {"id": "content-swap", "mutation": "content", "expected_code": "content_binding_invalid"},
+  {"id": "cross-tenant-copy", "mutation": "tenant", "expected_code": "tenant_conflict"},
+  {"id": "purpose-expansion", "mutation": "purpose", "expected_code": "purpose_denied"},
+  {"id": "residency-bypass", "mutation": "residency", "expected_code": "residency_denied"},
+  {"id": "destination-substitution", "mutation": "destination", "expected_code": "destination_denied"},
+  {"id": "unsupported-classification", "mutation": "classification", "expected_code": "classification_unsupported"},
+  {"id": "missing-handling-control", "mutation": "handling", "expected_code": "handling_unsupported"},
+  {"id": "retention-extension", "mutation": "retention", "expected_code": "retention_denied"},
+  {"id": "lineage-omission", "mutation": "lineage", "expected_code": "lineage_missing"},
+  {"id": "classification-downgrade", "mutation": "downgrade", "expected_code": "label_downgraded"}
+]
