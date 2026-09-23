@@ -24,6 +24,12 @@
     options:
       members: true
 
+## Rogue-agent runtime monitoring
+
+::: trustrail.rogue_agent
+    options:
+      members: true
+
 ## Adaptive red-team regression
 
 ::: trustrail.testing.red_team

@@ -50,6 +50,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   policy, tenant-isolated circuit breakers, integrity-pinned fallbacks, atomic
   retry and side-effect admission, authenticated outcomes, and deterministic
   degraded-mode, cancellation, compensation, and recovery events.
+- OWASP ASI10 rogue-agent controls with signed runtime invariants, correlated
+  behavior and stop-compliance detection, deterministic suspension, credential
+  revocation, pending-action cancellation and state quarantine, plus isolated,
+  authenticated single-use recovery ([#81](https://github.com/hasansajedi/trustrail/issues/81)).
 
 ## [0.1.2] - 2026-08-31
 

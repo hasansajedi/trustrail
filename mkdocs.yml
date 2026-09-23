@@ -115,6 +115,7 @@ nav:
       - High-impact action approvals: security/high-impact-approvals.md
       - Isolated agent code execution: security/code-execution-isolation.md
       - Cascading failure containment: security/cascading-failure-containment.md
+      - Rogue-agent runtime invariants: security/rogue-agent-runtime.md
       - System prompt leakage: security/system-prompt-leakage.md
       - Vector and embedding security: security/vector-embedding-security.md
       - Misinformation and overreliance: security/misinformation-overreliance.md
