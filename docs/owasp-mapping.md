@@ -74,6 +74,18 @@ for configuration and residual risks. This is an engineering mapping to
 [OWASP AISVS C1](https://github.com/OWASP/AISVS/blob/main/1.0/en/0x10-C01-Training-Data-Integrity-and-Traceability.md),
 not certification or a claim that a dataset or model is unbiased.
 
+## OWASP AISVS C5 access control and classification propagation
+
+| AISVS C5 objective | trustrail controls | Additional controls required |
+| --- | --- | --- |
+| **C5.2.7 downstream label propagation** | `DataClassificationLabel` Ed25519-signs the issuer, tenant, sensitivity, exact content digest, purpose, residency, retention, permitted destinations and boundary kinds, additive handling requirements, surface, transformation, and immediate lineage; `DataLabelPropagator` verifies sources and conservatively joins the highest classification, intersected authorities, unioned handling, and earliest retention; `DataLabelGuard` revalidates signatures and derivation constraints before provider calls, retrieval assembly, persistence, logging, tool invocation, and output delivery, rejecting missing, forged, swapped, conflicting, downgraded, or unsupported labels and emitting content-safe lineage evidence | Authoritative classification, complete mediation of every data path, authenticated key provisioning and revocation, protected transitive-lineage storage, tenant isolation, encryption, DLP, service-side authorization, provider residency/retention/training controls, durable audit, downstream enforcement, incident response, and verified deletion remain required; signatures prove metadata integrity, not classification correctness or destination behavior |
+
+This is an engineering mapping to
+[OWASP AISVS C5](https://github.com/OWASP/AISVS/blob/main/1.0/en/0x10-C05-Access-Control-and-Identity.md),
+not compliance or certification evidence. See
+[end-to-end data-classification labels](security/data-label-propagation.md) for
+configuration, assumptions, and residual risks.
+
 ## OWASP MCP Security Cheat Sheet
 
 | OWASP MCP guidance | trustrail controls | Additional controls required |
