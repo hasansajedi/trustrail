@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from trustrail.models.output_handling import OutputHandlingResult
     from trustrail.models.poisoning import DataPoisoningResult
     from trustrail.models.resource import DecompressionResult, ResourceBudgetResult
+    from trustrail.models.rogue_agent import RogueAgentResult
     from trustrail.models.supply_chain import ArtifactVerificationResult
     from trustrail.models.system_prompt import (
         SystemPromptLeakageResult,
@@ -171,6 +172,14 @@ class FailureContainmentError(AegisRailError):
 
     def __init__(self, result: FailureContainmentResult) -> None:
         super().__init__("Dependency attempt was denied by failure containment")
+        self.result = result
+
+
+class RogueAgentError(AegisRailError):
+    """Raised when runtime invariants deny or contain agent activity."""
+
+    def __init__(self, result: RogueAgentResult) -> None:
+        super().__init__("Agent runtime event violated signed invariants")
         self.result = result
 
 
