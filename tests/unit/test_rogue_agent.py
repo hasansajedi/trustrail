@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -255,6 +256,20 @@ def test_authenticated_recovery_replaces_policy_and_grant_cannot_replay():
     assert recovered.status == AgentRuntimeStatus.ACTIVE
     assert replay.action == GuardAction.BLOCK
     assert RogueAgentCode.RECOVERY_REPLAYED in {item.code for item in replay.findings}
+
+
+def test_manifest_signing_canonicalizes_sets_before_json_conversion():
+    signer = RuntimeInvariantSigner.generate(authority_id="runtime-control-plane")
+    manifest = _manifest(signer)
+
+    payload = manifest.signing_payload
+    canonical = json.loads(manifest.signing_bytes)
+
+    assert isinstance(payload["allowed_actions"], frozenset)
+    assert canonical["allowed_actions"] == ["read", "summarize"]
+    assert canonical["allowed_tools"] == ["documents.read"]
+    assert canonical["allowed_peers"] == ["review-agent"]
+    assert canonical["allowed_capabilities"] == ["documents:read"]
 
 
 def test_require_raises_typed_error_for_denied_event():

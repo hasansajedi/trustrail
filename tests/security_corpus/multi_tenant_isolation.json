@@ -1,0 +1,21 @@
+[
+  {"id": "missing-context", "mutation": "missing_context", "expected_code": "context_missing"},
+  {"id": "forged-context", "mutation": "forged_context", "expected_code": "context_signature_invalid"},
+  {"id": "cross-tenant-state-key", "mutation": "tenant_key", "expected_code": "state_key_invalid"},
+  {"id": "foreign-namespace-key", "mutation": "namespace_key", "expected_code": "state_key_invalid"},
+  {"id": "forced-key-collision", "mutation": "key_collision", "expected_code": "state_key_collision"},
+  {"id": "prompt-cache-hit", "mutation": "cross_binding", "kind": "prompt_cache", "operation": "cache_hit", "expected_code": "cache_hit_cross_tenant"},
+  {"id": "response-cache-hit", "mutation": "cross_binding", "kind": "response_cache", "operation": "cache_hit", "expected_code": "cache_hit_cross_tenant"},
+  {"id": "semantic-cache-hit", "mutation": "cross_binding", "kind": "semantic_cache", "operation": "cache_hit", "expected_code": "cache_hit_cross_tenant"},
+  {"id": "kv-cache-hit", "mutation": "cross_binding", "kind": "kv_cache", "operation": "cache_hit", "expected_code": "cache_hit_cross_tenant"},
+  {"id": "embedding-restore", "mutation": "cross_binding", "kind": "embedding", "operation": "restore", "expected_code": "restore_cross_tenant"},
+  {"id": "memory-restore", "mutation": "cross_binding", "kind": "memory", "operation": "restore", "expected_code": "restore_cross_tenant"},
+  {"id": "adapter-reuse", "mutation": "cross_binding", "kind": "adapter", "operation": "adapter_use", "expected_code": "adapter_cross_tenant"},
+  {"id": "session-restore", "mutation": "cross_binding", "kind": "session", "operation": "restore", "expected_code": "restore_cross_tenant"},
+  {"id": "budget-restore", "mutation": "cross_binding", "kind": "budget", "operation": "restore", "expected_code": "restore_cross_tenant"},
+  {"id": "audit-restore", "mutation": "cross_binding", "kind": "audit", "operation": "restore", "expected_code": "restore_cross_tenant"},
+  {"id": "mixed-provider-batch", "mutation": "mixed_batch", "expected_code": "batch_cross_tenant"},
+  {"id": "forged-hardware-attestation", "mutation": "forged_attestation", "expected_code": "attestation_signature_invalid"},
+  {"id": "weak-hardware-attestation", "mutation": "weak_attestation", "expected_code": "attestation_level_insufficient"},
+  {"id": "substituted-deployment", "mutation": "deployment_swap", "expected_code": "attestation_scope_mismatch"}
+]

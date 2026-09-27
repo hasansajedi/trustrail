@@ -104,6 +104,7 @@ nav:
       - Training-data governance: security/training-data-governance.md
       - GenAI data lifecycle: security/data-lifecycle.md
       - Data-label propagation: security/data-label-propagation.md
+      - Multi-tenant AI state isolation: security/multi-tenant-isolation.md
       - Excessive agency: security/excessive-agency.md
       - Agent goal integrity: security/agent-goal-integrity.md
       - Semantic tool authorization: security/tool-misuse.md

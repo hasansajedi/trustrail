@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   labels; conservative joins across transformations; complete provider,
   retrieval, persistence, logging, tool, and output boundary enforcement; and
   content-safe lineage evidence ([#82](https://github.com/hasansajedi/trustrail/issues/82)).
+- OWASP AISVS C5.3 multi-tenant isolation controls with signed tenant contexts,
+  domain-separated keys and integrity-bound ownership for every AI state type,
+  collision and cross-tenant cache/batch/adapter/restore detection, plus explicitly
+  scoped process and hardware deployment attestations
+  ([#83](https://github.com/hasansajedi/trustrail/issues/83)).
 - OWASP MCP multi-server isolation controls with independent server, namespace,
   credential, principal, and tool trust domains; explicit labeled data-flow
   edges; cross-origin instruction and shadowing detection; gateway redaction,

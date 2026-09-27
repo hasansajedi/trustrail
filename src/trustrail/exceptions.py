@@ -36,6 +36,7 @@ if TYPE_CHECKING:
         SystemPromptLeakageResult,
         SystemPromptValidationResult,
     )
+    from trustrail.models.tenant_isolation import TenantIsolationDecision
     from trustrail.models.training_data import (
         BiasEvidenceReport,
         TrainingDataGovernanceResult,
@@ -127,6 +128,14 @@ class DataLabelError(AegisRailError):
 
     def __init__(self, result: DataLabelDecision) -> None:
         super().__init__("Data classification label did not authorize the operation")
+        self.result = result
+
+
+class TenantIsolationError(AegisRailError):
+    """Raised before a cross-tenant state operation or batch can proceed."""
+
+    def __init__(self, result: TenantIsolationDecision) -> None:
+        super().__init__("Tenant isolation policy denied the operation")
         self.result = result
 
 
