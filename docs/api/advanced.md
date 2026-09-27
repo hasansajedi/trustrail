@@ -42,6 +42,12 @@
     options:
       members: true
 
+## Step-up authentication and JIT AI privileges
+
+::: trustrail.privileged_access
+    options:
+      members: true
+
 ## Adaptive red-team regression
 
 ::: trustrail.testing.red_team
