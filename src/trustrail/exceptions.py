@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from trustrail.models.memory import MemoryDecision
     from trustrail.models.output_handling import OutputHandlingResult
     from trustrail.models.poisoning import DataPoisoningResult
+    from trustrail.models.privileged_access import PrivilegedAccessDecision
     from trustrail.models.resource import DecompressionResult, ResourceBudgetResult
     from trustrail.models.rogue_agent import RogueAgentResult
     from trustrail.models.supply_chain import ArtifactVerificationResult
@@ -160,6 +161,14 @@ class DelegatedIdentityError(AegisRailError):
 
     def __init__(self, result: DelegatedAccessResult) -> None:
         super().__init__("Delegated agent identity was not authorized")
+        self.result = result
+
+
+class PrivilegedAccessError(AegisRailError):
+    """Raised before privileged AI credentials or actions can proceed."""
+
+    def __init__(self, result: PrivilegedAccessDecision) -> None:
+        super().__init__("Privileged AI operation was not authorized")
         self.result = result
 
 

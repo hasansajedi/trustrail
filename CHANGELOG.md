@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   collision and cross-tenant cache/batch/adapter/restore detection, plus explicitly
   scoped process and hardware deployment attestations
   ([#83](https://github.com/hasansajedi/trustrail/issues/83)).
+- OWASP AISVS C5.1.1 and C5.2.6 controls for explicitly classified privileged AI
+  operations, fresh request-bound step-up and independent approval, narrow
+  single-use JIT grants, live identity/role/risk/session/policy/backend
+  reauthorization, and automatic revocation on security-context changes
+  ([#84](https://github.com/hasansajedi/trustrail/issues/84)).
 - OWASP MCP multi-server isolation controls with independent server, namespace,
   credential, principal, and tool trust domains; explicit labeled data-flow
   edges; cross-origin instruction and shadowing detection; gateway redaction,
