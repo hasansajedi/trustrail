@@ -36,6 +36,12 @@
     options:
       members: true
 
+## Multi-tenant AI state isolation
+
+::: trustrail.tenant_isolation
+    options:
+      members: true
+
 ## Adaptive red-team regression
 
 ::: trustrail.testing.red_team

@@ -74,16 +74,19 @@ for configuration and residual risks. This is an engineering mapping to
 [OWASP AISVS C1](https://github.com/OWASP/AISVS/blob/main/1.0/en/0x10-C01-Training-Data-Integrity-and-Traceability.md),
 not certification or a claim that a dataset or model is unbiased.
 
-## OWASP AISVS C5 access control and classification propagation
+## OWASP AISVS C5 access control and tenant isolation
 
 | AISVS C5 objective | trustrail controls | Additional controls required |
 | --- | --- | --- |
 | **C5.2.7 downstream label propagation** | `DataClassificationLabel` Ed25519-signs the issuer, tenant, sensitivity, exact content digest, purpose, residency, retention, permitted destinations and boundary kinds, additive handling requirements, surface, transformation, and immediate lineage; `DataLabelPropagator` verifies sources and conservatively joins the highest classification, intersected authorities, unioned handling, and earliest retention; `DataLabelGuard` revalidates signatures and derivation constraints before provider calls, retrieval assembly, persistence, logging, tool invocation, and output delivery, rejecting missing, forged, swapped, conflicting, downgraded, or unsupported labels and emitting content-safe lineage evidence | Authoritative classification, complete mediation of every data path, authenticated key provisioning and revocation, protected transitive-lineage storage, tenant isolation, encryption, DLP, service-side authorization, provider residency/retention/training controls, durable audit, downstream enforcement, incident response, and verified deletion remain required; signatures prove metadata integrity, not classification correctness or destination behavior |
+| **C5.3.1 shared model-serving isolation** | `TenantSecurityContext` binds tenant, principal, session, authorized state kinds, freshness, and nonce to a pinned Ed25519 issuer; `TenantStateKeyBuilder` creates HMAC-domain-separated keys and integrity-protected ownership bindings for prompt, response, semantic, and KV caches, embeddings, memory, adapters, sessions, budgets, and audit state; `TenantIsolationGuard` rejects missing or forged contexts, unsafe keys, atomic key collisions, cross-tenant cache hits, adapter reuse, restoration, and mixed-tenant inference batches | Current membership authorization, complete mediation, protected keys and policy, distributed atomic key claims, backend row/object/vector/queue authorization, encryption, tenant-aware deletion, capacity controls, provider isolation, monitoring, and application-specific adversarial testing remain required |
+| **C5.3.2 shared-compute isolation** | Per-state policy can require process or hardware isolation and a signed, scoped, short-lived `DeploymentIsolationAttestation`; returned evidence explicitly limits library validation to the attestor signature and declared claims and never marks infrastructure as verified | Hardware partitioning, confidential computing or dedicated tenant compute; independent attestation roots and measurement appraisal; process/container, network, scheduler, GPU-memory, and secret isolation; cache clearing; resource partitioning; and side-channel analysis must be implemented and verified outside trustrail |
 
 This is an engineering mapping to
 [OWASP AISVS C5](https://github.com/OWASP/AISVS/blob/main/1.0/en/0x10-C05-Access-Control-and-Identity.md),
 not compliance or certification evidence. See
-[end-to-end data-classification labels](security/data-label-propagation.md) for
+[end-to-end data-classification labels](security/data-label-propagation.md) and
+[multi-tenant AI state isolation](security/multi-tenant-isolation.md) for
 configuration, assumptions, and residual risks.
 
 ## OWASP MCP Security Cheat Sheet
