@@ -191,7 +191,10 @@ class RuntimeInvariantManifest(BaseModel):
 
     @property
     def signing_payload(self) -> dict[str, Any]:
-        return self.model_dump(mode="json", exclude={"signature"})
+        # Preserve sets until ``canonical_runtime_json`` sorts them. JSON mode
+        # eagerly turns sets into arrays using hash-table iteration order, which
+        # can change across processes and invalidate signatures or grant bindings.
+        return self.model_dump(mode="python", exclude={"signature"})
 
     @property
     def signing_bytes(self) -> bytes:
