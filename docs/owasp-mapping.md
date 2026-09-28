@@ -92,6 +92,19 @@ not compliance or certification evidence. See
 [step-up authentication and JIT AI privileges](security/privileged-ai-access.md) for
 configuration, assumptions, and residual risks.
 
+## OWASP AISVS C9 orchestration and agentic action
+
+| AISVS C9 objective | trustrail controls | Additional controls required |
+| --- | --- | --- |
+| **C9.5.4 Keep agent credentials outside model context** | `CredentialReference` exposes only opaque broker handles; `CredentialBrokerPolicy` binds each handle to an exact tenant, tool, resource, operation, vault version, and maximum lifetime; `CredentialBroker` authenticates an integrity-bound `AuthorizedCredentialExecution`, issues short-lived single-use capabilities, atomically prevents replay, resolves only through a trusted vault adapter, and invalidates capabilities on rotation or revocation | Authenticated workload and execution identity, a hardened external KMS/HSM/secret manager, provider-native token exchange, a shared durable atomic capability/revocation store, downstream service authorization, deny-by-default network egress, secure connector isolation, clock synchronization, and incident response remain required |
+| **Model-visible surface exclusion and leak regression** | `CredentialMaterial` is redacted and rejects implicit bytes, copying, and serialization; `CredentialBoundaryGuard` recursively rejects material, credential-bearing fields, raw credential patterns, and direct/hex/Base64 canaries in prompts, model output, tool schemas/arguments, approvals, memory, telemetry, exceptions, serialization, connector errors, and buffered cross-chunk streams; decisions, exceptions, and audit evidence are content-free | Complete mediation of every model/provider/cache/log/debug/crash/connector path, disabled header/body capture, streaming hold-back, domain-specific detectors, production canary monitoring, provider retention controls, dump protection, credential rotation, and application-specific adversarial testing remain required |
+
+See [model-blind credential brokering](security/credential-brokering.md) for the
+trusted connector workflow, configuration, security assumptions, limitations,
+and residual risks. This is an engineering mapping to
+[OWASP AISVS C9](https://github.com/OWASP/AISVS/blob/main/1.0/en/0x10-C09-Orchestration-and-Agentic-Action-Security.md)
+and OWASP MCP01, not compliance or certification evidence.
+
 ## OWASP MCP Security Cheat Sheet
 
 | OWASP MCP guidance | trustrail controls | Additional controls required |

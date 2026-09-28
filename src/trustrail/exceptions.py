@@ -10,6 +10,10 @@ if TYPE_CHECKING:
         CodeExecutionDecision,
         CodeExecutionOutcome,
     )
+    from trustrail.models.credentials import (
+        CredentialBoundaryDecision,
+        CredentialBrokerDecision,
+    )
     from trustrail.models.data_labels import DataLabelDecision
     from trustrail.models.data_lifecycle import (
         DataDeletionPlanResult,
@@ -130,6 +134,17 @@ class DataLabelError(AegisRailError):
     def __init__(self, result: DataLabelDecision) -> None:
         super().__init__("Data classification label did not authorize the operation")
         self.result = result
+
+
+class CredentialBrokerError(AegisRailError):
+    """Raised without credential content when brokering or leak checks fail."""
+
+    def __init__(
+        self,
+        decision: CredentialBrokerDecision | CredentialBoundaryDecision,
+    ) -> None:
+        super().__init__("Credential operation blocked")
+        self.decision = decision
 
 
 class TenantIsolationError(AegisRailError):

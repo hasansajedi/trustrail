@@ -30,6 +30,7 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 - **Training-Data Governance** — Minimize features, protect label integrity and approval, evaluate automated-label quality, and gate aggregate bias metrics
 - **GenAI Data Lifecycle** — Propagate purpose, residency, retention, consent, and deletion obligations across derived artifacts
 - **Least-Privilege Tool Authorization** — Bind exact tools and arguments to identity, intent, ownership, scopes, approval, and execution budgets
+- **Model-Blind Credential Brokering** — Give tools opaque, execution-bound, short-lived capabilities without exposing secrets to model context
 - **MCP Tool-Definition Integrity** — Scan and cryptographically pin complete tool schemas, reject shadowing, and require renewed consent after mutations
 - **Secure MCP Server Onboarding** — Verify publishers, sources, commands, transports, capabilities, consent, and sandbox attestations before installation or connection
 - **MCP Server Isolation** — Separate server trust domains, credentials, namespaces, and labeled data flows through a fail-closed gateway
@@ -189,6 +190,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 - [MCP Message Integrity](docs/security/mcp-message-integrity.md)
 - [MCP Server Onboarding](docs/security/mcp-server-onboarding.md)
 - [MCP Server Isolation](docs/security/mcp-server-isolation.md)
+- [Model-Blind Credential Brokering](docs/security/credential-brokering.md)
 - [GenAI Data Lifecycle and Verified Deletion](docs/security/data-lifecycle.md)
 - [Training-Data Labeling Integrity and Bias Evaluation](docs/security/training-data-governance.md)
 - [AI Trustworthiness Release Gates](docs/guides/ai-testing-release-gates.md)

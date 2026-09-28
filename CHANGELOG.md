@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP AISVS C9.5.4 and MCP01 controls with opaque credential references,
+  exact tenant/tool/resource/operation and authorized-execution binding,
+  short-lived single-use capabilities, vault-backed resolution, rotation and
+  revocation, content-free audit/errors, and recursive canary checks across
+  prompts, outputs, tools, approvals, memory, telemetry, serialization,
+  connector errors, and streams
+  ([#85](https://github.com/hasansajedi/trustrail/issues/85)).
 - GenAI data-lifecycle controls with integrity-bound classification, purpose,
   residency, retention, training-consent, legal-hold, subject, storage, and
   derivation labels; fail-closed use authorization; cascading tombstone-first
