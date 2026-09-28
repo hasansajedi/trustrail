@@ -247,6 +247,28 @@ state, downstream service authorization, and independent approval for
 high-impact operations. See
 [delegated agent identity](delegated-agent-identity.md).
 
+### Credential Exposure to Agent Context (OWASP AISVS C9.5.4 / MCP01)
+
+- Raw credentials entering prompts, context windows, memory, tool schemas or
+  generated arguments, approvals, telemetry, caches, or serialized state
+- Debug output, retries, connector exceptions, prepared requests, or malicious
+  tool responses reflecting authorization headers or secret material
+- Credentials split across streaming chunks or transformed with Base64/hex to
+  bypass a per-chunk or plaintext-only detector
+- Opaque references rebound across tenants, tools, resources, operations, vault
+  versions, policies, or authorized executions
+- Capabilities forged, replayed, used after expiry, retained across rotation, or
+  consumed concurrently through non-atomic state
+- Ambient environment, cloud metadata, SDK, debugger, crash-dump, or direct
+  vault access bypassing the broker
+
+Credential capabilities constrain resolution but cannot isolate a compromised
+connector or secret provider. Completely mediate credential paths, keep vault
+and execution verification outside the agent runtime, use shared atomic state,
+disable sensitive HTTP/log/debug capture, restrict network egress, authorize at
+the downstream service, continuously test leak canaries, and rotate on suspected
+exposure. See [model-blind credential brokering](credential-brokering.md).
+
 ### Unexpected Code Execution (OWASP ASI05:2026)
 
 - Generated code, scripts, commands, templates, or package selections reaching
