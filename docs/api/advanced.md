@@ -54,6 +54,12 @@
     options:
       members: true
 
+## Persistent workflow integrity
+
+::: trustrail.workflow_integrity
+    options:
+      members: true
+
 ## Adaptive red-team regression
 
 ::: trustrail.testing.red_team

@@ -107,6 +107,7 @@ nav:
       - Multi-tenant AI state isolation: security/multi-tenant-isolation.md
       - Step-up and JIT AI privileges: security/privileged-ai-access.md
       - Model-blind credential brokering: security/credential-brokering.md
+      - Persistent workflow integrity: security/persistent-workflow-integrity.md
       - Excessive agency: security/excessive-agency.md
       - Agent goal integrity: security/agent-goal-integrity.md
       - Semantic tool authorization: security/tool-misuse.md

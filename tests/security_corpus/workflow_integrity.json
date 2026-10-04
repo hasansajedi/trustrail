@@ -1,0 +1,19 @@
+[
+  {"id": "unsigned-checkpoint", "mutation": "unsigned_checkpoint", "expected_code": "checkpoint_unsigned"},
+  {"id": "tampered-checkpoint", "mutation": "checkpoint_signature", "expected_code": "checkpoint_signature_invalid"},
+  {"id": "unknown-checkpoint-key", "mutation": "unknown_key", "expected_code": "checkpoint_key_unknown"},
+  {"id": "revoked-checkpoint-key", "mutation": "revoked_key", "expected_code": "checkpoint_key_inactive"},
+  {"id": "expired-checkpoint", "mutation": "expired", "expected_code": "checkpoint_expired"},
+  {"id": "cross-session-substitution", "mutation": "session", "expected_code": "checkpoint_context_mismatch"},
+  {"id": "plan-substitution", "mutation": "plan", "expected_code": "checkpoint_context_mismatch"},
+  {"id": "policy-rollback", "mutation": "policy", "expected_code": "policy_mismatch"},
+  {"id": "execution-deletion", "mutation": "deletion", "expected_code": "execution_deletion"},
+  {"id": "execution-insertion", "mutation": "insertion", "expected_code": "execution_insertion"},
+  {"id": "execution-reordering", "mutation": "reordering", "expected_code": "execution_reordered"},
+  {"id": "execution-signature-tamper", "mutation": "entry_signature", "expected_code": "execution_signature_invalid"},
+  {"id": "checkpoint-rollback", "mutation": "rollback", "expected_code": "rollback_detected"},
+  {"id": "prior-checkpoint-substitution", "mutation": "prior", "expected_code": "prior_state_mismatch"},
+  {"id": "resume-authorization-denied", "mutation": "authorization", "expected_code": "authorization_denied"},
+  {"id": "workflow-revoked", "mutation": "revocation", "expected_code": "workflow_revoked"},
+  {"id": "resume-replay", "mutation": "replay", "expected_code": "resume_replayed"}
+]

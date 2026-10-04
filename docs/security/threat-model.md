@@ -247,6 +247,29 @@ state, downstream service authorization, and independent approval for
 high-impact operations. See
 [delegated agent identity](delegated-agent-identity.md).
 
+### Persistent Workflow Tampering and Rollback (OWASP AISVS C9.4.2 / C9.4.4)
+
+- Stored checkpoints changing tenant, agent, session, goal, plan, budgets,
+  policy versions, pending actions, approvals, or authorization state
+- Execution entries inserted, deleted, duplicated, reordered, moved across
+  sessions, or partially restored before a workflow resumes
+- A valid old checkpoint or pending approval restored after newer state exists
+- Checkpoint and chain heads substituted together without comparison to an
+  independently protected monotonic anchor
+- Unsigned, forged, unknown-key, inactive-key, expired, stale, or future-dated
+  state accepted after restart or failover
+- Signing-key, revocation, authorization, clock, or atomic resume-state outages
+  turning a verification failure into a resume
+- Concurrent workers replaying the same checkpoint or skipping an intermediate
+  checkpoint through non-atomic state
+
+Signatures detect changes but do not prevent deletion or provide
+confidentiality. Completely mediate persistence and resume, protect signing
+keys and trusted anchors outside the agent, recompute content digests from
+authoritative storage, use shared atomic replay/revocation state, reauthorize
+before effects, and retain append-only audit and transaction evidence. See
+[persistent workflow integrity](persistent-workflow-integrity.md).
+
 ### Credential Exposure to Agent Context (OWASP AISVS C9.5.4 / MCP01)
 
 - Raw credentials entering prompts, context windows, memory, tool schemas or
