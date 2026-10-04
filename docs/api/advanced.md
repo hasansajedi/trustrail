@@ -60,6 +60,12 @@
     options:
       members: true
 
+## Runtime tool capability manifests
+
+::: trustrail.tool_manifest
+    options:
+      members: true
+
 ## Adaptive red-team regression
 
 ::: trustrail.testing.red_team

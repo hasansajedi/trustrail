@@ -42,6 +42,7 @@ if TYPE_CHECKING:
         SystemPromptValidationResult,
     )
     from trustrail.models.tenant_isolation import TenantIsolationDecision
+    from trustrail.models.tool_manifest import ToolManifestDecision
     from trustrail.models.training_data import (
         BiasEvidenceReport,
         TrainingDataGovernanceResult,
@@ -256,6 +257,14 @@ class ToolAuthorizationError(AegisRailError):
     def __init__(self, result: ToolAuthorizationResult) -> None:
         super().__init__("Tool invocation was not authorized")
         self.result = result
+
+
+class ToolManifestError(AegisRailError):
+    """Raised when a tool manifest boundary denies dispatch or output release."""
+
+    def __init__(self, decision: ToolManifestDecision) -> None:
+        super().__init__("Tool capability manifest enforcement failed")
+        self.decision = decision
 
 
 class MCPToolDefinitionError(AegisRailError):

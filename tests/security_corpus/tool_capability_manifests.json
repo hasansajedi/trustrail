@@ -1,0 +1,42 @@
+[
+  {
+    "id": "tampered-signed-manifest",
+    "mutation": "manifest_signature",
+    "expected_code": "manifest_signature_invalid"
+  },
+  {
+    "id": "renamed-executor-substitution",
+    "mutation": "executor_substitution",
+    "expected_code": "executor_mismatch"
+  },
+  {
+    "id": "approval-from-another-manifest",
+    "mutation": "approval_substitution",
+    "expected_code": "manifest_substitution"
+  },
+  {
+    "id": "stale-enforcement-attestation",
+    "mutation": "stale_evidence",
+    "expected_code": "evidence_stale"
+  },
+  {
+    "id": "missing-egress-enforcement",
+    "mutation": "missing_controls",
+    "expected_code": "enforcement_control_missing"
+  },
+  {
+    "id": "runtime-filesystem-widening",
+    "mutation": "filesystem_widening",
+    "expected_code": "filesystem_widened"
+  },
+  {
+    "id": "untrusted-evidence-service",
+    "mutation": "untrusted_evidence",
+    "expected_code": "evidence_key_unknown"
+  },
+  {
+    "id": "output-contract-bypass",
+    "mutation": "output_contract",
+    "expected_code": "output_contract_invalid"
+  }
+]

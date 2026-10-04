@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP AISVS C9.3.3 and C9.3.4 controls for canonical Ed25519-signed runtime
+  tool capability manifests; executor-bound discovery and approval; fresh
+  signed enforcement evidence for effects, scopes, filesystem, egress,
+  credentials, resources, and data classifications; single-use dispatch
+  leases; and post-execution output contract enforcement
+  ([#87](https://github.com/hasansajedi/trustrail/issues/87)).
 - OWASP AISVS C9.4.2 and C9.4.4 controls for canonical Ed25519-signed agent
   checkpoints and append-only execution chains that bind identity, goals, plans,
   budgets, policy revisions, authorization, pending work, prior state, and chain
