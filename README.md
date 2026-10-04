@@ -168,6 +168,7 @@ trustrail is designed with security-first principles:
 - Complete high-impact action previews with exact, expiring, single-use approval binding
 - Exact MCP installation consent with verified sources and sandbox-bound permits
 - Isolated MCP server trust domains with explicit cross-origin data-flow edges
+- Signed runtime tool capability manifests with executor-bound approval and enforcement evidence
 - System-prompt values excluded from normal serialization and findings
 - Grounding decisions exclude generated claims and evidence from normal serialization
 - Lifecycle decisions deny metadata downgrades and tombstone data before verified deletion
@@ -193,6 +194,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 - [MCP Server Isolation](docs/security/mcp-server-isolation.md)
 - [Model-Blind Credential Brokering](docs/security/credential-brokering.md)
 - [Persistent Workflow Integrity](docs/security/persistent-workflow-integrity.md)
+- [Runtime Tool Capability Manifests](docs/security/runtime-tool-capability-manifests.md)
 - [GenAI Data Lifecycle and Verified Deletion](docs/security/data-lifecycle.md)
 - [Training-Data Labeling Integrity and Bias Evaluation](docs/security/training-data-governance.md)
 - [AI Trustworthiness Release Gates](docs/guides/ai-testing-release-gates.md)

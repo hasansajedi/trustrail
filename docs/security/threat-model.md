@@ -247,6 +247,27 @@ state, downstream service authorization, and independent approval for
 high-impact operations. See
 [delegated agent identity](delegated-agent-identity.md).
 
+### Tool Capability Drift and Runtime Substitution (OWASP AISVS C9.3.3 / C9.3.4)
+
+- A tool keeps the same name and argument schema while its executable, service,
+  filesystem access, egress, credentials, effects, scopes, or resource limits
+  expand
+- Discovery, approval, runtime evidence, or execution requests are rebound to a
+  different manifest or executor
+- Missing, forged, stale, unknown-key, inactive-key, or incomplete enforcement
+  evidence is treated as permission to dispatch
+- A sandbox policy is wider than the manifest, or narrower than the request,
+  while claiming the declared boundary is active
+- Output adds undeclared fields, exceeds its size/classification boundary, or
+  bypasses validation through replay or a direct connector path
+
+Manifest signatures authenticate declarations; they do not make an executor or
+attestor trustworthy and do not configure infrastructure. Independently measure
+executor identity, separate publisher/control/runtime keys, completely mediate
+dispatch and output release, enforce controls in a hardened sandbox or gateway,
+keep failures closed, and use downstream authorization and monitoring. See
+[runtime tool capability manifests](runtime-tool-capability-manifests.md).
+
 ### Persistent Workflow Tampering and Rollback (OWASP AISVS C9.4.2 / C9.4.4)
 
 - Stored checkpoints changing tenant, agent, session, goal, plan, budgets,

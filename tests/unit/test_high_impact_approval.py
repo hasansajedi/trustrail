@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+import subprocess
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 
@@ -225,6 +228,55 @@ def test_preview_is_complete_deterministic_and_highlights_sensitive_fields() -> 
     assert "NOT TRUNCATED" in text
     assert "1250.00 EUR" in text
     assert policy.policy_digest in text
+
+
+def test_policy_digest_is_stable_across_python_hash_seeds() -> None:
+    script = """
+from trustrail import (
+    ActionReversibility,
+    HighImpactActionPolicy,
+    HighImpactApprovalPolicy,
+    HighImpactCategory,
+    HighImpactLevel,
+)
+
+action = HighImpactActionPolicy(
+    action_id="publish-records",
+    display_name="Publish records",
+    categories=frozenset(
+        {
+            HighImpactCategory.DESTRUCTIVE,
+            HighImpactCategory.EXTERNAL_VISIBILITY,
+            HighImpactCategory.DATA_DISCLOSURE,
+            HighImpactCategory.CODE_EXECUTION,
+        }
+    ),
+    impact=HighImpactLevel.CRITICAL,
+    reversibility=ActionReversibility.IRREVERSIBLE,
+    parameters=(),
+)
+policy = HighImpactApprovalPolicy(
+    policy_id="high-impact-actions",
+    policy_version="2026-09-20",
+    actions=(action,),
+    allowed_approver_ids=frozenset(
+        {"reviewer-alpha", "reviewer-bravo", "reviewer-charlie", "reviewer-delta"}
+    ),
+)
+print(policy.policy_digest)
+"""
+    digests = {
+        subprocess.run(  # noqa: S603 - fixed interpreter, shell disabled
+            [sys.executable, "-c", script],
+            check=True,
+            capture_output=True,
+            env={**os.environ, "PYTHONHASHSEED": seed},
+            text=True,
+        ).stdout.strip()
+        for seed in ("1", "2", "3", "4")
+    }
+
+    assert len(digests) == 1
 
 
 def test_complete_multistep_plan_escalates_chain_impact() -> None:
