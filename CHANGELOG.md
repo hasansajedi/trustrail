@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-04
+
 ### Added
 
 - OWASP AISVS C9.3.3 and C9.3.4 controls for canonical Ed25519-signed runtime
