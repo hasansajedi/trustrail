@@ -54,6 +54,7 @@ class AegisRailMiddleware:
             await self.app(scope, receive, send)
             return
 
+        downstream_receive = receive
         if self.check_request_body:
             body = await self._read_body(receive)
             text = self._extract_text(body)
@@ -63,12 +64,56 @@ class AegisRailMiddleware:
                     await self._send_blocked(send, self.block_status_code)
                     return
 
+            body_sent = False
+
             async def patched_receive() -> Any:
+                nonlocal body_sent
+                if body_sent:
+                    return {"type": "http.request", "body": b"", "more_body": False}
+                body_sent = True
                 return {"type": "http.request", "body": body, "more_body": False}
 
-            await self.app(scope, patched_receive, send)
-        else:
-            await self.app(scope, receive, send)
+            downstream_receive = patched_receive
+
+        if not self.check_response_body:
+            await self.app(scope, downstream_receive, send)
+            return
+
+        response_start: dict[str, Any] | None = None
+        response_body_messages: list[dict[str, Any]] = []
+
+        async def guarded_send(message: dict[str, Any]) -> None:
+            nonlocal response_start
+            message_type = message.get("type")
+            if message_type == "http.response.start":
+                response_start = message
+                return
+            if message_type != "http.response.body":
+                await send(message)
+                return
+
+            response_body_messages.append(message)
+            if message.get("more_body", False):
+                return
+
+            body = b"".join(item.get("body", b"") for item in response_body_messages)
+            text = self._extract_text(body)
+            if text:
+                result = await self.guard.acheck(text, self.response_stage)
+                if result.is_blocked:
+                    await self._send_blocked(
+                        send,
+                        self.block_status_code,
+                        error="Response blocked by trustrail guardrail",
+                    )
+                    return
+
+            if response_start is not None:
+                await send(response_start)
+            for body_message in response_body_messages:
+                await send(body_message)
+
+        await self.app(scope, downstream_receive, guarded_send)
 
     async def _read_body(self, receive: Callable[..., Any]) -> bytes:
         body = b""
@@ -80,25 +125,44 @@ class AegisRailMiddleware:
         return body
 
     def _extract_text(self, body: bytes) -> str | None:
+        if not body:
+            return None
+        decoded = body.decode("utf-8", errors="ignore")
         try:
             data = json.loads(body)
-            if isinstance(data, dict):
-                return data.get("message") or data.get("text") or data.get("content")
-        except (json.JSONDecodeError, ValueError):
+            if isinstance(data, str):
+                return data
+            return json.dumps(
+                data,
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            )
+        except (UnicodeDecodeError, ValueError):
             pass
-        return body.decode("utf-8", errors="ignore") if body else None
+        return decoded
 
-    async def _send_blocked(self, send: Any, status_code: int) -> None:
+    async def _send_blocked(
+        self,
+        send: Any,
+        status_code: int,
+        *,
+        error: str = "Request blocked by trustrail guardrail",
+    ) -> None:
+        body = json.dumps({"error": error}, separators=(",", ":")).encode()
         await send(
             {
                 "type": "http.response.start",
                 "status": status_code,
-                "headers": [[b"content-type", b"application/json"]],
+                "headers": [
+                    [b"content-type", b"application/json"],
+                    [b"content-length", str(len(body)).encode()],
+                ],
             }
         )
         await send(
             {
                 "type": "http.response.body",
-                "body": b'{"error":"Request blocked by trustrail guardrail"}',
+                "body": body,
             }
         )

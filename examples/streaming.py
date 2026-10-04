@@ -1,11 +1,12 @@
 """Streaming content scanner example."""
 
 import asyncio
+from collections.abc import AsyncIterator
 
 from trustrail import Guard, GuardStage
 
 
-async def simulate_stream():
+async def simulate_stream() -> AsyncIterator[str]:
     """Simulate an LLM response stream."""
     chunks = [
         "Here is some information about Python: ",

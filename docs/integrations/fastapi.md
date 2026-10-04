@@ -6,8 +6,9 @@ python -m pip install "trustrail[fastapi]"
 
 ## Middleware
 
-The ASGI middleware checks text, JSON `message`, `text`, or `content` request
-bodies before the endpoint runs.
+The ASGI middleware checks plain text and every field in JSON request bodies
+before the endpoint runs. Scanning the complete JSON value prevents one safe
+field from shadowing unsafe content in another field.
 
 ```python
 from fastapi import FastAPI
@@ -20,13 +21,16 @@ app.add_middleware(
     AegisRailMiddleware,
     guard=Guard.balanced(),
     check_request_body=True,
+    check_response_body=True,
     block_status_code=400,
 )
 ```
 
 Blocked requests receive `{"error": "Request blocked by trustrail guardrail"}`.
-The current middleware checks request bodies; guard endpoint responses explicitly
-with `aprotect` when response enforcement is required.
+When `check_response_body=True`, the middleware buffers the complete response and
+checks it atomically before sending any content to the client. Leave response
+checking disabled for streaming endpoints and guard their chunks with
+`Guard.stream(...)` instead.
 
 ## Dependency injection
 

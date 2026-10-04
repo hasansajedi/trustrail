@@ -91,6 +91,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- FastAPI middleware now enforces `check_response_body` atomically and scans the
+  complete normalized JSON value, preventing unsafe fields from being hidden by
+  a safe sibling field.
+- Distributions now include the PEP 561 `py.typed` marker, so downstream strict
+  type checkers use Trustrail's inline annotations instead of treating the
+  public API as untyped.
+- Documentation now exposes the content-safety guide in site navigation and
+  pins documentation dependencies to releases without their known advisories.
 - High-impact approval policy digests now sort set-valued policy fields before
   hashing, preventing Python hash randomization from invalidating otherwise
   matching approval grants.

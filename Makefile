@@ -14,7 +14,7 @@ format-check:
 	ruff format --check src/ tests/ examples/
 
 typecheck:
-	mypy src/
+	mypy src/ examples/
 
 test:
 	pytest tests/ -v
