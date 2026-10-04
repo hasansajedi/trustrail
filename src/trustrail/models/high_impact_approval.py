@@ -80,6 +80,21 @@ def _safe_display_text(value: str, field_name: str) -> str:
     return normalized
 
 
+def _canonicalize(value: Any) -> JsonValue:
+    if isinstance(value, BaseModel):
+        return _canonicalize(value.model_dump(mode="python"))
+    if isinstance(value, StrEnum):
+        return value.value
+    if isinstance(value, dict):
+        return {str(key): _canonicalize(item) for key, item in value.items()}
+    if isinstance(value, (set, frozenset)):
+        items = [_canonicalize(item) for item in value]
+        return sorted(items, key=canonical_approval_json)
+    if isinstance(value, (list, tuple)):
+        return [_canonicalize(item) for item in value]
+    return cast(JsonValue, value)
+
+
 class HighImpactLevel(StrEnum):
     """Trusted impact classification assigned by application policy."""
 
@@ -272,7 +287,7 @@ class HighImpactApprovalPolicy(BaseModel):
     @property
     def policy_digest(self) -> str:
         """Return the canonical digest of the complete trusted approval policy."""
-        return _digest(cast(JsonValue, self.model_dump(mode="json")))
+        return _digest(_canonicalize(self))
 
 
 class ApprovalActor(BaseModel):

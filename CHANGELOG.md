@@ -89,6 +89,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   revocation, pending-action cancellation and state quarantine, plus isolated,
   authenticated single-use recovery ([#81](https://github.com/hasansajedi/trustrail/issues/81)).
 
+### Fixed
+
+- High-impact approval policy digests now sort set-valued policy fields before
+  hashing, preventing Python hash randomization from invalidating otherwise
+  matching approval grants.
+
 ## [0.1.2] - 2026-08-31
 
 ### Added
