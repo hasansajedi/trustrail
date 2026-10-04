@@ -94,6 +94,7 @@ nav:
       - LlamaIndex: integrations/llamaindex.md
   - Security:
       - Threat model: security/threat-model.md
+      - Content safety: security/content-safety.md
       - Prompt injection: security/prompt-injection.md
       - Red-team regression: security/red-team-regression.md
       - Sensitive data: security/sensitive-data.md

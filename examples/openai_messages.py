@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from typing import Any
 
 from trustrail import Guard
 from trustrail.integrations.openai import protect_openai_messages
@@ -9,7 +10,7 @@ from trustrail.integrations.openai import protect_openai_messages
 
 async def main() -> None:
     guard = Guard.silent()
-    messages = [
+    messages: list[dict[str, Any]] = [
         {
             "role": "user",
             "content": [
