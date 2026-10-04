@@ -97,6 +97,7 @@ from trustrail.exceptions import (
     ToolAuthorizationError,
     TrainingDataGovernanceError,
     VectorVerificationError,
+    WorkflowIntegrityError,
 )
 from trustrail.failure_containment import (
     DependencyOutcomeVerifier,
@@ -710,6 +711,31 @@ from trustrail.models.vector import (
     VectorVerificationFinding,
     VectorVerificationResult,
 )
+from trustrail.models.workflow_integrity import (
+    EMPTY_CHAIN_DIGEST,
+    AuthorizedWorkflowResume,
+    PendingActionBinding,
+    PendingActionStatus,
+    PendingApprovalBinding,
+    PersistedWorkflowState,
+    PersistentWorkflowCheckpoint,
+    WorkflowBudgetState,
+    WorkflowExecutionEntry,
+    WorkflowExecutionEventKind,
+    WorkflowIntegrityAuditEvent,
+    WorkflowIntegrityCode,
+    WorkflowIntegrityDecision,
+    WorkflowIntegrityFinding,
+    WorkflowIntegrityPhase,
+    WorkflowIntegrityPolicy,
+    WorkflowIntegrityTrustedKey,
+    WorkflowPolicyVersion,
+    WorkflowResumeClaimStatus,
+    WorkflowResumeContext,
+    canonical_workflow_json,
+    workflow_digest,
+    workflow_reference,
+)
 from trustrail.output_handling import SafeOutputHandler, ValidatedToolCall
 from trustrail.poisoning import DataPoisoningVerifier, PoisoningDetector
 from trustrail.privileged_access import (
@@ -771,12 +797,25 @@ from trustrail.training_data import (
     TrainingDataGovernanceVerifier,
 )
 from trustrail.vector import SecureVectorWorkflow
+from trustrail.workflow_integrity import (
+    MemoryWorkflowIntegrityAuditSink,
+    MemoryWorkflowResumeStateStore,
+    MemoryWorkflowRevocationProvider,
+    PersistentWorkflowVerifier,
+    StaticWorkflowResumeAuthorizer,
+    WorkflowCheckpointSigner,
+    WorkflowIntegrityAuditSink,
+    WorkflowResumeAuthorizer,
+    WorkflowResumeStateStore,
+    WorkflowRevocationProvider,
+)
 
 try:
     __version__ = version("trustrail")
 except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 __all__ = [
+    "EMPTY_CHAIN_DIGEST",
     "ActionParameterPolicy",
     "ActionReversibility",
     # Exceptions
@@ -824,6 +863,7 @@ __all__ = [
     "AuthorizedTenantStateAccess",
     "AuthorizedToolCall",
     "AuthorizedVectorHit",
+    "AuthorizedWorkflowResume",
     "BackendAuthorizationDecision",
     "BackendAuthorizationProvider",
     "BiasEvaluationCode",
@@ -1223,6 +1263,9 @@ __all__ = [
     "MemoryTenantIsolationAuditSink",
     "MemoryTenantKeyClaimStore",
     "MemoryTransformationKind",
+    "MemoryWorkflowIntegrityAuditSink",
+    "MemoryWorkflowResumeStateStore",
+    "MemoryWorkflowRevocationProvider",
     "MemoryWriteApproval",
     "MemoryWriteClassification",
     "MemoryWriteRequest",
@@ -1238,6 +1281,12 @@ __all__ = [
     "OutputHandlingFinding",
     "OutputHandlingPolicy",
     "OutputHandlingResult",
+    "PendingActionBinding",
+    "PendingActionStatus",
+    "PendingApprovalBinding",
+    "PersistedWorkflowState",
+    "PersistentWorkflowCheckpoint",
+    "PersistentWorkflowVerifier",
     "PoisoningCode",
     "PoisoningDetector",
     "PoisoningFinding",
@@ -1337,6 +1386,7 @@ __all__ = [
     "StaticSandboxAttestationVerifier",
     "StaticStepUpEvidenceVerifier",
     "StaticToolApprovalVerifier",
+    "StaticWorkflowResumeAuthorizer",
     "StepUpAuthenticationEvidence",
     "StepUpEvidenceVerifier",
     "SystemPromptDataClass",
@@ -1439,6 +1489,25 @@ __all__ = [
     "VectorVerificationFinding",
     "VectorVerificationResult",
     "VerifiedExecutionOutput",
+    "WorkflowBudgetState",
+    "WorkflowCheckpointSigner",
+    "WorkflowExecutionEntry",
+    "WorkflowExecutionEventKind",
+    "WorkflowIntegrityAuditEvent",
+    "WorkflowIntegrityAuditSink",
+    "WorkflowIntegrityCode",
+    "WorkflowIntegrityDecision",
+    "WorkflowIntegrityError",
+    "WorkflowIntegrityFinding",
+    "WorkflowIntegrityPhase",
+    "WorkflowIntegrityPolicy",
+    "WorkflowIntegrityTrustedKey",
+    "WorkflowPolicyVersion",
+    "WorkflowResumeAuthorizer",
+    "WorkflowResumeClaimStatus",
+    "WorkflowResumeContext",
+    "WorkflowResumeStateStore",
+    "WorkflowRevocationProvider",
     # Version
     "__version__",
     "annotation_set_digest",
@@ -1447,6 +1516,7 @@ __all__ = [
     "canonical_data_label_json",
     "canonical_inter_agent_json",
     "canonical_runtime_json",
+    "canonical_workflow_json",
     "credential_digest",
     "credential_reference",
     "data_label_digest",
@@ -1463,4 +1533,6 @@ __all__ = [
     "runtime_reference",
     "tenant_isolation_digest",
     "tenant_isolation_reference",
+    "workflow_digest",
+    "workflow_reference",
 ]

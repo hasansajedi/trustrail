@@ -47,6 +47,7 @@ if TYPE_CHECKING:
         TrainingDataGovernanceResult,
     )
     from trustrail.models.vector import VectorVerificationResult
+    from trustrail.models.workflow_integrity import WorkflowIntegrityDecision
 
 from trustrail.models.enums import GuardStage, Severity
 
@@ -144,6 +145,14 @@ class CredentialBrokerError(AegisRailError):
         decision: CredentialBrokerDecision | CredentialBoundaryDecision,
     ) -> None:
         super().__init__("Credential operation blocked")
+        self.decision = decision
+
+
+class WorkflowIntegrityError(AegisRailError):
+    """Raised when persisted workflow continuity cannot be verified."""
+
+    def __init__(self, decision: WorkflowIntegrityDecision) -> None:
+        super().__init__("Persisted workflow state failed integrity verification")
         self.decision = decision
 
 

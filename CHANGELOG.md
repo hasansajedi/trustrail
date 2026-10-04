@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP AISVS C9.4.2 and C9.4.4 controls for canonical Ed25519-signed agent
+  checkpoints and append-only execution chains that bind identity, goals, plans,
+  budgets, policy revisions, authorization, pending work, prior state, and chain
+  heads; detect insertion, deletion, reordering, rollback, cross-session replay,
+  and partial restoration; and enforce freshness, live authorization,
+  revocation, key rotation, atomic resume claims, and content-free evidence
+  ([#86](https://github.com/hasansajedi/trustrail/issues/86)).
 - OWASP AISVS C9.5.4 and MCP01 controls with opaque credential references,
   exact tenant/tool/resource/operation and authorized-execution binding,
   short-lived single-use capabilities, vault-backed resolution, rotation and
