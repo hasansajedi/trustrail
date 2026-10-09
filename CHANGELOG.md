@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   argument-level call authorization; atomic replay prevention; non-passthrough
   downstream credential brokering; and content-free audit evidence
   ([#88](https://github.com/hasansajedi/trustrail/issues/88)).
+- A source-backed feature catalog, hosted runnable-examples index, and complete
+  examples for MCP OAuth authorization, credential brokering, tenant-isolated
+  state, and exact high-impact approvals.
 
 ## [0.1.3] - 2026-10-04
 
