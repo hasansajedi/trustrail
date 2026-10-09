@@ -313,6 +313,30 @@ disable sensitive HTTP/log/debug capture, restrict network egress, authorize at
 the downstream service, continuously test leak canaries, and rotate on suspected
 exposure. See [model-blind credential brokering](credential-brokering.md).
 
+### MCP OAuth Confused Deputy (OWASP AISVS C10)
+
+- Missing or unsigned bearer tokens accepted based only on header presence
+- Algorithm substitution, attacker-selected keys, forged signatures, stale or
+  future tokens, excessive lifetimes, and replay after first use
+- Wrong or multiple issuers, audiences, or resource indicators allowing one
+  token to cross trust boundaries
+- Client, subject, user, tenant, server, or request claims rebound to another
+  authenticated session
+- Excess scopes or resource identifiers exposing unauthorized tools through
+  `tools/list`, or tool names and resource arguments changed for `tools/call`
+- The MCP server forwarding its caller bearer token to a tool or downstream
+  API and acting as a confused deputy with broader connectivity
+- Per-process replay state allowing reuse across workers, regions, or restarts
+
+JWT verification proves only that a configured issuer signed claims. It does
+not independently authenticate the current connection, prove possession,
+authorize business state, or make a downstream provider trustworthy. Build
+context from authenticated infrastructure, issue short-lived request-bound
+tokens, use shared atomic replay state, prefer sender-constrained credentials,
+perform secure token exchange or workload identity, enforce authorization again
+at downstream services, restrict egress, and retain durable content-free audit.
+See [MCP OAuth authorization](mcp-oauth.md).
+
 ### Unexpected Code Execution (OWASP ASI05:2026)
 
 - Generated code, scripts, commands, templates, or package selections reaching

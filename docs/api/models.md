@@ -87,6 +87,21 @@ a defensive payload copy.
     options:
       members: true
 
+## MCP OAuth authorization
+
+`MCPOAuthResourceServer` validates a strict request-bound JWT access-token
+profile, filters `tools/list`, and enforces exact tool, scope, and argument
+resources for `tools/call`. `MCPOAuthDownstreamBroker` issues exchanged or
+workload-owned credentials without forwarding the caller bearer token.
+
+::: trustrail.models.mcp_oauth
+    options:
+      members: true
+
+::: trustrail.mcp_oauth
+    options:
+      members: true
+
 ## MCP server onboarding
 
 `MCPServerManifest` declares publisher, pinned source and version, exact command,

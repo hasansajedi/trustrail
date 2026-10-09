@@ -29,6 +29,11 @@ if TYPE_CHECKING:
     from trustrail.models.mcp import MCPToolDefinitionResult
     from trustrail.models.mcp_isolation import MCPIsolationResult
     from trustrail.models.mcp_messages import MCPMessageVerificationResult
+    from trustrail.models.mcp_oauth import (
+        MCPOAuthAuditEvent,
+        MCPOAuthAuthorizationResult,
+        MCPOAuthCode,
+    )
     from trustrail.models.mcp_onboarding import MCPServerOnboardingResult
     from trustrail.models.memory import MemoryDecision
     from trustrail.models.output_handling import OutputHandlingResult
@@ -297,6 +302,29 @@ class MCPMessageVerificationError(AegisRailError):
     def __init__(self, result: MCPMessageVerificationResult) -> None:
         super().__init__("MCP message was not verified")
         self.result = result
+
+
+class MCPOAuthAuthorizationError(AegisRailError):
+    """Raised when an OAuth-protected MCP request is not authorized."""
+
+    def __init__(self, result: MCPOAuthAuthorizationResult) -> None:
+        super().__init__("MCP OAuth request was not authorized")
+        self.result = result
+
+
+class MCPOAuthDownstreamCredentialError(AegisRailError):
+    """Raised when safe downstream credential issuance fails."""
+
+    def __init__(
+        self,
+        *,
+        code: MCPOAuthCode,
+        audit_event: MCPOAuthAuditEvent,
+        message: str,
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.audit_event = audit_event
 
 
 class SystemPromptValidationError(AegisRailError):

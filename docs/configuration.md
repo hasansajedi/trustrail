@@ -671,6 +671,39 @@ only names; manifests carry one-way secret-record references and delivery
 declarations. See [MCP server onboarding](security/mcp-server-onboarding.md) for
 the consent, sandbox attestation, and external admission-hook lifecycle.
 
+## MCP OAuth resource-server policy
+
+OAuth authorization is configured separately because its identity and resource
+bindings must come from authenticated transport and identity infrastructure,
+not ordinary guard configuration or model context:
+
+```python
+from trustrail import MCPOAuthPolicy, MCPOAuthToolPolicy
+
+mcp_oauth_policy = MCPOAuthPolicy(
+    issuer="https://identity.example.com",
+    audience="mcp://records-server",
+    resource="https://mcp.example.com/records",
+    server_id="records-server",
+    allowed_scopes=frozenset({"mcp:tools:list", "records:read"}),
+    tool_policies=(
+        MCPOAuthToolPolicy(
+            tool_name="records.search",
+            required_scopes=frozenset({"records:read"}),
+            allowed_resource_ids=frozenset({"project-1"}),
+            resource_argument_pointers=("/project_id",),
+        ),
+    ),
+    max_token_ttl_seconds=300,
+    max_token_age_seconds=300,
+)
+```
+
+Allowlists are non-expanding: extra token scopes, resources, audiences, or
+resource indicators are rejected. See
+[MCP OAuth authorization](security/mcp-oauth.md) for key provisioning, request
+context, replay-store, downstream credential, and residual-risk guidance.
+
 ## Destination-aware output policy
 
 `OutputHandlingPolicy` is separate from `GuardConfig` because it describes where

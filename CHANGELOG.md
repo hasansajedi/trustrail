@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- OWASP AISVS C10 MCP OAuth resource-server controls with pinned Ed25519 access
+  tokens; exact issuer, audience, resource, time, client, subject, user, tenant,
+  server, request, scope, and resource binding; filtered tool discovery;
+  argument-level call authorization; atomic replay prevention; non-passthrough
+  downstream credential brokering; and content-free audit evidence
+  ([#88](https://github.com/hasansajedi/trustrail/issues/88)).
+
 ## [0.1.3] - 2026-10-04
 
 ### Added
