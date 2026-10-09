@@ -67,6 +67,8 @@ nav:
   - Get Started:
       - Installation: installation.md
       - Quick start: quickstart.md
+      - Feature catalog: features.md
+      - Runnable examples: examples.md
       - Core concepts: concepts.md
       - Configuration: configuration.md
       - CLI: cli.md

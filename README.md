@@ -51,18 +51,18 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 ## Installation
 
 ```bash
-pip install "trustrail==0.1.2"
+pip install trustrail
 ```
 
 With optional extras:
 
 ```bash
-pip install "trustrail[openai]==0.1.2"      # OpenAI integration
-pip install "trustrail[fastapi]==0.1.2"     # FastAPI middleware
-pip install "trustrail[redis]==0.1.2"       # Redis state backend
-pip install "trustrail[presidio]==0.1.2"    # Microsoft Presidio NER
-pip install "trustrail[otel]==0.1.2"        # OpenTelemetry tracing
-pip install "trustrail[all]==0.1.2"         # All extras
+pip install "trustrail[openai]"      # OpenAI integration
+pip install "trustrail[fastapi]"     # FastAPI middleware
+pip install "trustrail[redis]"       # Redis state backend
+pip install "trustrail[presidio]"    # Microsoft Presidio NER
+pip install "trustrail[otel]"        # OpenTelemetry tracing
+pip install "trustrail[all]"         # All extras
 ```
 
 ## Quick Start
@@ -180,6 +180,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 ## Documentation
 
+- [Complete feature and control catalog](docs/features.md)
 - [Runnable examples](examples/README.md)
 - [Installation](docs/installation.md)
 - [Quick Start](docs/quickstart.md)
@@ -192,6 +193,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 - [Agent Goal Integrity](docs/security/agent-goal-integrity.md)
 - [MCP Tool-Definition Integrity](docs/security/mcp-tool-integrity.md)
 - [MCP Message Integrity](docs/security/mcp-message-integrity.md)
+- [MCP OAuth Resource-Server Authorization](docs/security/mcp-oauth.md)
 - [MCP Server Onboarding](docs/security/mcp-server-onboarding.md)
 - [MCP Server Isolation](docs/security/mcp-server-isolation.md)
 - [Model-Blind Credential Brokering](docs/security/credential-brokering.md)

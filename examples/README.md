@@ -40,6 +40,7 @@ tools.
 | Verify AI components | [`supply_chain.py`](supply_chain.py) | Approved provenance and digest pinning before use |
 | Ground factual output | [`evidence_grounding.py`](evidence_grounding.py) | Claims, citations, trusted evidence, and assessor confidence |
 | Protect system prompts | [`system_prompt_security.py`](system_prompt_security.py) | Classified prompt construction and output leakage detection |
+| Isolate tenant state | [`tenant_isolation.py`](tenant_isolation.py) | Signed tenant context, collision-safe state keys, exact write/read binding, and content-free audit |
 
 ## Agents and operational controls
 
@@ -50,6 +51,8 @@ tools.
 | Delegate an agent identity | [`delegated_identity.py`](delegated_identity.py) | Short-lived identity chains with scope, audience, purpose, tenant, and depth narrowing |
 | Authorize a tool | [`tool_authorization.py`](tool_authorization.py) | Capability, identity, intent, ownership, and execution budget |
 | Verify tool semantics | [`semantic_tool_authorization.py`](semantic_tool_authorization.py) | Trusted argument bindings, effects, resources, and execution postconditions |
+| Broker a model-blind credential | [`credential_brokering.py`](credential_brokering.py) | Opaque references, execution-bound single-use capabilities, trusted resolution, replay blocking, and leak scanning |
+| Approve a high-impact plan | [`high_impact_approval.py`](high_impact_approval.py) | Complete canonical preview, exact reviewer grant, immutable execution snapshot, and content-free audit |
 | Isolate generated code | [`isolated_code_execution.py`](isolated_code_execution.py) | Attested sandbox admission, bounded privileges, and verified output and cleanup |
 | Contain dependency failures | [`cascading_failures.py`](cascading_failures.py) | Tenant-isolated circuits, trusted fallbacks, and authenticated outcomes |
 | Bound model resources | [`resource_budget.py`](resource_budget.py) | Reservation, completion, and failure cleanup |
@@ -64,6 +67,19 @@ tools.
 | Need | Runnable example | What it demonstrates |
 | --- | --- | --- |
 | Run external safety checks | [`async_providers.py`](async_providers.py) | Awaited moderation and RAG grounding with per-provider deadlines and fail modes |
+
+## MCP security
+
+| Need | Runnable example | What it demonstrates |
+| --- | --- | --- |
+| Authorize MCP discovery and calls | [`mcp_oauth.py`](mcp_oauth.py) | Pinned request-bound tokens, filtered `tools/list`, exact tool/resource checks, replay protection, workload credentials, and safe audit |
+
+MCP OAuth is one layer of the complete MCP security stack. Combine it with
+[tool-definition integrity](../docs/security/mcp-tool-integrity.md),
+[server onboarding](../docs/security/mcp-server-onboarding.md),
+[message integrity](../docs/security/mcp-message-integrity.md), and
+[server isolation](../docs/security/mcp-server-isolation.md) as required by your
+deployment boundaries.
 
 [`openai_messages.py`](openai_messages.py) runs without an API key or network
 call and demonstrates preserving multipart content and tool-call fields. Install
