@@ -1,0 +1,68 @@
+[
+  {
+    "id": "wrong_issuer",
+    "claim": "iss",
+    "value": "https://attacker.example",
+    "expected_code": "issuer_mismatch"
+  },
+  {
+    "id": "multi_audience_confused_deputy",
+    "claim": "aud",
+    "value": ["mcp://secure-server", "https://admin.example"],
+    "expected_code": "audience_mismatch"
+  },
+  {
+    "id": "wrong_resource_indicator",
+    "claim": "resource",
+    "value": "https://admin.example",
+    "expected_code": "resource_mismatch"
+  },
+  {
+    "id": "cross_client",
+    "claim": "client_id",
+    "value": "attacker-client",
+    "expected_code": "client_mismatch"
+  },
+  {
+    "id": "cross_subject",
+    "claim": "sub",
+    "value": "admin-subject",
+    "expected_code": "subject_mismatch"
+  },
+  {
+    "id": "cross_user",
+    "claim": "user_id",
+    "value": "admin-user",
+    "expected_code": "user_mismatch"
+  },
+  {
+    "id": "cross_tenant",
+    "claim": "tenant_id",
+    "value": "tenant-admin",
+    "expected_code": "tenant_mismatch"
+  },
+  {
+    "id": "cross_server",
+    "claim": "mcp_server_id",
+    "value": "admin-server",
+    "expected_code": "server_mismatch"
+  },
+  {
+    "id": "cross_request_replay",
+    "claim": "mcp_request_id",
+    "value": "other-request",
+    "expected_code": "request_mismatch"
+  },
+  {
+    "id": "scope_expansion",
+    "claim": "scope",
+    "value": "files:read admin:*",
+    "expected_code": "scope_excessive"
+  },
+  {
+    "id": "resource_expansion",
+    "claim": "resource_ids",
+    "value": ["folder-7", "root-folder"],
+    "expected_code": "resource_excessive"
+  }
+]

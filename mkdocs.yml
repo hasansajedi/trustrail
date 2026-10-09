@@ -115,6 +115,7 @@ nav:
       - Semantic tool authorization: security/tool-misuse.md
       - MCP tool-definition integrity: security/mcp-tool-integrity.md
       - MCP message integrity: security/mcp-message-integrity.md
+      - MCP OAuth authorization: security/mcp-oauth.md
       - MCP server onboarding: security/mcp-server-onboarding.md
       - MCP server isolation: security/mcp-server-isolation.md
       - Delegated agent identity: security/delegated-agent-identity.md
