@@ -1,0 +1,57 @@
+[
+  {
+    "name": "duplicate-key-last-wins",
+    "payload": "{\"name\":\"first\",\"name\":\"second\",\"count\":1,\"tags\":[]}",
+    "expected_code": "duplicate_key"
+  },
+  {
+    "name": "javascript-nan-extension",
+    "payload": "{\"name\":\"x\",\"count\":NaN,\"tags\":[]}",
+    "expected_code": "non_finite_number"
+  },
+  {
+    "name": "overflowing-json-exponent",
+    "payload": "{\"name\":\"x\",\"count\":1e999,\"tags\":[]}",
+    "expected_code": "non_finite_number"
+  },
+  {
+    "name": "trailing-second-value",
+    "payload": "{\"name\":\"x\",\"count\":1,\"tags\":[]} {\"admin\":true}",
+    "expected_code": "trailing_data"
+  },
+  {
+    "name": "undeclared-authorization-field",
+    "payload": "{\"name\":\"x\",\"count\":1,\"tags\":[],\"approved\":true}",
+    "expected_code": "undeclared_field"
+  },
+  {
+    "name": "numeric-string-coercion",
+    "payload": "{\"name\":\"x\",\"count\":\"1\",\"tags\":[]}",
+    "expected_code": "implicit_coercion"
+  },
+  {
+    "name": "array-over-schema-bound",
+    "payload": "{\"name\":\"x\",\"count\":1,\"tags\":[\"a\",\"b\",\"c\"]}",
+    "expected_code": "structure_limit_exceeded"
+  },
+  {
+    "name": "utf8-byte-order-mark",
+    "payload": "﻿{\"name\":\"x\",\"count\":1,\"tags\":[]}",
+    "expected_code": "ambiguous_encoding"
+  },
+  {
+    "name": "non-normalized-unicode",
+    "payload": "{\"name\":\"é\",\"count\":1,\"tags\":[]}",
+    "expected_code": "ambiguous_encoding"
+  },
+  {
+    "name": "escaped-control-character",
+    "payload": "{\"name\":\"bad\\u0000value\",\"count\":1,\"tags\":[]}",
+    "expected_code": "ambiguous_encoding"
+  },
+  {
+    "name": "escaped-unpaired-surrogate",
+    "payload": "{\"name\":\"bad\\ud800value\",\"count\":1,\"tags\":[]}",
+    "expected_code": "ambiguous_encoding"
+  }
+]

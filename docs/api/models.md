@@ -217,6 +217,29 @@ results and findings do not retain the model output.
     options:
       members: true
 
+## Strict structured output
+
+`StructuredOutputContract` combines an application-owned schema identity,
+strict Pydantic model, allowed downstream uses, and parser limits.
+`StructuredOutputValidator` validates a complete value and requires an exact
+`StructuredOutputBinding` before releasing a defensive copy to a boundary.
+
+::: trustrail.models.structured_output
+    options:
+      members: true
+
+::: trustrail.structured_output.StructuredOutputValidator
+    options:
+      members: true
+
+::: trustrail.structured_output.StructuredOutputRepairSession
+    options:
+      members: true
+
+::: trustrail.structured_output.MemoryStructuredOutputAuditSink
+    options:
+      members: true
+
 ## Structured RAG context
 
 `RAGContextEnvelope.from_documents()` preserves source and trust labels through

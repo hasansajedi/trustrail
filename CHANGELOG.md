@@ -5,6 +5,17 @@ All notable changes to trustrail will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- OWASP AISVS C7 strict structured-output contracts with closed objects,
+  bounded arrays, discriminated unions, coercion-free parsing, ambiguous JSON
+  and Unicode rejection, exact schema/object/context bindings for downstream
+  use, bounded full-response repair, content-free audit evidence, and an
+  adversarial security corpus
+  ([#99](https://github.com/hasansajedi/trustrail/issues/99)).
+
 ## [0.1.4] - 2026-10-10
 
 ### Added

@@ -92,6 +92,21 @@ not compliance or certification evidence. See
 [step-up authentication and JIT AI privileges](security/privileged-ai-access.md) for
 configuration, assumptions, and residual risks.
 
+## OWASP AISVS C7 model behavior and output format enforcement
+
+| AISVS C7 objective | trustrail controls | Additional controls required |
+| --- | --- | --- |
+| **Application-owned output schemas** | `StructuredOutputContract` pins a stable schema ID and version to a Pydantic model, policy, and explicit downstream uses; contract construction rejects open objects, unbounded arrays, and ambiguous non-null unions | Schema ownership and review, semantic field constraints, coordinated producer/consumer versioning, and tests for every deployed provider/model remain required |
+| **Strict complete-response validation** | `StructuredOutputValidator` accepts one complete JSON value or typed model; rejects invalid UTF-8, BOMs, non-NFC/surrogate/control text, duplicate keys, non-finite or oversized numbers, trailing data, excessive depth/nodes/collections, undeclared fields, implicit coercion, and parser/schema disagreement | Gateway request limits, CPU/memory/time isolation, content-safety checks, factual verification, and application-specific semantic validation remain required |
+| **Bind validation to later use** | Canonical schema and object digests are bound to an explicit authorization, approval, display, persistence, rendering, or execution use plus a one-way application-context reference; authorization reparses the canonical value and detects identity, context, object, or nested-value substitution before releasing a defensive copy | Authenticated principals and approvals, service-side authorization, tenant isolation, signatures where crossing trust boundaries, replay prevention, durable protected state, and destination-specific encoding/sandboxing remain required |
+| **Bounded repair without partial use** | `StructuredOutputRepairSession` accepts only complete replacements, enforces the configured attempt ceiling, closes after success or exhaustion, and never returns invalid partial values; decisions and audit events omit response content | Provider budgets/timeouts, safe prompts that do not echo secrets, application monitoring, and refusal/fallback behavior after exhaustion remain required |
+
+This is an engineering mapping to
+[OWASP AISVS C7 Model Behavior](https://github.com/OWASP/AISVS/blob/main/1.0/en/0x10-C07-Model-Behavior.md)
+and the OWASP AI Agent Security Cheat Sheet output-validation guidance; it is
+not certification. See [strict structured model output](security/structured-output.md)
+for configuration, assumptions, limitations, and residual risk.
+
 ## OWASP AISVS C9 orchestration and agentic action
 
 | AISVS C9 objective | trustrail controls | Additional controls required |

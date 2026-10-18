@@ -733,6 +733,49 @@ output_handler = SafeOutputHandler(
 Empty URL allowlists and missing path roots fail closed. Enabling `allow_code_for_review`
 returns `REQUIRE_APPROVAL`; it does not enable code execution.
 
+### Strict structured-output policy
+
+Use `StructuredOutputPolicy` for complete JSON responses and tool plans that
+cross display, persistence, approval, authorization, rendering, or execution
+boundaries:
+
+```python
+from trustrail import (
+    StructuredOutputContract,
+    StructuredOutputPolicy,
+    StructuredOutputUse,
+    StructuredOutputValidator,
+)
+
+structured_output = StructuredOutputValidator(
+    StructuredOutputContract(
+        schema_id="support.plan",
+        schema_version="1",
+        model=SupportPlan,
+        allowed_uses=frozenset(
+            {StructuredOutputUse.APPROVAL, StructuredOutputUse.EXECUTION}
+        ),
+        policy=StructuredOutputPolicy(
+            max_input_bytes=250_000,
+            max_input_chars=250_000,
+            max_depth=16,
+            max_nodes=5_000,
+            max_array_items=100,
+            max_object_properties=100,
+            max_number_chars=64,
+            max_repair_attempts=2,
+        ),
+    )
+)
+```
+
+Every model and nested model must set `ConfigDict(extra="forbid")`; every array
+must use `Field(max_length=...)`; and every non-null union must have a
+discriminator backed by literal tags. A schema array bound cannot exceed the
+contract's `max_array_items` limit. See [strict structured model
+output](security/structured-output.md) for the validation/binding workflow and
+residual risks.
+
 ## AI artifact verification policy
 
 Supply-chain verification is configured separately from text guardrails because
