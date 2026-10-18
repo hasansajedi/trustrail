@@ -200,6 +200,34 @@ authenticated state, use a shared atomic replay store across workers, synchroniz
 clocks, rate-limit verification, and completely mediate requests and responses.
 See [MCP message integrity](mcp-message-integrity.md).
 
+### Sensitive Data Flow Laundering (OWASP MCP10)
+
+- Sensitive prompt, retrieval, or user data losing its label in model output,
+  structured extraction, memory, tool arguments or results, agent messages, or
+  streaming fragments
+- Encoding, decoding, chunking, summarization, aggregation, or indirect
+  references being treated as declassification
+- A multi-hop agent or tool chain truncating or substituting immediate or
+  transitive lineage before disclosure
+- Purpose, tenant, user, sensitivity, sink category, or concrete sink identity
+  expanding after a transformation
+- Data intended for one model, file, message route, tenant, or MCP server being
+  redirected to another destination
+- Forged, copied, modified, expired, or over-broad declassification evidence
+  being used to lower sensitivity or expand allowed sinks
+- Raw content, origins, users, tenants, or destinations leaking through denial
+  evidence and audit events
+
+Signed labels prove that a trusted authority issued unchanged metadata; they do
+not prove that the initial classification is correct, that a transformation is
+semantically safe, or that every runtime path is mediated. Keep classification
+and declassification authorities outside the agent, route every provider,
+network, message, file, log, memory, tool, and MCP boundary through the guard,
+retain exact source labels in a durable lineage catalog, and combine the control
+with DLP, encryption, service authorization, process isolation, and network
+egress enforcement. See
+[sensitive-data flow across agents and tools](sensitive-data-flow.md).
+
 ### MCP Multi-Server Isolation and Cross-Origin Attacks
 
 - One server declaring, shadowing, or using a confusable version of another

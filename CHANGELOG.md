@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP MCP10 sensitive-data flow controls with Ed25519-signed origin, tenant,
+  user, purpose, sensitivity, sink, transformation, and transitive lineage
+  labels; conservative propagation across model, retrieval, memory, tool, agent,
+  stream, and MCP boundaries; laundering-resistant sink enforcement;
+  independently signed declassification; content-free evidence; and an
+  adversarial security corpus
+  ([#94](https://github.com/hasansajedi/trustrail/issues/94)).
 - OWASP AISVS C7 citation-integrity controls with stable source, chunk, claim,
   retrieval, and transformation evidence; Ed25519 attributions bound to the
   exact response and source snapshot; provider-neutral support and contradiction

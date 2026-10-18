@@ -42,6 +42,7 @@ if TYPE_CHECKING:
     from trustrail.models.privileged_access import PrivilegedAccessDecision
     from trustrail.models.resource import DecompressionResult, ResourceBudgetResult
     from trustrail.models.rogue_agent import RogueAgentResult
+    from trustrail.models.sensitive_data_flow import SensitiveDataFlowDecision
     from trustrail.models.structured_output import StructuredOutputDecision
     from trustrail.models.supply_chain import ArtifactVerificationResult
     from trustrail.models.system_prompt import (
@@ -142,6 +143,14 @@ class DataLabelError(AegisRailError):
 
     def __init__(self, result: DataLabelDecision) -> None:
         super().__init__("Data classification label did not authorize the operation")
+        self.result = result
+
+
+class SensitiveDataFlowError(AegisRailError):
+    """Raised when sensitive-data propagation or sink authorization is denied."""
+
+    def __init__(self, result: SensitiveDataFlowDecision) -> None:
+        super().__init__("Sensitive-data flow did not authorize the operation")
         self.result = result
 
 
