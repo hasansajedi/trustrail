@@ -21,6 +21,7 @@ each example.
 2. [`configuration_and_audit.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/configuration_and_audit.py)
 3. [`conversation.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/conversation.py)
 4. [`output_handling.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/output_handling.py)
+5. [`structured_output.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/structured_output.py)
 
 ### RAG and persistent data
 

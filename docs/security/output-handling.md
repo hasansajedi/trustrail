@@ -101,6 +101,12 @@ assert call.requires_approval
 (when the schema forbids them), duplicate keys, non-finite numbers, excessive
 nesting, and excessive node counts fail closed.
 
+For complete JSON responses and tool plans that will be displayed, persisted,
+approved, authorized, rendered, or executed, use the
+[strict structured-output lifecycle](structured-output.md). It additionally
+requires closed and bounded schemas, rejects parser/schema disagreement, and
+binds the exact object and schema digests to each downstream operation.
+
 ## Output safety rules (OS-001 – OS-013)
 
 All output safety rules scan the complete guard-bounded value, emit

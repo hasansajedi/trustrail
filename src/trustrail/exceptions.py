@@ -41,6 +41,7 @@ if TYPE_CHECKING:
     from trustrail.models.privileged_access import PrivilegedAccessDecision
     from trustrail.models.resource import DecompressionResult, ResourceBudgetResult
     from trustrail.models.rogue_agent import RogueAgentResult
+    from trustrail.models.structured_output import StructuredOutputDecision
     from trustrail.models.supply_chain import ArtifactVerificationResult
     from trustrail.models.system_prompt import (
         SystemPromptLeakageResult,
@@ -254,6 +255,14 @@ class OutputHandlingError(AegisRailError):
     def __init__(self, result: OutputHandlingResult) -> None:
         super().__init__("Model output is unsafe for the requested destination")
         self.result = result
+
+
+class StructuredOutputError(AegisRailError):
+    """Raised without retaining invalid or partially parsed model output."""
+
+    def __init__(self, decision: StructuredOutputDecision) -> None:
+        super().__init__("Structured model output was not authorized for use")
+        self.decision = decision
 
 
 class ToolAuthorizationError(AegisRailError):

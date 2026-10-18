@@ -101,6 +101,7 @@ nav:
       - Red-team regression: security/red-team-regression.md
       - Sensitive data: security/sensitive-data.md
       - Output handling: security/output-handling.md
+      - Strict structured output: security/structured-output.md
       - RAG security: security/rag-security.md
       - Persistent memory: security/memory-security.md
       - Data and model poisoning: security/data-model-poisoning.md
