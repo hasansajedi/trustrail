@@ -48,6 +48,14 @@ response = await model.generate(question, context=safe_context)
 safe_response = guard.protect(response, GuardStage.FINAL_OUTPUT)
 ```
 
+Do not display model-authored citation text as provenance. Build source, chunk,
+retrieval, and optional transformation evidence from application-owned metadata,
+issue citations in the trusted retrieval service, and call
+`CitationIntegrityVerifier.release()` before display. The verifier binds each
+citation to the exact response and source snapshot and checks independent
+claim-to-chunk support, contradiction, freshness, and accessibility. See
+[citation and claim integrity](../security/citation-integrity.md).
+
 The rendered JSON keeps each document in a `content` field and carries its
 application-assigned `document_id`, `source`, `source_url`, `trust_level`, and
 integrity digest. JSON encoding prevents retrieved text from closing a delimiter

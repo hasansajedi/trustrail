@@ -354,3 +354,23 @@ downstream provenance signals before output delivery.
 ::: trustrail.grounding.EvidenceGroundingVerifier
     options:
       members: true
+
+## Citation integrity
+
+Citation-integrity models represent exact source snapshots, retrieved chunks,
+authorized retrieval events, transformations, material claims, provider-neutral
+support assessments, signed attributions, policies, and redacted results.
+`CitationIssuer` derives citations from that metadata; `CitationIntegrityVerifier`
+authenticates the complete chain before response release.
+
+::: trustrail.models.citation_integrity
+    options:
+      members: true
+
+::: trustrail.citation_integrity.CitationIssuer
+    options:
+      members: true
+
+::: trustrail.citation_integrity.CitationIntegrityVerifier
+    options:
+      members: true

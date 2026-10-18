@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from trustrail.models.agency import ToolAuthorizationResult
+    from trustrail.models.citation_integrity import CitationIntegrityResult
     from trustrail.models.code_execution import (
         CodeExecutionDecision,
         CodeExecutionOutcome,
@@ -176,6 +177,14 @@ class GroundingVerificationError(AegisRailError):
 
     def __init__(self, result: GroundingResult) -> None:
         super().__init__("Generated claims failed grounding verification")
+        self.result = result
+
+
+class CitationIntegrityError(AegisRailError):
+    """Raised when response attribution cannot cross the release boundary."""
+
+    def __init__(self, result: CitationIntegrityResult) -> None:
+        super().__init__("Response citation integrity verification failed")
         self.result = result
 
 
