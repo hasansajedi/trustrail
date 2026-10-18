@@ -96,6 +96,9 @@ configuration, assumptions, and residual risks.
 
 | AISVS C7 objective | trustrail controls | Additional controls required |
 | --- | --- | --- |
+| **Evidence-derived attribution** | `CitationSource`, `CitationChunk`, `CitationRetrieval`, and `CitationTransformation` preserve stable identities and domain-separated content/metadata digests; `CitationIssuer` accepts only a claim present in the response and a chunk present in both the captured source snapshot and authorized retrieval event | Publisher authentication, protected immutable snapshot storage, authenticated retrieval authorization, source-quality governance, and complete material-claim extraction remain required |
+| **Bind claims and citations to exact evidence** | `VerifiedCitation` is Ed25519-signed over the exact response, claim, source URI and snapshot, retrieved chunk, retrieval event, and optional transformation lineage; `CitationIntegrityVerifier` authenticates the issuer and rejects response replay, lookalike source, chunk, retrieval, transformation, and assessment substitution | Protected issuer keys, authenticated key distribution and revocation, independently secured retrieval services, key compromise response, and durable audit remain required |
+| **Verify support and enforce impact policy** | `ClaimEvidenceAssessment` is provider-neutral and digest-bound to one exact claim/chunk pair; configurable thresholds detect missing, unsupported, contradicted, stale, or inaccessible evidence; failures block high-impact output by default or explicitly downgrade it without weak citations; blocked diagnostics expose only codes and hashed references | Domain/model/language-specific assessor evaluation and calibration, reliable current-access checks, qualified review and appeals for consequential decisions, semantic omission/framing tests, and monitoring remain required |
 | **Application-owned output schemas** | `StructuredOutputContract` pins a stable schema ID and version to a Pydantic model, policy, and explicit downstream uses; contract construction rejects open objects, unbounded arrays, and ambiguous non-null unions | Schema ownership and review, semantic field constraints, coordinated producer/consumer versioning, and tests for every deployed provider/model remain required |
 | **Strict complete-response validation** | `StructuredOutputValidator` accepts one complete JSON value or typed model; rejects invalid UTF-8, BOMs, non-NFC/surrogate/control text, duplicate keys, non-finite or oversized numbers, trailing data, excessive depth/nodes/collections, undeclared fields, implicit coercion, and parser/schema disagreement | Gateway request limits, CPU/memory/time isolation, content-safety checks, factual verification, and application-specific semantic validation remain required |
 | **Bind validation to later use** | Canonical schema and object digests are bound to an explicit authorization, approval, display, persistence, rendering, or execution use plus a one-way application-context reference; authorization reparses the canonical value and detects identity, context, object, or nested-value substitution before releasing a defensive copy | Authenticated principals and approvals, service-side authorization, tenant isolation, signatures where crossing trust boundaries, replay prevention, durable protected state, and destination-specific encoding/sandboxing remain required |
@@ -104,8 +107,9 @@ configuration, assumptions, and residual risks.
 This is an engineering mapping to
 [OWASP AISVS C7 Model Behavior](https://github.com/OWASP/AISVS/blob/main/1.0/en/0x10-C07-Model-Behavior.md)
 and the OWASP AI Agent Security Cheat Sheet output-validation guidance; it is
-not certification. See [strict structured model output](security/structured-output.md)
-for configuration, assumptions, limitations, and residual risk.
+not certification. See [citation and claim integrity](security/citation-integrity.md)
+and [strict structured model output](security/structured-output.md) for
+configuration, assumptions, limitations, and residual risk.
 
 ## OWASP AISVS C9 orchestration and agentic action
 

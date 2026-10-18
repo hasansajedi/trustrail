@@ -36,6 +36,7 @@ tools.
 | Need | Runnable example | What it demonstrates |
 | --- | --- | --- |
 | Protect retrieved documents | [`rag_example.py`](rag_example.py) | Document scanning and a provenance-labeled RAG envelope |
+| Bind citations to retrieved evidence | [`citation_integrity.py`](citation_integrity.py) | Authority-signed response/source/chunk/retrieval bindings and independent claim support |
 | Secure vector retrieval | [`secure_vector_workflow.py`](secure_vector_workflow.py) | Authorization, lineage, similarity, and context assembly |
 | Verify data before indexing | [`data_poisoning.py`](data_poisoning.py) | Source, writer, tenant, version, and content checks |
 | Verify AI components | [`supply_chain.py`](supply_chain.py) | Approved provenance and digest pinning before use |

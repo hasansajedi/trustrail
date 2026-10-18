@@ -26,6 +26,7 @@ each example.
 ### RAG and persistent data
 
 - [`rag_example.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/rag_example.py)
+- [`citation_integrity.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/citation_integrity.py)
 - [`secure_vector_workflow.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/secure_vector_workflow.py)
 - [`data_poisoning.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/data_poisoning.py)
 - [`persistent_memory.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/persistent_memory.py)

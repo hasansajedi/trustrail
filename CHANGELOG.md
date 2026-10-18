@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP AISVS C7 citation-integrity controls with stable source, chunk, claim,
+  retrieval, and transformation evidence; Ed25519 attributions bound to the
+  exact response and source snapshot; provider-neutral support and contradiction
+  thresholds; impact-aware stale/inaccessible/unsupported evidence handling;
+  redacted diagnostics; and an adversarial regression corpus
+  ([#96](https://github.com/hasansajedi/trustrail/issues/96)).
 - OWASP AISVS C7 strict structured-output contracts with closed objects,
   bounded arrays, discriminated unions, coercion-free parsing, ambiguous JSON
   and Unicode rejection, exact schema/object/context bindings for downstream

@@ -1,0 +1,44 @@
+[
+  {
+    "name": "valid authority-issued citation",
+    "mutation": "none",
+    "expected_action": "allow",
+    "expected_code": null
+  },
+  {
+    "name": "model invents an unsigned citation",
+    "mutation": "unsigned",
+    "expected_action": "block",
+    "expected_code": "citation_signature_invalid"
+  },
+  {
+    "name": "citation copied to a different response",
+    "mutation": "response-replay",
+    "expected_action": "block",
+    "expected_code": "response_binding_mismatch"
+  },
+  {
+    "name": "signed source URI is changed to a lookalike",
+    "mutation": "source-lookalike",
+    "expected_action": "block",
+    "expected_code": "citation_signature_invalid"
+  },
+  {
+    "name": "support assessment swaps the evidence chunk",
+    "mutation": "assessment-rebind",
+    "expected_action": "block",
+    "expected_code": "assessment_binding_mismatch"
+  },
+  {
+    "name": "high-impact claim cites stale retrieval evidence",
+    "mutation": "stale-high-impact",
+    "expected_action": "block",
+    "expected_code": "stale_evidence"
+  },
+  {
+    "name": "high-impact claim cites inaccessible evidence",
+    "mutation": "inaccessible-high-impact",
+    "expected_action": "block",
+    "expected_code": "inaccessible_evidence"
+  }
+]

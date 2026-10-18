@@ -29,6 +29,12 @@ result = Guard.strict().check_document(document)
    labels cannot be discarded or confused with instructions.
 7. Validate citations and final output before display.
 
+For step 7, use `CitationIssuer` in the trusted retrieval service and
+`CitationIntegrityVerifier` at the response release boundary. This prevents
+model-invented attributions and response/chunk/source substitution while applying
+claim-support, contradiction, freshness, and source-access thresholds. See
+[citation and claim integrity](citation-integrity.md).
+
 Trust metadata supports policy decisions but must not disable scanning. Re-check
 documents when rules change, a source loses trust, or the index is rebuilt.
 

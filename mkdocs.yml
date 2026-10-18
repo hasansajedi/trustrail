@@ -103,6 +103,7 @@ nav:
       - Output handling: security/output-handling.md
       - Strict structured output: security/structured-output.md
       - RAG security: security/rag-security.md
+      - Citation and claim integrity: security/citation-integrity.md
       - Persistent memory: security/memory-security.md
       - Data and model poisoning: security/data-model-poisoning.md
       - Training-data governance: security/training-data-governance.md
