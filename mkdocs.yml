@@ -109,6 +109,7 @@ nav:
       - Training-data governance: security/training-data-governance.md
       - GenAI data lifecycle: security/data-lifecycle.md
       - Data-label propagation: security/data-label-propagation.md
+      - Sensitive-data flow: security/sensitive-data-flow.md
       - Multi-tenant AI state isolation: security/multi-tenant-isolation.md
       - Step-up and JIT AI privileges: security/privileged-ai-access.md
       - Model-blind credential brokering: security/credential-brokering.md

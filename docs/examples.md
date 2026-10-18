@@ -32,6 +32,7 @@ each example.
 - [`persistent_memory.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/persistent_memory.py)
 - [`memory_taint.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/memory_taint.py)
 - [`tenant_isolation.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/tenant_isolation.py)
+- [`sensitive_data_flow.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/sensitive_data_flow.py)
 
 ### Agents, tools, and high-impact actions
 

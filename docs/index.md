@@ -44,6 +44,8 @@ and operational controls for agents, tools, RAG, persistent state, and MCP.
 
 - persistent-memory approval, provenance, taint, revalidation, and rebuild;
 - signed data labels and downgrade-resistant propagation;
+- signed sensitive-data flow through model, memory, agent, tool, stream, and MCP
+  boundaries with authenticated declassification;
 - purpose, residency, retention, consent, derivation, tombstone, and verified
   deletion lifecycle controls;
 - tenant-bound cache, memory, adapter, state, and inference-batch isolation;

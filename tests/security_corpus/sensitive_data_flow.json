@@ -1,0 +1,13 @@
+[
+  {"id": "missing-label", "mutation": "missing", "expected_code": "label_missing"},
+  {"id": "forged-label", "mutation": "signature", "expected_code": "label_signature_invalid"},
+  {"id": "encoded-content-swap", "mutation": "content", "expected_code": "content_binding_invalid"},
+  {"id": "cross-tenant-hop", "mutation": "tenant", "expected_code": "tenant_conflict"},
+  {"id": "cross-user-hop", "mutation": "user", "expected_code": "user_conflict"},
+  {"id": "purpose-laundering", "mutation": "purpose", "expected_code": "purpose_denied"},
+  {"id": "network-sink-substitution", "mutation": "sink", "expected_code": "sink_denied"},
+  {"id": "lineage-omission", "mutation": "lineage_missing", "expected_code": "lineage_missing"},
+  {"id": "lineage-substitution", "mutation": "lineage_swap", "expected_code": "lineage_mismatch"},
+  {"id": "classification-downgrade", "mutation": "downgrade", "expected_code": "label_signature_invalid"},
+  {"id": "ancestor-chain-truncation", "mutation": "ancestor", "expected_code": "label_signature_invalid"}
+]

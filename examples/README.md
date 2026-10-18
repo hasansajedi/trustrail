@@ -43,6 +43,7 @@ tools.
 | Ground factual output | [`evidence_grounding.py`](evidence_grounding.py) | Claims, citations, trusted evidence, and assessor confidence |
 | Protect system prompts | [`system_prompt_security.py`](system_prompt_security.py) | Classified prompt construction and output leakage detection |
 | Isolate tenant state | [`tenant_isolation.py`](tenant_isolation.py) | Signed tenant context, collision-safe state keys, exact write/read binding, and content-free audit |
+| Track sensitive data across agents and tools | [`sensitive_data_flow.py`](sensitive_data_flow.py) | Signed origin, user, purpose, sink, transformation, and lineage policy through model and MCP boundaries |
 
 ## Agents and operational controls
 
