@@ -76,9 +76,11 @@ tools.
 | Need | Runnable example | What it demonstrates |
 | --- | --- | --- |
 | Authorize MCP discovery and calls | [`mcp_oauth.py`](mcp_oauth.py) | Pinned request-bound tokens, filtered `tools/list`, exact tool/resource checks, replay protection, workload credentials, and safe audit |
+| Pin MCP context primitives | [`mcp_primitives.py`](mcp_primitives.py) | Signed resource, prompt, subscription, and completion definitions with live content, origin, scope, schema, size, MIME, and injection validation |
 
 MCP OAuth is one layer of the complete MCP security stack. Combine it with
 [tool-definition integrity](../docs/security/mcp-tool-integrity.md),
+[resource and prompt integrity](../docs/security/mcp-primitive-integrity.md),
 [server onboarding](../docs/security/mcp-server-onboarding.md),
 [message integrity](../docs/security/mcp-message-integrity.md), and
 [server isolation](../docs/security/mcp-server-isolation.md) as required by your

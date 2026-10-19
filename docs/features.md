@@ -67,6 +67,7 @@ fields.
 | Capability | Primary public API | What is enforced | Guide / example |
 | --- | --- | --- | --- |
 | Tool-definition integrity | `MCPToolDefinitionGuard` | Full schema scanning, canonical digest, confusable/shadow tool detection, discovery pinning, and mutation consent | [Guide](security/mcp-tool-integrity.md) |
+| Resource and prompt integrity | `MCPPrimitiveGuard` | Canonical signed resources, templates, prompts, subscriptions, and completion contracts plus live origin, authorization, schema, size, media, and injection checks | [Guide](security/mcp-primitive-integrity.md) · [example](https://github.com/hasansajedi/trustrail/blob/main/examples/mcp_primitives.py) |
 | Secure server onboarding | `MCPServerOnboardingGuard` | Publisher/source/version/command/transport/capability policy, explicit consent, sandbox evidence, secret references, and short-lived permits | [Guide](security/mcp-server-onboarding.md) |
 | OAuth resource authorization | `MCPOAuthResourceServer`, `MCPOAuthDownstreamBroker` | Pinned signed token profile, exact issuer/audience/resource/principal/request claims, replay, filtered discovery, tool/resource checks, and non-passthrough credentials | [Guide](security/mcp-oauth.md) · [example](https://github.com/hasansajedi/trustrail/blob/main/examples/mcp_oauth.py) |
 | Message integrity | `MCPMessageSigner`, `MCPMessageVerifier` | Signed JSON-RPC payload, peer/user/agent/session/direction/tool-definition binding, freshness, and replay prevention | [Guide](security/mcp-message-integrity.md) |

@@ -119,6 +119,7 @@ nav:
       - Agent goal integrity: security/agent-goal-integrity.md
       - Semantic tool authorization: security/tool-misuse.md
       - MCP tool-definition integrity: security/mcp-tool-integrity.md
+      - MCP resource and prompt integrity: security/mcp-primitive-integrity.md
       - MCP message integrity: security/mcp-message-integrity.md
       - MCP OAuth authorization: security/mcp-oauth.md
       - MCP server onboarding: security/mcp-server-onboarding.md

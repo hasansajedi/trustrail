@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP MCP03/MCP10 integrity controls for canonical resources, templates,
+  prompts, arguments, annotations, icons, MIME types, subscription identities,
+  and completion contracts; signed discovery and approval snapshots;
+  reapproval-safe diffs; live provenance, authorization, identity, schema,
+  size, media-type, template, update, and injection validation; and an
+  adversarial security corpus
+  ([#92](https://github.com/hasansajedi/trustrail/issues/92)).
 - OWASP MCP10 sensitive-data flow controls with Ed25519-signed origin, tenant,
   user, purpose, sensitivity, sink, transformation, and transitive lineage
   labels; conservative propagation across model, retrieval, memory, tool, agent,
