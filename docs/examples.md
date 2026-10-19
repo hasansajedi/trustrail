@@ -48,6 +48,12 @@ each example.
 
 ### MCP authorization
 
+[`mcp_primitives.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/mcp_primitives.py)
+pins resources, prompts, subscription identities, and completion contracts, then
+validates live content before it reaches model context. Read
+[MCP resource and prompt integrity](security/mcp-primitive-integrity.md) for the
+configuration and residual-risk guidance.
+
 [`mcp_oauth.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/mcp_oauth.py)
 shows an end-to-end resource-server flow:
 

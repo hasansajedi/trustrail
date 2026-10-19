@@ -36,6 +36,7 @@ if TYPE_CHECKING:
         MCPOAuthCode,
     )
     from trustrail.models.mcp_onboarding import MCPServerOnboardingResult
+    from trustrail.models.mcp_primitives import MCPPrimitiveResult
     from trustrail.models.memory import MemoryDecision
     from trustrail.models.output_handling import OutputHandlingResult
     from trustrail.models.poisoning import DataPoisoningResult
@@ -304,6 +305,14 @@ class MCPToolDefinitionError(AegisRailError):
 
     def __init__(self, result: MCPToolDefinitionResult) -> None:
         super().__init__("MCP tool definition was not verified")
+        self.result = result
+
+
+class MCPPrimitiveError(AegisRailError):
+    """Raised when an MCP context primitive or its live content is not verified."""
+
+    def __init__(self, result: MCPPrimitiveResult) -> None:
+        super().__init__("MCP primitive was not verified")
         self.result = result
 
 

@@ -71,6 +71,20 @@ when the live definition changes before execution.
     options:
       members: true
 
+## MCP resource and prompt integrity
+
+`MCPPrimitiveGuard` signs and verifies resources, templates, prompts,
+subscriptions, and completion contracts, then checks live content against the
+approved identity, provenance, authorization, size, media type, and schema.
+
+::: trustrail.models.mcp_primitives
+    options:
+      members: true
+
+::: trustrail.mcp_primitives.MCPPrimitiveGuard
+    options:
+      members: true
+
 ## MCP message integrity
 
 `MCPMessageEnvelope` binds the complete JSON-RPC payload to trusted peer, user,
