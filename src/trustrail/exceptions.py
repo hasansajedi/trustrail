@@ -11,6 +11,7 @@ if TYPE_CHECKING:
         CodeExecutionDecision,
         CodeExecutionOutcome,
     )
+    from trustrail.models.context import ContextAssemblyResult
     from trustrail.models.credentials import (
         CredentialBoundaryDecision,
         CredentialBrokerDecision,
@@ -74,6 +75,14 @@ class ConfigurationError(AegisRailError):
     """Raised when the guard configuration is invalid."""
 
     pass
+
+
+class ContextAssemblyError(AegisRailError):
+    """Raised when trusted context cannot be assembled or verified safely."""
+
+    def __init__(self, result: ContextAssemblyResult) -> None:
+        super().__init__("Trusted context assembly or verification failed")
+        self.result = result
 
 
 class GuardrailBlockedError(AegisRailError):

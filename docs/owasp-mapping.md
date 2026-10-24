@@ -74,6 +74,20 @@ for configuration and residual risks. This is an engineering mapping to
 [OWASP AISVS C1](https://github.com/OWASP/AISVS/blob/main/1.0/en/0x10-C01-Training-Data-Integrity-and-Traceability.md),
 not certification or a claim that a dataset or model is unbiased.
 
+## OWASP AISVS C2 model context, prompts, and instructions
+
+| AISVS C2 objective | trustrail controls | Additional controls required |
+| --- | --- | --- |
+| **Separate instruction and data trust zones** | `ContextSegment` requires application-assigned origin, role, trust, tenant, purpose, provenance, and instruction permission; `TrustedContextAssembler` enforces the fixed system → developer → user → data hierarchy and converts retrieval, memory, tool output, external content, and multimodal extraction into marked data with no instruction permission | Authenticated identity, tenant, purpose, provenance, policy, retrieval, tool, and extractor sources; review of every context producer; least privilege; and complete mediation remain required |
+| **Preserve hierarchy across provider adaptation** | Deterministic ordering prevents collection order from raising authority; a signed content-free manifest binds the exact ordered content, roles, data markers, scope, complete policy, provider profile, and provider-neutral adapter version; immediate pre-provider verification rejects flattening, reorder, insertion, deletion, mutation, policy substitution, scope replay, staleness, and unsafe adapter transformations | A provider with compatible role semantics; pinned and tested SDK/model behavior; a gateway that accepts only the verified request; provider token limits; protected keys; and fail-closed deployment wiring remain required |
+| **Reject boundary and template confusion** | Provider-profile reserved tokens, synthetic role lines/tags, unresolved template syntax, compatibility-normalized variants, invisible/directional Unicode, duplicate/confusable identities, duplicate system messages, and context/metadata limit violations fail closed; optional escaping returns only the transformed request | Semantic injection detection, model-specific red teaming, trusted template compilation before assembly, model behavior monitoring, incident response, and regular security-corpus updates remain required |
+| **Minimize diagnostic disclosure** | Findings and exceptions expose stable codes, field paths, and one-way references; manifests contain hashes rather than raw context, tenant, purpose, provenance, or request identifiers | Logging configuration, access control, encryption, retention/deletion, privacy review, and prevention of source/provider-request logging remain required |
+
+This is an engineering mapping to
+[OWASP AISVS C2 Model Context, Prompts and Instructions](https://github.com/OWASP/AISVS/blob/main/1.0/en/0x10-C02-Model-Context-Prompts-and-Instructions.md),
+not certification. See [trusted context assembly](security/trusted-context-assembly.md)
+for configuration, assumptions, limitations, and residual risk.
+
 ## OWASP AISVS C5 access control and tenant isolation
 
 | AISVS C5 objective | trustrail controls | Additional controls required |
