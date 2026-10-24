@@ -22,6 +22,7 @@ each example.
 3. [`conversation.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/conversation.py)
 4. [`output_handling.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/output_handling.py)
 5. [`structured_output.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/structured_output.py)
+6. [`trusted_context_assembly.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/trusted_context_assembly.py)
 
 ### RAG and persistent data
 

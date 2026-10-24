@@ -98,6 +98,7 @@ nav:
       - Threat model: security/threat-model.md
       - Content safety: security/content-safety.md
       - Prompt injection: security/prompt-injection.md
+      - Trusted context assembly: security/trusted-context-assembly.md
       - Red-team regression: security/red-team-regression.md
       - Sensitive data: security/sensitive-data.md
       - Output handling: security/output-handling.md

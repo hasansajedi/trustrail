@@ -26,6 +26,7 @@ tools.
 | Guard function arguments | [`decorators.py`](decorators.py) | Fully bound arguments and forwarding transformed values |
 | Protect a conversation atomically | [`conversation.py`](conversation.py) | Role-specific stages, tool relationships, and fail-closed rejection |
 | Protect composed prompts | [`prompt_boundaries.py`](prompt_boundaries.py) | Source labels and cross-segment injection detection |
+| Assemble trusted model context | [`trusted_context_assembly.py`](trusted_context_assembly.py) | Typed instruction hierarchy, data-only external context, signed manifests, and exact pre-provider verification |
 | Add an application rule | [`custom_policy.py`](custom_policy.py) | A typed `BaseRule` attached to a guard |
 | Scan generated output | [`output_handling.py`](output_handling.py) | Final guard check plus destination-specific HTML, JSON, and SQL handling |
 | Validate structured output | [`structured_output.py`](structured_output.py) | Closed and bounded schemas, complete strict validation, exact persistence binding, and content-free audit |

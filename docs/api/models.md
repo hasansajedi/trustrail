@@ -3,6 +3,21 @@
 All result and configuration objects are typed Pydantic models. They can be
 serialized with `model_dump()` or `model_dump_json()`.
 
+## Trusted context assembly
+
+`ContextSegment` captures authenticated origin, role, trust, scope,
+provenance, and instruction permission. `TrustedContextAssembler` produces a
+deterministically ordered provider-neutral request and a signed, content-free
+manifest, then verifies the exact request immediately before dispatch.
+
+::: trustrail.models.context
+    options:
+      members: true
+
+::: trustrail.context.TrustedContextAssembler
+    options:
+      members: true
+
 ::: trustrail.models.core
     options:
       members: true

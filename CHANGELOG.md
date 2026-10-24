@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP AISVS C2 trusted context assembly with typed origin, role, trust,
+  tenant, purpose, provenance, and instruction-permission zones; deterministic
+  hierarchy and data-only external context; provider-reserved boundary,
+  template, and Unicode-smuggling defenses; signed content-free manifests; and
+  exact pre-provider adapter verification with an adversarial security corpus
+  ([#101](https://github.com/hasansajedi/trustrail/issues/101)).
 - OWASP MCP03/MCP10 integrity controls for canonical resources, templates,
   prompts, arguments, annotations, icons, MIME types, subscription identities,
   and completion contracts; signed discovery and approval snapshots;
