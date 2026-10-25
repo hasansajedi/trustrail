@@ -156,6 +156,12 @@ from trustrail.inter_agent import (
     MemoryInterAgentMessageAuditSink,
     MemoryInterAgentStateStore,
 )
+from trustrail.jailbreak_campaign import (
+    CampaignStateCapacityError,
+    CampaignStateStore,
+    JailbreakCampaignDetector,
+    MemoryCampaignStateStore,
+)
 from trustrail.mcp import MCPToolDefinitionGuard
 from trustrail.mcp_isolation import (
     MCPGatewayApprovalVerifier,
@@ -544,6 +550,21 @@ from trustrail.models.inter_agent import (
     canonical_inter_agent_json,
     inter_agent_content_reference,
     inter_agent_payload_digest,
+)
+from trustrail.models.jailbreak_campaign import (
+    CampaignAction,
+    CampaignCode,
+    CampaignEncodingKind,
+    CampaignFinding,
+    CampaignFragmentProgress,
+    CampaignResponseThresholds,
+    CampaignSignal,
+    CampaignSignalKind,
+    CampaignTurnFeatures,
+    JailbreakCampaignEvent,
+    JailbreakCampaignPolicy,
+    JailbreakCampaignResult,
+    JailbreakCampaignState,
 )
 from trustrail.models.mcp import (
     MCPDefinitionChange,
@@ -1140,6 +1161,17 @@ __all__ = [
     "BrowserSessionConfig",
     "BrowserSessionManifest",
     "BrowserSessionSigner",
+    "CampaignAction",
+    "CampaignCode",
+    "CampaignEncodingKind",
+    "CampaignFinding",
+    "CampaignFragmentProgress",
+    "CampaignResponseThresholds",
+    "CampaignSignal",
+    "CampaignSignalKind",
+    "CampaignStateCapacityError",
+    "CampaignStateStore",
+    "CampaignTurnFeatures",
     "CircuitBreakerPolicy",
     "CircuitState",
     "CitationChunk",
@@ -1427,6 +1459,11 @@ __all__ = [
     "InterAgentVerificationContext",
     "IsolationLevel",
     "JITPrivilegeGrant",
+    "JailbreakCampaignDetector",
+    "JailbreakCampaignEvent",
+    "JailbreakCampaignPolicy",
+    "JailbreakCampaignResult",
+    "JailbreakCampaignState",
     "LabelOrigin",
     "LabelQualityAssessment",
     "LabelQualityEvaluator",
@@ -1560,6 +1597,7 @@ __all__ = [
     "MemoryAuditEvent",
     "MemoryAuditSink",
     "MemoryBrowserAuthorizationStateStore",
+    "MemoryCampaignStateStore",
     "MemoryContentKind",
     "MemoryCredentialAuditSink",
     "MemoryCredentialCapabilityStore",

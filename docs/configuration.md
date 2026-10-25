@@ -116,6 +116,57 @@ tenant, and tag fields. Finding summaries, timing, stage, action, score, and
 input length remain available. Arbitrary `GuardContext.metadata` values are
 never copied to audit events.
 
+## Cross-turn jailbreak campaign policy
+
+Cross-turn detection is configured independently because it must run before the
+stateless `Guard` and update an ordered session record atomically:
+
+```python
+from trustrail import (
+    CampaignResponseThresholds,
+    CampaignSignalKind,
+    JailbreakCampaignDetector,
+    JailbreakCampaignPolicy,
+    MemoryCampaignStateStore,
+)
+
+campaign_policy = JailbreakCampaignPolicy(
+    policy_version="campaign-v3",
+    session_ttl_seconds=1_800,
+    max_turns=64,
+    max_tracked_sessions=10_000,
+    max_event_chars=100_000,
+    max_event_age_seconds=300,
+    max_future_skew_seconds=5,
+    max_atomic_retries=8,
+    repetition_turns=3,
+    example_markers=6,
+    boundary_probes=4,
+    policy_erosion_markers=3,
+    retry_markers=3,
+    encoding_kinds=3,
+    thresholds=CampaignResponseThresholds(
+        warn=15,
+        challenge=30,
+        throttle=45,
+        context_reset=60,
+        block=80,
+    ),
+    critical_signals=frozenset({CampaignSignalKind.FRAGMENT_RECONSTRUCTION}),
+)
+campaign_detector = JailbreakCampaignDetector(
+    campaign_policy,
+    privacy_key_from_secret_manager,
+    state_store=MemoryCampaignStateStore(max_sessions=10_000),
+)
+```
+
+The privacy key must be stable, secret, environment-specific, and at least 32
+bytes. The memory store is process-local. Multiple workers require a shared
+`CampaignStateStore` with linearizable compare-and-set and atomic TTL/capacity
+handling. Read the [cross-turn campaign guide](security/cross-turn-jailbreak-campaigns.md)
+before changing scoring or response thresholds.
+
 ## Risk Scoring
 
 - CRITICAL finding → score = 100 (always block)

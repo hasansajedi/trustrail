@@ -20,9 +20,10 @@ each example.
 1. [`basic_input.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/basic_input.py)
 2. [`configuration_and_audit.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/configuration_and_audit.py)
 3. [`conversation.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/conversation.py)
-4. [`output_handling.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/output_handling.py)
-5. [`structured_output.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/structured_output.py)
-6. [`trusted_context_assembly.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/trusted_context_assembly.py)
+4. [`jailbreak_campaign_detection.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/jailbreak_campaign_detection.py)
+5. [`output_handling.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/output_handling.py)
+6. [`structured_output.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/structured_output.py)
+7. [`trusted_context_assembly.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/trusted_context_assembly.py)
 
 ### RAG and persistent data
 

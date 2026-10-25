@@ -18,6 +18,25 @@ manifest, then verifies the exact request immediately before dispatch.
     options:
       members: true
 
+## Cross-turn jailbreak campaigns
+
+Campaign models describe authenticated ordered turns, privacy-safe bounded
+features and state, stable findings, and progressive response policy. The
+detector accepts an application-provided CAS store; the included memory store
+supports one process.
+
+::: trustrail.models.jailbreak_campaign
+    options:
+      members: true
+
+::: trustrail.jailbreak_campaign.JailbreakCampaignDetector
+    options:
+      members: true
+
+::: trustrail.jailbreak_campaign.MemoryCampaignStateStore
+    options:
+      members: true
+
 ::: trustrail.models.core
     options:
       members: true
