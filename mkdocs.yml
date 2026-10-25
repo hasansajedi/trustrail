@@ -108,6 +108,7 @@ nav:
       - Citation and claim integrity: security/citation-integrity.md
       - Persistent memory: security/memory-security.md
       - Data and model poisoning: security/data-model-poisoning.md
+      - Ingestion connector security: security/ingestion-connector-security.md
       - Training-data governance: security/training-data-governance.md
       - GenAI data lifecycle: security/data-lifecycle.md
       - Data-label propagation: security/data-label-propagation.md

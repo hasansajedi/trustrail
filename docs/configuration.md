@@ -934,3 +934,30 @@ Training data, fine-tuning data, and model artifacts require a separately truste
 expected digest by default. See
 [Data and model poisoning](security/data-model-poisoning.md) for complete RAG,
 memory, model, lineage, and custom detector examples.
+
+## Ingestion connector verification policy
+
+Connector controls are configured independently because admission happens
+before execution and effective state is rechecked before every synchronization:
+
+```python
+from trustrail import IngestionConnectorPolicy
+
+connector_policy = IngestionConnectorPolicy(
+    max_manifest_age_seconds=86_400,
+    max_evidence_age_seconds=3_600,
+    admission_ttl_seconds=3_600,
+    authorization_ttl_seconds=900,
+    schedule_skew_seconds=300,
+    clock_skew_seconds=5,
+)
+```
+
+`required_controls` defaults to artifact integrity, dependency policy,
+sandboxing, least privilege, and source ownership. Narrowing that set reduces
+admission evidence and should require a documented risk decision. Manifest and
+evidence keys are supplied out of band to `IngestionConnectorGuard`; the
+control signer issues short-lived admissions, sync authorizations, and document
+provenance. See [ingestion connector admission and continuous
+verification](security/ingestion-connector-security.md) for the complete
+configuration, lifecycle, deployment assumptions, and residual risk.

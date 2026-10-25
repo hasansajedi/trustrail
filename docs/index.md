@@ -49,8 +49,8 @@ and operational controls for agents, tools, RAG, persistent state, and MCP.
 - purpose, residency, retention, consent, derivation, tombstone, and verified
   deletion lifecycle controls;
 - tenant-bound cache, memory, adapter, state, and inference-batch isolation;
-- AI supply-chain pinning, ingestion poisoning checks, and training-data label
-  and bias governance; and
+- AI supply-chain pinning, signed ingestion-connector admission and drift checks,
+  ingestion poisoning checks, and training-data label and bias governance; and
 - shared Redis state for distributed rate limits and other atomic controls.
 
 ### MCP security stack

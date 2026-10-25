@@ -27,6 +27,7 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 - **RAG Security** — Validate document provenance and detect instructions in retrieved content
 - **Secure Vector Retrieval** — Enforce tenant/user/resource access, embedding lineage, similarity integrity, and duplicate controls
 - **AI Supply-Chain Verification** — Pin provenance, revisions, and cryptographic artifact digests
+- **Ingestion Connector Verification** — Admit signed loaders, parsers, OCR, crawlers, feeds, and sync jobs; detect runtime drift; bind document provenance; and quarantine affected lineage
 - **Data Poisoning Controls** — Quarantine unauthorized, changed, or anomalous AI data and models
 - **Training-Data Governance** — Minimize features, protect label integrity and approval, evaluate automated-label quality, and gate aggregate bias metrics
 - **GenAI Data Lifecycle** — Propagate purpose, residency, retention, consent, and deletion obligations across derived artifacts

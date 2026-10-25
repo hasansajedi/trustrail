@@ -328,6 +328,22 @@ adapters, plugins, packages, external services, and retrieved artifacts.
     options:
       members: true
 
+## Ingestion connector admission and provenance
+
+Connector models bind a publisher-signed artifact, parser, sources,
+credentials, transforms, schedule, egress, media types, scopes, and sandbox
+declaration to independent admission evidence. `IngestionConnectorGuard`
+rechecks effective state for every synchronization, signs document provenance,
+and tracks descendants for quarantine and incident impact analysis.
+
+::: trustrail.models.ingestion_connector
+    options:
+      members: true
+
+::: trustrail.ingestion_connector
+    options:
+      members: true
+
 ## Data and model poisoning
 
 `DataIngestionRecord` binds content to application-assigned provenance,
