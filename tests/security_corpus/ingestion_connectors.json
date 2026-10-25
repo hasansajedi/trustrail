@@ -1,0 +1,62 @@
+[
+  {
+    "id": "manifest_artifact_digest_tamper",
+    "mutation": "manifest_artifact",
+    "expected_code": "manifest_signature_invalid"
+  },
+  {
+    "id": "runtime_dependency_lock_drift",
+    "mutation": "dependency_lock",
+    "expected_code": "effective_state_drift"
+  },
+  {
+    "id": "runtime_credential_scope_escalation",
+    "mutation": "credential_scope",
+    "expected_code": "effective_state_drift"
+  },
+  {
+    "id": "unowned_admission_source",
+    "mutation": "source_ownership",
+    "expected_code": "source_ownership_unverified"
+  },
+  {
+    "id": "missing_sandbox_attestation",
+    "mutation": "sandbox_evidence",
+    "expected_code": "admission_control_missing"
+  },
+  {
+    "id": "sync_source_substitution",
+    "mutation": "sync_source",
+    "expected_code": "source_not_allowed"
+  },
+  {
+    "id": "ambiguous_document_parser",
+    "mutation": "parser_ambiguity",
+    "expected_code": "parser_ambiguous"
+  },
+  {
+    "id": "unexpected_document_media_type",
+    "mutation": "content_type",
+    "expected_code": "content_type_unexpected"
+  },
+  {
+    "id": "document_changed_after_digest",
+    "mutation": "document_digest",
+    "expected_code": "content_integrity_mismatch"
+  },
+  {
+    "id": "partial_connector_sync",
+    "mutation": "partial_sync",
+    "expected_code": "partial_sync"
+  },
+  {
+    "id": "missing_downstream_provenance",
+    "mutation": "missing_provenance",
+    "expected_code": "provenance_missing"
+  },
+  {
+    "id": "tampered_downstream_provenance",
+    "mutation": "provenance_signature",
+    "expected_code": "provenance_invalid"
+  }
+]

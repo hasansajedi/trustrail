@@ -41,6 +41,7 @@ tools.
 | Bind citations to retrieved evidence | [`citation_integrity.py`](citation_integrity.py) | Authority-signed response/source/chunk/retrieval bindings and independent claim support |
 | Secure vector retrieval | [`secure_vector_workflow.py`](secure_vector_workflow.py) | Authorization, lineage, similarity, and context assembly |
 | Verify data before indexing | [`data_poisoning.py`](data_poisoning.py) | Source, writer, tenant, version, and content checks |
+| Admit and continuously verify ingestion connectors | [`ingestion_connector_security.py`](ingestion_connector_security.py) | Signed manifests and independent evidence, exact per-sync state, document provenance, downstream lineage, and incident quarantine |
 | Verify AI components | [`supply_chain.py`](supply_chain.py) | Approved provenance and digest pinning before use |
 | Ground factual output | [`evidence_grounding.py`](evidence_grounding.py) | Claims, citations, trusted evidence, and assessor confidence |
 | Protect system prompts | [`system_prompt_security.py`](system_prompt_security.py) | Classified prompt construction and output leakage detection |

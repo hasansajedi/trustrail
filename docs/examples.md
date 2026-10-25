@@ -31,6 +31,7 @@ each example.
 - [`citation_integrity.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/citation_integrity.py)
 - [`secure_vector_workflow.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/secure_vector_workflow.py)
 - [`data_poisoning.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/data_poisoning.py)
+- [`ingestion_connector_security.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/ingestion_connector_security.py)
 - [`persistent_memory.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/persistent_memory.py)
 - [`memory_taint.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/memory_taint.py)
 - [`tenant_isolation.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/tenant_isolation.py)

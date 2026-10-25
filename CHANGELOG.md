@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP RAG/LLM03/LLM04 ingestion-connector admission with Ed25519-signed
+  publisher manifests and independent control evidence; per-sync effective-state
+  drift checks for artifacts, parsers, sources, credentials, transforms,
+  schedules, egress, content types, scopes, and sandboxing; signed document
+  provenance; partial-failure quarantine; transitive downstream impact tracing;
+  and an adversarial security corpus
+  ([#97](https://github.com/hasansajedi/trustrail/issues/97)).
 - OWASP AISVS C2 bounded cross-turn jailbreak campaign detection with
   privacy-safe ordered trajectory features, tenant/user/session isolation,
   expiring CAS state, replay and out-of-order defenses, configurable progressive
