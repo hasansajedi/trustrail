@@ -213,6 +213,22 @@ verification.
     options:
       members: true
 
+## Browser and computer-use isolation
+
+Browser models bind tenant, identity, ephemeral profile, origin, authentication,
+action, data-flow, file, clipboard, and download capabilities into a signed
+session manifest. `BrowserIsolationGuard` keeps page, pixel, accessibility, and
+metadata observations untrusted while issuing exact single-use authorizations
+for a trusted browser actuator.
+
+::: trustrail.models.browser_isolation
+    options:
+      members: true
+
+::: trustrail.browser_isolation
+    options:
+      members: true
+
 ## Cascading failure containment
 
 Dependency models declare health, criticality, tenant-scoped failure domains,

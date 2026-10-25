@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from trustrail.models.agency import ToolAuthorizationResult
+    from trustrail.models.browser_isolation import BrowserIsolationResult
     from trustrail.models.citation_integrity import CitationIntegrityResult
     from trustrail.models.code_execution import (
         CodeExecutionDecision,
@@ -75,6 +76,14 @@ class ConfigurationError(AegisRailError):
     """Raised when the guard configuration is invalid."""
 
     pass
+
+
+class BrowserIsolationError(AegisRailError):
+    """Raised when a browser observation, action, or download is denied."""
+
+    def __init__(self, result: BrowserIsolationResult) -> None:
+        super().__init__("Browser or computer-use isolation policy denied the operation")
+        self.result = result
 
 
 class ContextAssemblyError(AegisRailError):

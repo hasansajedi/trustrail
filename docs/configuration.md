@@ -287,6 +287,49 @@ disabled. Every required sandbox control is enabled by default. See
 [isolated agent code execution](security/code-execution-isolation.md) for
 request construction, evidence verification, output gating, and residual risk.
 
+## Browser and computer-use isolation policy
+
+Browser-agent authority is configured with typed session and policy models,
+separate from `GuardConfig`. Start with the required sandbox-control defaults,
+then issue a short-lived manifest from authenticated server-side state:
+
+```python
+from trustrail import (
+    BrowserActionType,
+    BrowserIsolationPolicy,
+    BrowserOrigin,
+    BrowserSessionConfig,
+)
+
+browser_policy = BrowserIsolationPolicy(policy_version="browser-v1")
+app_origin = BrowserOrigin(scheme="https", host="app.example")
+browser_config = BrowserSessionConfig(
+    session_id=trusted_session_id,
+    tenant_id=authenticated_tenant_id,
+    actor_id=authenticated_actor_id,
+    identity_id=authenticated_identity_id,
+    profile_id="ephemeral-profile-1",
+    policy_version=browser_policy.policy_version,
+    current_origin=app_origin,
+    allowed_origins=(app_origin,),
+    authenticated_origins=(app_origin,),
+    allowed_actions=frozenset(
+        {BrowserActionType.NAVIGATE, BrowserActionType.SUBMIT}
+    ),
+    sandbox_controls=browser_policy.required_controls,
+    authentication_state_digest=trusted_authentication_state_digest,
+    nonce=cryptographically_random_nonce,
+    expires_at=session_expiry,
+)
+```
+
+Clipboard and local-file access, uploads, downloads, private origins, and
+cross-origin data movement default to disabled or empty. Keep those capabilities
+narrow and content/destination bound. See
+[browser and computer-use isolation](security/browser-computer-use-isolation.md)
+for manifest signing, observation binding, exact approval, download quarantine,
+shared replay state, and deployment limitations.
+
 ## Resource consumption policy
 
 Model and agent budgets use a typed policy because authenticated identities,
