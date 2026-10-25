@@ -20,6 +20,7 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 ## Features
 
 - **Prompt Injection Protection** — Detect and block direct injection, indirect RAG injection, and jailbreak attempts
+- **Cross-Turn Jailbreak Campaigns** — Detect many-shot examples, policy probing and erosion, retries, encoding shifts, repetition, and reconstructed instruction fragments with bounded privacy-safe state
 - **Sensitive Data Detection** — Find and redact PII, secrets, API keys, credit cards, and more
 - **Context-Aware Output Safety** — Encode display output and fail closed at SQL, shell, template, path, structured-data, and tool boundaries
 - **URL/SSRF Prevention** — Block requests to private IPs, metadata services, and dangerous schemes

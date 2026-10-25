@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP AISVS C2 bounded cross-turn jailbreak campaign detection with
+  privacy-safe ordered trajectory features, tenant/user/session isolation,
+  expiring CAS state, replay and out-of-order defenses, configurable progressive
+  responses, fragment reconstruction, and benign/adversarial security corpora
+  ([#100](https://github.com/hasansajedi/trustrail/issues/100)).
 - OWASP browser and computer-use isolation with integrity-sealed tenant,
   identity, profile, origin, authentication, action, file, clipboard, and
   download session manifests; explicitly untrusted page/pixel/accessibility
