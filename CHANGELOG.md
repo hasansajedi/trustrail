@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP browser and computer-use isolation with integrity-sealed tenant,
+  identity, profile, origin, authentication, action, file, clipboard, and
+  download session manifests; explicitly untrusted page/pixel/accessibility
+  observations; hidden/overlaid/cross-origin and secret-flow defenses; exact
+  single-use approvals for sensitive actions; quarantined expected downloads;
+  and an adversarial security corpus
+  ([#102](https://github.com/hasansajedi/trustrail/issues/102)).
 - OWASP AISVS C2 trusted context assembly with typed origin, role, trust,
   tenant, purpose, provenance, and instruction-permission zones; deterministic
   hierarchy and data-only external context; provider-reserved boundary,

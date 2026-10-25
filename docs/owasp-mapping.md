@@ -144,6 +144,21 @@ risks. This is an engineering mapping to
 [OWASP AISVS C9](https://github.com/OWASP/AISVS/blob/main/1.0/en/0x10-C09-Orchestration-and-Agentic-Action-Security.md)
 and OWASP MCP01, not compliance or certification evidence.
 
+## OWASP AI Agent browser and computer-use isolation
+
+| OWASP guidance | trustrail controls | Additional controls required |
+| --- | --- | --- |
+| **AI Agent Security Cheat Sheet: least privilege, tool authorization, input/output validation, and human approval** | `BrowserSessionManifest` integrity-seals tenant, actor, identity, ephemeral profile, current/allowed/authenticated origins, actions, cross-origin flows, content-bound file grants, clipboard switches, download policy, sandbox controls, authentication-state digest, nonce, policy version, and expiry. `BrowserIsolationGuard` binds every proposal to that session, enforces URL/origin and data-flow policy, blocks hidden, overlaid, disabled, cross-frame, or misclassified targets, always denies direct cookie/storage/host-secret reads, and issues only short-lived single-use actuator authorizations. Sensitive submissions, purchases, messages, permission changes, irreversible actions, uploads, credential use, clipboard writes, and sensitive flows require an externally authenticated exact canonical preview approval | A hardened isolated browser broker, authoritative workload/user identity, trustworthy DOM/pixel/accessibility instrumentation, non-spoofable approval UI, deny-by-default network and filesystem enforcement, DNS/redirect/TLS controls, a credential broker, shared atomic replay state, service-side authorization, transaction/value/rate limits, idempotency, durable audit, monitoring, and incident response remain required |
+| **LLM01 Prompt Injection: indirect multimodal and tool-mediated injection** | Rendered text, pixels, accessibility trees, page/download metadata, labels, and overlays are represented as `BrowserObservation` data with `untrusted=True`; verification binds an exact fresh snapshot without granting it authority. Page claims cannot approve navigation, credentials, entry, uploads, purchases, messages, permission changes, or irreversible clicks. Cross-origin sensitive flows require explicit edges, and expected downloads remain quarantined until bound size/type/origin and malware-scan evidence verifies | Semantic and multilingual prompt-injection detection, visual-deception/OCR robustness, adversarial image testing, browser and model isolation, complete mediation of tabs/frames/redirects/service workers, protected raw observations and previews, downstream content validation, human training, red-team testing, and independent infrastructure telemetry remain required; no classifier or approval proves page truth or user comprehension |
+
+See [browser and computer-use isolation](security/browser-computer-use-isolation.md)
+for configuration, the observation/action lifecycle, assumptions, limitations,
+and residual risk. This is an engineering mapping to the
+[OWASP AI Agent Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html)
+and
+[OWASP LLM01 Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/),
+not compliance or certification evidence.
+
 ## OWASP MCP Security Cheat Sheet
 
 | OWASP MCP guidance | trustrail controls | Additional controls required |
