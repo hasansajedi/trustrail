@@ -21,6 +21,20 @@ Coverage depends on the selected `GuardStage`, configuration, custom rules, and
 application enforcement. Review the [threat model](security/threat-model.md) and
 test against threats specific to your system.
 
+## OWASP AISVS C4 runtime isolation and model loading
+
+| AISVS C4 objective | trustrail controls | Additional controls required |
+| --- | --- | --- |
+| **Safe model loading** | `WorkloadManifest` integrity-binds an exact artifact digest and serialization format to an immutable `ModelLoader`; safe formats use an explicit allowlist, while pickle, PyTorch pickle, joblib, Keras H5, custom code, and any loader declared capable of arbitrary code execution require an expiring `ExecutableLoadApproval` bound to one tenant, artifact, loader, and sandbox profile | Artifact signatures and provenance, SBOM/vulnerability/malware analysis, protected loader inventory, framework-specific hardening, and migration away from executable formats remain required; an approval acknowledges rather than removes code-execution risk |
+| **Least-privilege workload manifest** | The manifest declares sandbox kind/profile, exact host mounts, egress, opaque credential references, device partitions, resources, and teardown requirements; empty policy sets deny mounts, network, credentials, and devices | The external scheduler, kernel, IAM/secret broker, network, storage, and device control plane must actually enforce these declarations and prevent alternate paths |
+| **Environment and tenant separation** | `WorkloadAttestation` binds the exact manifest, workload, tenant, environment, runtime instance, sandbox, and required controls and declares environment separation, dedicated tenant runtime, memory isolation, and cache isolation; missing, stale, rebound, replayed, or unauthenticated evidence fails closed | Signed hardware/runtime attestation, hardened images, namespaces/microVMs, dedicated or safely partitioned accelerators, side-channel analysis, trusted telemetry, and sandbox escape testing remain required; software declarations do not prove hardware isolation |
+| **External enforcement and cleanup** | `WorkloadEnforcementHook` fails closed before dispatch; a short-lived `WorkloadAuthorization` binds the exact admitted instance; authenticated `WorkloadTeardownEvidence` must confirm runtime destruction, credential/network/mount cleanup, RAM and accelerator-memory clearing, and cache clearing or the instance is quarantined | Shared atomic replay/lease state, durable audit, orchestrator admission policy, independent cleanup telemetry, secure device reset, monitoring, incident response, and prevention of reuse after uncertain cleanup remain required; cleanup cannot undo exfiltration or external effects |
+
+See [runtime isolation and safe model loading](security/workload-isolation.md)
+for configuration, security assumptions, limitations, residual risk, and the
+runnable example. This mapping describes application-layer admission evidence;
+it is not proof of infrastructure or hardware isolation.
+
 ## OWASP RAG ingestion connector controls
 
 | RAG ingestion objective | trustrail controls | Additional controls required |

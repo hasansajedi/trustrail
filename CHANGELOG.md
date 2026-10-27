@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP AISVS C4 model-loading and workload-admission controls with typed,
+  integrity-bound artifact, loader, sandbox, mount, egress, credential, device,
+  resource, and teardown manifests; default-deny executable serialization with
+  artifact-specific exceptions; tenant/environment/runtime attestations;
+  external enforcement hooks; authenticated cleanup verification; and an
+  adversarial security corpus
+  ([#40](https://github.com/hasansajedi/trustrail/issues/40)).
 - OWASP RAG/LLM03/LLM04 ingestion-connector admission with Ed25519-signed
   publisher manifests and independent control evidence; per-sync effective-state
   drift checks for artifacts, parsers, sources, credentials, transforms,

@@ -232,6 +232,22 @@ verification.
     options:
       members: true
 
+## AI workload isolation and safe model loading
+
+Workload models bind the exact model artifact and loader to a tenant,
+environment, sandbox profile, mounts, egress, credential references, devices,
+resources, attestation, and teardown contract. `WorkloadAdmissionGuard` issues
+a short-lived dispatch lease and verifies authenticated cleanup evidence; it
+does not load the model or provide infrastructure isolation.
+
+::: trustrail.models.workload_isolation
+    options:
+      members: true
+
+::: trustrail.workload_isolation.WorkloadAdmissionGuard
+    options:
+      members: true
+
 ## Browser and computer-use isolation
 
 Browser models bind tenant, identity, ephemeral profile, origin, authentication,

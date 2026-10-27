@@ -121,6 +121,7 @@ from trustrail.exceptions import (
     TrainingDataGovernanceError,
     VectorVerificationError,
     WorkflowIntegrityError,
+    WorkloadIsolationError,
 )
 from trustrail.failure_containment import (
     DependencyOutcomeVerifier,
@@ -1001,6 +1002,30 @@ from trustrail.models.workflow_integrity import (
     workflow_digest,
     workflow_reference,
 )
+from trustrail.models.workload_isolation import (
+    ExecutableLoadApproval,
+    HostMount,
+    ModelArtifact,
+    ModelLoader,
+    ModelSerializationFormat,
+    WorkloadAdmissionCode,
+    WorkloadAdmissionDecision,
+    WorkloadAdmissionFinding,
+    WorkloadAdmissionPolicy,
+    WorkloadAttestation,
+    WorkloadAuthorization,
+    WorkloadCredential,
+    WorkloadDevice,
+    WorkloadDeviceKind,
+    WorkloadEgressRule,
+    WorkloadIsolationControl,
+    WorkloadManifest,
+    WorkloadResourceLimits,
+    WorkloadSandboxKind,
+    WorkloadTeardownEvidence,
+    WorkloadTeardownRequirements,
+    workload_digest,
+)
 from trustrail.output_handling import SafeOutputHandler, ValidatedToolCall
 from trustrail.poisoning import DataPoisoningVerifier, PoisoningDetector
 from trustrail.privileged_access import (
@@ -1092,6 +1117,14 @@ from trustrail.workflow_integrity import (
     WorkflowResumeAuthorizer,
     WorkflowResumeStateStore,
     WorkflowRevocationProvider,
+)
+from trustrail.workload_isolation import (
+    StaticWorkloadAttestationVerifier,
+    StaticWorkloadTeardownVerifier,
+    WorkloadAdmissionGuard,
+    WorkloadAttestationVerifier,
+    WorkloadEnforcementHook,
+    WorkloadTeardownVerifier,
 )
 
 try:
@@ -1399,6 +1432,7 @@ __all__ = [
     "EvidenceGroundingVerifier",
     "EvidenceRelation",
     "EvidenceRelationKind",
+    "ExecutableLoadApproval",
     "ExecutionArtifactKind",
     "ExecutionCleanupEvidence",
     "ExecutionExitConditions",
@@ -1493,6 +1527,7 @@ __all__ = [
     "HighImpactCategory",
     "HighImpactLevel",
     "HighImpactPlanPreview",
+    "HostMount",
     "HumanReviewDecision",
     "HumanReviewGrant",
     "ImpactDomain",
@@ -1720,6 +1755,9 @@ __all__ = [
     "MemoryWriteClassification",
     "MemoryWriteRequest",
     "Message",
+    "ModelArtifact",
+    "ModelLoader",
+    "ModelSerializationFormat",
     "NetworkAccess",
     "NetworkEndpoint",
     "NetworkPolicy",
@@ -1862,6 +1900,8 @@ __all__ = [
     "StaticStepUpEvidenceVerifier",
     "StaticToolApprovalVerifier",
     "StaticWorkflowResumeAuthorizer",
+    "StaticWorkloadAttestationVerifier",
+    "StaticWorkloadTeardownVerifier",
     "StepUpAuthenticationEvidence",
     "StepUpEvidenceVerifier",
     "StructuredOutputAuditEvent",
@@ -2025,6 +2065,27 @@ __all__ = [
     "WorkflowResumeContext",
     "WorkflowResumeStateStore",
     "WorkflowRevocationProvider",
+    "WorkloadAdmissionCode",
+    "WorkloadAdmissionDecision",
+    "WorkloadAdmissionFinding",
+    "WorkloadAdmissionGuard",
+    "WorkloadAdmissionPolicy",
+    "WorkloadAttestation",
+    "WorkloadAttestationVerifier",
+    "WorkloadAuthorization",
+    "WorkloadCredential",
+    "WorkloadDevice",
+    "WorkloadDeviceKind",
+    "WorkloadEgressRule",
+    "WorkloadEnforcementHook",
+    "WorkloadIsolationControl",
+    "WorkloadIsolationError",
+    "WorkloadManifest",
+    "WorkloadResourceLimits",
+    "WorkloadSandboxKind",
+    "WorkloadTeardownEvidence",
+    "WorkloadTeardownRequirements",
+    "WorkloadTeardownVerifier",
     # Version
     "__version__",
     "annotation_set_digest",
@@ -2070,4 +2131,5 @@ __all__ = [
     "tool_manifest_reference",
     "workflow_digest",
     "workflow_reference",
+    "workload_digest",
 ]

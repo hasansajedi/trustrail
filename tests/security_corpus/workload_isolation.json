@@ -1,0 +1,19 @@
+[
+  {"name": "pickle-default-deny", "phase": "admission", "mutation": "executable_format", "expected_code": "executable_load_approval_required"},
+  {"name": "code-capable-loader-with-safe-extension", "phase": "admission", "mutation": "executable_loader", "expected_code": "executable_load_approval_required"},
+  {"name": "loader-implementation-swap", "phase": "admission", "mutation": "loader", "expected_code": "loader_mismatch"},
+  {"name": "shared-container-downgrade", "phase": "admission", "mutation": "sandbox", "expected_code": "sandbox_denied"},
+  {"name": "host-root-mount", "phase": "admission", "mutation": "mount", "expected_code": "host_mount_denied"},
+  {"name": "attacker-egress", "phase": "admission", "mutation": "egress", "expected_code": "network_egress_denied"},
+  {"name": "ambient-admin-credential", "phase": "admission", "mutation": "credential", "expected_code": "credential_denied"},
+  {"name": "undeclared-gpu-partition", "phase": "admission", "mutation": "device", "expected_code": "device_denied"},
+  {"name": "memory-amplification", "phase": "admission", "mutation": "resource", "expected_code": "resource_limit_exceeded"},
+  {"name": "cross-tenant-attestation", "phase": "admission", "mutation": "tenant", "expected_code": "attestation_mismatch"},
+  {"name": "unseparated-environment", "phase": "admission", "mutation": "environment", "expected_code": "environment_separation_unverified"},
+  {"name": "shared-tenant-runtime", "phase": "admission", "mutation": "runtime", "expected_code": "tenant_boundary_unverified"},
+  {"name": "shared-accelerator-memory", "phase": "admission", "mutation": "memory", "expected_code": "memory_isolation_unverified"},
+  {"name": "shared-model-cache", "phase": "admission", "mutation": "cache", "expected_code": "cache_isolation_unverified"},
+  {"name": "missing-isolation-controls", "phase": "admission", "mutation": "controls", "expected_code": "isolation_control_missing"},
+  {"name": "tampered-attestation", "phase": "admission", "mutation": "attestation_tamper", "expected_code": "attestation_invalid"},
+  {"name": "uncleared-accelerator-memory", "phase": "teardown", "mutation": "cleanup", "expected_code": "cleanup_unverified"}
+]

@@ -131,6 +131,7 @@ nav:
       - Inter-agent communication: security/inter-agent-communication.md
       - High-impact action approvals: security/high-impact-approvals.md
       - Isolated agent code execution: security/code-execution-isolation.md
+      - Runtime isolation and safe model loading: security/workload-isolation.md
       - Browser and computer-use isolation: security/browser-computer-use-isolation.md
       - Cascading failure containment: security/cascading-failure-containment.md
       - Rogue-agent runtime invariants: security/rogue-agent-runtime.md

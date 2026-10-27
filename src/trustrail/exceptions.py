@@ -60,6 +60,7 @@ if TYPE_CHECKING:
     )
     from trustrail.models.vector import VectorVerificationResult
     from trustrail.models.workflow_integrity import WorkflowIntegrityDecision
+    from trustrail.models.workload_isolation import WorkloadAdmissionDecision
 
 from trustrail.models.enums import GuardStage, Severity
 
@@ -260,6 +261,14 @@ class CodeExecutionError(AegisRailError):
         super().__init__("Agent-generated execution was not verified")
         self.decision = decision
         self.outcome = outcome
+
+
+class WorkloadIsolationError(AegisRailError):
+    """Raised when model loading or workload cleanup is not authorized."""
+
+    def __init__(self, decision: WorkloadAdmissionDecision) -> None:
+        super().__init__("AI workload isolation policy denied the operation")
+        self.decision = decision
 
 
 class FailureContainmentError(AegisRailError):

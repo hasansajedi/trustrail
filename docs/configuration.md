@@ -295,6 +295,45 @@ execution_authorizer = CodeExecutionAuthorizer(
 )
 ```
 
+## Model-loading and workload isolation policy
+
+Model-serving workloads use a separate complete manifest. Non-executable
+formats are allowlisted, while pickle-family/custom-code formats and any loader
+declared capable of arbitrary code execution require an exact, expiring
+`ExecutableLoadApproval`. Mounts, egress, credentials, and devices default to
+deny all:
+
+```python
+from trustrail import (
+    ModelLoader,
+    ModelSerializationFormat,
+    WorkloadAdmissionGuard,
+    WorkloadAdmissionPolicy,
+)
+
+loader = ModelLoader(
+    loader_id="safetensors-loader-v3",
+    implementation_digest=trusted_loader_sha256,
+    supported_formats=frozenset({ModelSerializationFormat.SAFETENSORS}),
+)
+workload_guard = WorkloadAdmissionGuard(
+    WorkloadAdmissionPolicy(
+        loaders=(loader,),
+        allowed_sandbox_profiles=frozenset({"model-serving-v3"}),
+        trusted_attestation_providers=frozenset({"production-runtime"}),
+    ),
+    attestation_verifier=production_runtime_control_plane,
+    teardown_verifier=production_runtime_control_plane,
+    enforcement_hooks=(organization_admission_controller,),
+)
+```
+
+Required environment separation, per-tenant runtime boundaries, memory/cache
+isolation, and teardown controls are enabled by default. The provider must
+authenticate evidence for those external controls. See [runtime isolation and
+safe model loading](security/workload-isolation.md) for manifest construction,
+executable-format exceptions, hardware limitations, and residual risk.
+
 ## Cascading failure containment policy
 
 Operational dependency limits use a typed inventory outside `GuardConfig`.
