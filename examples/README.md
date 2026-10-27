@@ -60,6 +60,7 @@ tools.
 | Broker a model-blind credential | [`credential_brokering.py`](credential_brokering.py) | Opaque references, execution-bound single-use capabilities, trusted resolution, replay blocking, and leak scanning |
 | Approve a high-impact plan | [`high_impact_approval.py`](high_impact_approval.py) | Complete canonical preview, exact reviewer grant, immutable execution snapshot, and content-free audit |
 | Isolate generated code | [`isolated_code_execution.py`](isolated_code_execution.py) | Attested sandbox admission, bounded privileges, and verified output and cleanup |
+| Admit an isolated model workload | [`workload_isolation.py`](workload_isolation.py) | Safe-format and loader policy, tenant-bound runtime attestation, short-lived dispatch, and verified memory/cache teardown |
 | Isolate browser/computer use | [`browser_computer_use_isolation.py`](browser_computer_use_isolation.py) | Signed browser sessions, untrusted page observations, trusted previews, and exact single-use approval |
 | Contain dependency failures | [`cascading_failures.py`](cascading_failures.py) | Tenant-isolated circuits, trusted fallbacks, and authenticated outcomes |
 | Bound model resources | [`resource_budget.py`](resource_budget.py) | Reservation, completion, and failure cleanup |

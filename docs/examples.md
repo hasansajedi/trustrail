@@ -47,6 +47,7 @@ each example.
 - [`high_impact_approval.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/high_impact_approval.py)
 - [`credential_brokering.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/credential_brokering.py)
 - [`isolated_code_execution.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/isolated_code_execution.py)
+- [`workload_isolation.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/workload_isolation.py)
 - [`browser_computer_use_isolation.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/browser_computer_use_isolation.py)
 - [`cascading_failures.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/cascading_failures.py)
 
