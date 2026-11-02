@@ -1,0 +1,140 @@
+[
+  {
+    "id": "host-suffix",
+    "mutation": "host",
+    "value": "mcp.example.com.evil",
+    "expected_code": "host_denied"
+  },
+  {
+    "id": "origin-userinfo",
+    "mutation": "origin",
+    "value": "https://app.example.com@evil.example",
+    "expected_code": "origin_denied"
+  },
+  {
+    "id": "decimal-loopback",
+    "mutation": "dns-host",
+    "value": "2130706433",
+    "expected_code": "dns_resolution_invalid"
+  },
+  {
+    "id": "dns-rebind-loopback",
+    "mutation": "revalidated-address",
+    "value": "127.0.0.1",
+    "expected_code": "private_address_denied"
+  },
+  {
+    "id": "dns-rebind-metadata",
+    "mutation": "revalidated-address",
+    "value": "169.254.169.254",
+    "expected_code": "private_address_denied"
+  },
+  {
+    "id": "untrusted-forwarded-host",
+    "mutation": "forwarded",
+    "value": "evil.example",
+    "expected_code": "forwarded_header_denied"
+  },
+  {
+    "id": "protocol-downgrade",
+    "mutation": "version",
+    "value": "2025-03-26",
+    "expected_code": "protocol_downgrade"
+  },
+  {
+    "id": "capability-injection",
+    "mutation": "capability",
+    "value": "admin",
+    "expected_code": "capability_negotiation_invalid"
+  },
+  {
+    "id": "content-type-list",
+    "mutation": "content-type",
+    "value": "application/json,text/event-stream",
+    "expected_code": "content_type_denied"
+  },
+  {
+    "id": "oversized-stream",
+    "mutation": "body-bytes",
+    "value": "1048577",
+    "expected_code": "payload_too_large"
+  },
+  {
+    "id": "redirect-private",
+    "mutation": "redirect",
+    "value": "1",
+    "expected_code": "redirect_denied"
+  },
+  {
+    "id": "multicast-v4",
+    "mutation": "revalidated-address",
+    "value": "224.0.0.1",
+    "expected_code": "private_address_denied"
+  },
+  {
+    "id": "multicast-v6",
+    "mutation": "revalidated-address",
+    "value": "ff02::1",
+    "expected_code": "private_address_denied"
+  },
+  {
+    "id": "ipv4-mapped-loopback",
+    "mutation": "revalidated-address",
+    "value": "::ffff:127.0.0.1",
+    "expected_code": "private_address_denied"
+  },
+  {
+    "id": "six-to-four-loopback",
+    "mutation": "revalidated-address",
+    "value": "2002:7f00:1::",
+    "expected_code": "private_address_denied"
+  },
+  {
+    "id": "scoped-ipv6",
+    "mutation": "revalidated-address",
+    "value": "2001:4860::1%en0",
+    "expected_code": "dns_resolution_invalid"
+  },
+  {
+    "id": "duplicate-host-root",
+    "mutation": "host",
+    "value": "mcp.example.com..",
+    "expected_code": "host_denied"
+  },
+  {
+    "id": "bracketed-dns-host",
+    "mutation": "host",
+    "value": "[mcp.example.com]",
+    "expected_code": "host_denied"
+  },
+  {
+    "id": "hex-loopback-host",
+    "mutation": "dns-host",
+    "value": "0x7f000001",
+    "expected_code": "dns_resolution_invalid"
+  },
+  {
+    "id": "duplicate-content-charset",
+    "mutation": "content-type",
+    "value": "application/json; charset=utf-8; charset=utf-8",
+    "expected_code": "content_type_denied"
+  },
+  {
+    "id": "special-purpose-v4",
+    "mutation": "revalidated-address",
+    "value": "192.0.0.8",
+    "expected_code": "private_address_denied"
+  },
+  {
+    "id": "local-nat64",
+    "mutation": "revalidated-address",
+    "value": "64:ff9b:1::7f00:1",
+    "expected_code": "private_address_denied"
+  },
+  {
+    "id": "documentation-v6",
+    "mutation": "revalidated-address",
+    "value": "3fff::1",
+    "expected_code": "private_address_denied"
+  }
+]

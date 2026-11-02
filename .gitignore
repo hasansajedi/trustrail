@@ -12,7 +12,7 @@ build/
 wheels/
 
 # Virtual environments
-.venv/
+.venv*/
 venv/
 env/
 
@@ -23,6 +23,7 @@ uv.lock
 .pytest_cache/
 .coverage
 coverage.xml
+coverage-*.xml
 htmlcov/
 .hypothesis/
 
