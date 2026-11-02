@@ -39,6 +39,7 @@ trustrail provides comprehensive security guardrails for Large Language Model (L
 - **Secure MCP Server Onboarding** — Verify publishers, sources, commands, transports, capabilities, consent, and sandbox attestations before installation or connection
 - **MCP Server Isolation** — Separate server trust domains, credentials, namespaces, and labeled data flows through a fail-closed gateway
 - **MCP OAuth Authorization** — Validate request-bound access tokens, filter tool discovery, authorize argument resources, and prevent downstream bearer passthrough
+- **MCP Transport Security** — Enforce canonical Host/Origin/endpoint policy, TLS peer identity, DNS-rebinding defense, safe negotiation, trusted proxies, and resource bounds before parsing messages
 - **Agent Goal Integrity** — Bind plans and delegations to an authorized objective and require exact approval for every material goal change
 - **Authenticated Inter-Agent Communication** — Sign agent messages and transformations, bind their delegation and audience, and reject replay, reordering, cross-tenant delivery, and unauthorized fan-out
 - **Tamper-Resistant Action Approvals** — Render complete canonical plans and bind single-use approval to exact recipients, amounts, scopes, diffs, disclosures, actor, policy, and execution context
@@ -197,6 +198,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 - [MCP Tool-Definition Integrity](docs/security/mcp-tool-integrity.md)
 - [MCP Message Integrity](docs/security/mcp-message-integrity.md)
 - [MCP OAuth Resource-Server Authorization](docs/security/mcp-oauth.md)
+- [MCP HTTP Transport Security](docs/security/mcp-transport.md)
 - [MCP Server Onboarding](docs/security/mcp-server-onboarding.md)
 - [MCP Server Isolation](docs/security/mcp-server-isolation.md)
 - [Model-Blind Credential Brokering](docs/security/credential-brokering.md)

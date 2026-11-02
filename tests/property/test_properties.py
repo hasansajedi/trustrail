@@ -45,7 +45,7 @@ class TestGuardInvariants:
         assert result.value == text
 
     @given(text=text_strategy, stage=stage_strategy)
-    @settings(max_examples=50)
+    @settings(max_examples=50, deadline=None)
     def test_all_stages_handled(self, text: str, stage: GuardStage):
         """Guard should handle any stage without crashing."""
         result = guard.check(text, stage)

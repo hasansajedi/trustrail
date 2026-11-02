@@ -804,6 +804,40 @@ only names; manifests carry one-way secret-record references and delivery
 declarations. See [MCP server onboarding](security/mcp-server-onboarding.md) for
 the consent, sandbox attestation, and external admission-hook lifecycle.
 
+## MCP transport policy
+
+Transport admission is separate from onboarding and OAuth. Use exact remote
+endpoint, Host, Origin, peer, protocol, and capability inventories, then bind
+runtime limits to the settings actually enforced by the HTTP stack:
+
+```python
+from trustrail import MCPHTTPTransportPolicy, MCPTransportGuard
+
+mcp_transport_policy = MCPHTTPTransportPolicy(
+    server_id="records-server",
+    allowed_endpoint_uris=frozenset({"https://mcp.example.com/records"}),
+    allowed_hosts=frozenset({"mcp.example.com"}),
+    allowed_origins=frozenset({"https://console.example.com"}),
+    allowed_peer_ids=frozenset({"spiffe://example.com/mcp/records-server"}),
+    allowed_protocol_versions=frozenset({"2025-06-18"}),
+    minimum_protocol_version="2025-06-18",
+    allowed_capabilities=frozenset({"tools"}),
+    required_capabilities=frozenset({"tools"}),
+    max_payload_bytes=1_048_576,
+    max_redirects=0,
+    max_connect_timeout_seconds=10,
+    max_read_timeout_seconds=30,
+    max_connections=100,
+    max_connections_per_peer=10,
+)
+mcp_transport_guard = MCPTransportGuard(http_policy=mcp_transport_policy)
+```
+
+Leave `trusted_proxy_networks` empty unless a known proxy overwrites forwarding
+headers. Leave `allow_non_global_addresses=False` for remote endpoints. See
+[MCP HTTP transport security](security/mcp-transport.md) for request capture,
+DNS pinning, proxy, stdio, assumptions, and residual-risk guidance.
+
 ## MCP OAuth resource-server policy
 
 OAuth authorization is configured separately because its identity and resource

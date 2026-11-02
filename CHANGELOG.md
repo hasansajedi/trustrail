@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OWASP AISVS C10 MCP transport admission with canonical endpoint, Host, and
+  Origin allow-lists; TLS and peer-identity requirements; DNS rebinding and
+  private-address defenses; explicit trusted-proxy chains; version downgrade
+  and capability-negotiation checks; payload, header, redirect, timeout, and
+  connection bounds; controlled-local stdio authorization; content-free audit
+  evidence; and an adversarial security corpus
+  ([#90](https://github.com/hasansajedi/trustrail/issues/90)).
 - OWASP AISVS C4 model-loading and workload-admission controls with typed,
   integrity-bound artifact, loader, sandbox, mount, egress, credential, device,
   resource, and teardown manifests; default-deny executable serialization with
@@ -67,6 +74,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   use, bounded full-response repair, content-free audit evidence, and an
   adversarial security corpus
   ([#99](https://github.com/hasansajedi/trustrail/issues/99)).
+
+### Fixed
+
+- Dependency-audit CI now upgrades its bootstrap `pip` and `setuptools` before
+  scanning to remediate vulnerable runner-bundled package-management tooling.
 
 ## [0.1.4] - 2026-10-10
 

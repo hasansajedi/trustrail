@@ -39,6 +39,7 @@ if TYPE_CHECKING:
     )
     from trustrail.models.mcp_onboarding import MCPServerOnboardingResult
     from trustrail.models.mcp_primitives import MCPPrimitiveResult
+    from trustrail.models.mcp_transport import MCPTransportResult
     from trustrail.models.memory import MemoryDecision
     from trustrail.models.output_handling import OutputHandlingResult
     from trustrail.models.poisoning import DataPoisoningResult
@@ -356,6 +357,14 @@ class MCPServerOnboardingError(AegisRailError):
 
     def __init__(self, result: MCPServerOnboardingResult) -> None:
         super().__init__("MCP server onboarding was not authorized")
+        self.result = result
+
+
+class MCPTransportError(AegisRailError):
+    """Raised when MCP transport admission or negotiation fails."""
+
+    def __init__(self, result: MCPTransportResult) -> None:
+        super().__init__("MCP transport was not authorized")
         self.result = result
 
 

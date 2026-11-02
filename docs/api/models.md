@@ -166,6 +166,21 @@ that is rechecked before connection.
     options:
       members: true
 
+## MCP transport security
+
+`MCPHTTPTransportPolicy` and `MCPStdioTransportPolicy` define closed transport
+boundaries. `MCPTransportGuard` validates trusted socket, DNS, TLS, HTTP,
+proxy, protocol-negotiation, and runtime-limit evidence before returning a
+short-lived authorization to proceed with MCP message parsing.
+
+::: trustrail.models.mcp_transport
+    options:
+      members: true
+
+::: trustrail.mcp_transport
+    options:
+      members: true
+
 ## MCP server isolation
 
 `MCPServerIsolationPolicy` defines independent server, namespace, credential,

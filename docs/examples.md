@@ -53,6 +53,13 @@ each example.
 
 ### MCP authorization
 
+[`mcp_transport.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/mcp_transport.py)
+applies canonical endpoint, Host and Origin policy, TLS peer identity, DNS
+pinning, safe protocol/capability negotiation, and runtime limits before MCP
+message parsing. Read
+[MCP HTTP transport security](security/mcp-transport.md) before mapping values
+from a real HTTP stack.
+
 [`mcp_primitives.py`](https://github.com/hasansajedi/trustrail/blob/main/examples/mcp_primitives.py)
 pins resources, prompts, subscription identities, and completion contracts, then
 validates live content before it reaches model context. Read
